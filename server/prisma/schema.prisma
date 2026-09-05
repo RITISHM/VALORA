@@ -1,0 +1,314 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  ACCOUNTANT
+  CONTACT
+}
+
+enum ContactType {
+  CUSTOMER
+  VENDOR
+  BOTH
+}
+
+enum ProductType {
+  GOODS
+  SERVICE
+  COMBO
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  INCOME
+  EXPENSE
+  CAPITAL
+}
+
+enum JournalType {
+  SALES
+  PURCHASE
+  BANK
+  CASH
+}
+
+enum Status {
+  DRAFT
+  POSTED
+  CANCELLED
+}
+
+enum AnalyticType {
+  INCOME
+  EXPENSE
+}
+
+enum BudgetStatus {
+  DRAFT
+  CONFIRMED
+  REVISED
+  CANCELLED
+}
+
+enum DocumentStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+  PAID
+}
+
+enum PaymentType {
+  SEND
+  RECEIVE
+}
+
+enum PaymentMethod {
+  CASH
+  BANK
+}
+
+enum AgainstType {
+  BILL
+  INVOICE
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  login_id      String   @unique
+  email         String   @unique
+  password_hash String
+  role          Role
+  contact_id    String?
+  contact       Contact? @relation(fields: [contact_id], references: [id])
+}
+
+model Contact {
+  id               String            @id @default(uuid())
+  name             String
+  type             ContactType
+  email            String?
+  mobile           String?
+  city             String?
+  state            String?
+  pincode          String?
+  image_url        String?
+  users            User[]
+  journal_items    JournalItem[]
+  budgets          Budget[]
+  purchase_orders  PurchaseOrder[]
+  vendor_bills     VendorBill[]
+  sales_orders     SalesOrder[]
+  customer_invoices CustomerInvoice[]
+  payments         Payment[]
+}
+
+model Product {
+  id                     String                  @id @default(uuid())
+  name                   String
+  type                   ProductType
+  category               String?
+  sales_price            Float                   @default(0.0)
+  cost                   Float                   @default(0.0)
+  purchase_order_lines   PurchaseOrderLine[]
+  vendor_bill_lines      VendorBillLine[]
+  sales_order_lines      SalesOrderLine[]
+  customer_invoice_lines CustomerInvoiceLine[]
+}
+
+model Account {
+  id            String        @id @default(uuid())
+  name          String
+  type          AccountType
+  journals      Journal[]
+  journal_items JournalItem[]
+}
+
+model Journal {
+  id                 String         @id @default(uuid())
+  name               String
+  type               JournalType
+  default_account_id String
+  default_account    Account        @relation(fields: [default_account_id], references: [id])
+  journal_entries    JournalEntry[]
+}
+
+model JournalEntry {
+  id           String        @id @default(uuid())
+  journal_id   String
+  journal      Journal       @relation(fields: [journal_id], references: [id])
+  entry_date   DateTime      @default(now())
+  reference    String?
+  status       Status        @default(DRAFT)
+  journal_items JournalItem[]
+}
+
+model JournalItem {
+  id               String       @id @default(uuid())
+  journal_entry_id String
+  journal_entry    JournalEntry @relation(fields: [journal_entry_id], references: [id])
+  account_id       String
+  account          Account      @relation(fields: [account_id], references: [id])
+  partner_id       String?
+  partner          Contact?     @relation(fields: [partner_id], references: [id])
+  debit            Float        @default(0.0)
+  credit           Float        @default(0.0)
+}
+
+model AnalyticAccount {
+  id                     String                  @id @default(uuid())
+  name                   String
+  type                   AnalyticType
+  budget_lines           BudgetLine[]
+  purchase_order_lines   PurchaseOrderLine[]
+  vendor_bill_lines      VendorBillLine[]
+  sales_order_lines      SalesOrderLine[]
+  customer_invoice_lines CustomerInvoiceLine[]
+}
+
+model Budget {
+  id                     String       @id @default(uuid())
+  name                   String
+  period_start           DateTime
+  period_end             DateTime
+  responsible_contact_id String
+  responsible_contact    Contact      @relation(fields: [responsible_contact_id], references: [id])
+  status                 BudgetStatus @default(DRAFT)
+  revised_from_id        String?
+  revised_from           Budget?      @relation("RevisedBudget", fields: [revised_from_id], references: [id])
+  revisions              Budget[]     @relation("RevisedBudget")
+  budget_lines           BudgetLine[]
+}
+
+model BudgetLine {
+  id                  String          @id @default(uuid())
+  budget_id           String
+  budget              Budget          @relation(fields: [budget_id], references: [id])
+  analytic_account_id String
+  analytic_account    AnalyticAccount @relation(fields: [analytic_account_id], references: [id])
+  type                AnalyticType
+  committed_amount    Float           @default(0.0)
+  allowed_amount      Float           @default(0.0)
+}
+
+model PurchaseOrder {
+  id            String              @id @default(uuid())
+  po_number     String              @unique
+  vendor_id     String
+  vendor        Contact             @relation(fields: [vendor_id], references: [id])
+  po_date       DateTime            @default(now())
+  status        DocumentStatus      @default(DRAFT)
+  lines         PurchaseOrderLine[]
+  vendor_bills  VendorBill[]
+}
+
+model PurchaseOrderLine {
+  id                  String          @id @default(uuid())
+  po_id               String
+  po                  PurchaseOrder   @relation(fields: [po_id], references: [id])
+  product_id          String
+  product             Product         @relation(fields: [product_id], references: [id])
+  analytic_account_id String?
+  analytic_account    AnalyticAccount? @relation(fields: [analytic_account_id], references: [id])
+  qty                 Float           @default(1.0)
+  unit_price          Float           @default(0.0)
+  total               Float           @default(0.0)
+}
+
+model VendorBill {
+  id             String           @id @default(uuid())
+  po_id          String?
+  po             PurchaseOrder?   @relation(fields: [po_id], references: [id])
+  bill_reference String?
+  vendor_id      String
+  vendor         Contact          @relation(fields: [vendor_id], references: [id])
+  bill_date      DateTime         @default(now())
+  due_date       DateTime?
+  status         DocumentStatus   @default(DRAFT)
+  total          Float            @default(0.0)
+  lines          VendorBillLine[]
+}
+
+model VendorBillLine {
+  id                  String          @id @default(uuid())
+  bill_id             String
+  bill                VendorBill      @relation(fields: [bill_id], references: [id])
+  product_id          String
+  product             Product         @relation(fields: [product_id], references: [id])
+  analytic_account_id String?
+  analytic_account    AnalyticAccount? @relation(fields: [analytic_account_id], references: [id])
+  qty                 Float           @default(1.0)
+  unit_price          Float           @default(0.0)
+  total               Float           @default(0.0)
+}
+
+model SalesOrder {
+  id               String           @id @default(uuid())
+  so_number        String           @unique
+  customer_id      String
+  customer         Contact          @relation(fields: [customer_id], references: [id])
+  so_date          DateTime         @default(now())
+  status           DocumentStatus   @default(DRAFT)
+  lines            SalesOrderLine[]
+  customer_invoices CustomerInvoice[]
+}
+
+model SalesOrderLine {
+  id                  String          @id @default(uuid())
+  so_id               String
+  so                  SalesOrder      @relation(fields: [so_id], references: [id])
+  product_id          String
+  product             Product         @relation(fields: [product_id], references: [id])
+  analytic_account_id String?
+  analytic_account    AnalyticAccount? @relation(fields: [analytic_account_id], references: [id])
+  qty                 Float           @default(1.0)
+  unit_price          Float           @default(0.0)
+  total               Float           @default(0.0)
+}
+
+model CustomerInvoice {
+  id             String                @id @default(uuid())
+  so_id          String?
+  so             SalesOrder?           @relation(fields: [so_id], references: [id])
+  invoice_number String                @unique
+  customer_id    String
+  customer       Contact               @relation(fields: [customer_id], references: [id])
+  invoice_date   DateTime              @default(now())
+  due_date       DateTime?
+  status         DocumentStatus        @default(DRAFT)
+  total          Float                 @default(0.0)
+  lines          CustomerInvoiceLine[]
+}
+
+model CustomerInvoiceLine {
+  id                  String          @id @default(uuid())
+  invoice_id          String
+  invoice             CustomerInvoice @relation(fields: [invoice_id], references: [id])
+  product_id          String
+  product             Product         @relation(fields: [product_id], references: [id])
+  analytic_account_id String?
+  analytic_account    AnalyticAccount? @relation(fields: [analytic_account_id], references: [id])
+  qty                 Float           @default(1.0)
+  unit_price          Float           @default(0.0)
+  total               Float           @default(0.0)
+}
+
+model Payment {
+  id           String        @id @default(uuid())
+  type         PaymentType
+  partner_id   String
+  partner      Contact       @relation(fields: [partner_id], references: [id])
+  amount       Float         @default(0.0)
+  method       PaymentMethod
+  against_type AgainstType
+  against_id   String
+  status       DocumentStatus @default(DRAFT)
+}
