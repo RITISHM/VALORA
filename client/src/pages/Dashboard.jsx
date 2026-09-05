@@ -5,7 +5,6 @@ import '../styles/dashboard.css';
 function AdminDashboard() {
   return (
     <div className="dashboard-container">
-      <div className="dashboard-greeting">
         <h1>Hi, Admin 👋</h1>
       </div>
 
@@ -159,6 +158,7 @@ function AdminDashboard() {
               </div>
             </div>
           </div>
+          
         </div>
       </div>
     </div>

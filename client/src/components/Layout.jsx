@@ -24,7 +24,6 @@ export default function Layout() {
               <Hexagon size={28} className="sidebar-logo-icon" />
             </Link>
           </div>
-          
         <nav className="sidebar-nav">
             <NavLink to="/dashboard" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Dashboard">
               <LayoutDashboard size={20} />
@@ -54,7 +53,6 @@ export default function Layout() {
               </>
             )}
           </nav>
-          
           <div className="sidebar-footer">
             <button className="logout-btn" onClick={handleLogout} title="Logout">
               <LogOut size={20} />
