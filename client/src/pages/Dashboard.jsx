@@ -311,6 +311,13 @@ function UserDashboard({ user }) {
   const [outstanding, setOutstanding] = useState({ total_unpaid_invoices: 0, recently_paid: 0 });
   const [loading, setLoading] = useState(true);
   const [payingId, setPayingId] = useState(null);
+  const [printingInvoice, setPrintingInvoice] = useState(null);
+
+  useEffect(() => {
+    const afterPrint = () => setPrintingInvoice(null);
+    window.addEventListener('afterprint', afterPrint);
+    return () => window.removeEventListener('afterprint', afterPrint);
+  }, []);
 
   const token = localStorage.getItem('valora_token');
 
@@ -405,6 +412,13 @@ function UserDashboard({ user }) {
   const [showMockPayment, setShowMockPayment] = useState(false);
   const [mockPaymentStatus, setMockPaymentStatus] = useState('processing'); // processing, success
 
+  const handlePrint = (inv) => {
+    setPrintingInvoice(inv);
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  };
+
   const handlePay = async (invoiceId, total) => {
     setPayingId(invoiceId);
     setShowMockPayment(true);
@@ -472,6 +486,79 @@ function UserDashboard({ user }) {
     
     return true;
   });
+
+  if (printingInvoice) {
+    return (
+      <div style={{ padding: '40px', fontFamily: 'sans-serif', color: '#111116', background: '#fff', minHeight: '100vh', maxWidth: '800px', margin: '0 auto' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #E5E7EB', paddingBottom: '20px', marginBottom: '30px' }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: '2rem', color: '#714B67', fontWeight: '800' }}>VALORA</h1>
+            <p style={{ margin: '4px 0 0 0', color: '#6B7280', fontSize: '0.9rem' }}>123 Business Road, Tech City<br/>contact@valora.com</p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: '#111116' }}>INVOICE</h2>
+            <p style={{ margin: '4px 0 0 0', color: '#6B7280', fontSize: '0.9rem' }}>#{printingInvoice.invoice_number}</p>
+            <p style={{ margin: '4px 0 0 0', color: '#6B7280', fontSize: '0.9rem' }}>Date: {new Date(printingInvoice.invoice_date).toLocaleDateString('en-IN')}</p>
+          </div>
+        </div>
+
+        {/* Billed To */}
+        <div style={{ marginBottom: '40px' }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '1rem', color: '#4B5563', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Billed To:</h3>
+          <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>{user?.contact_name || user?.name || 'Customer'}</p>
+        </div>
+
+        {/* Table */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '40px' }}>
+          <thead>
+            <tr style={{ borderBottom: '2px solid #111116' }}>
+              <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '700' }}>Item / Description</th>
+              <th style={{ padding: '12px 8px', textAlign: 'center', fontWeight: '700' }}>Qty</th>
+              <th style={{ padding: '12px 8px', textAlign: 'right', fontWeight: '700' }}>Rate</th>
+              <th style={{ padding: '12px 8px', textAlign: 'right', fontWeight: '700' }}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(printingInvoice.lines || []).map((line, idx) => (
+              <tr key={idx} style={{ borderBottom: '1px solid #E5E7EB' }}>
+                <td style={{ padding: '12px 8px' }}>{line.product?.name || 'Item'}</td>
+                <td style={{ padding: '12px 8px', textAlign: 'center' }}>{line.qty}</td>
+                <td style={{ padding: '12px 8px', textAlign: 'right' }}>₹ {Number(line.unit_price || 0).toLocaleString('en-IN')}</td>
+                <td style={{ padding: '12px 8px', textAlign: 'right' }}>₹ {Number(line.total || 0).toLocaleString('en-IN')}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Totals */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ width: '300px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', color: '#4B5563' }}>
+              <span>Subtotal</span>
+              <span>₹ {Number(printingInvoice.subtotal || 0).toLocaleString('en-IN')}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', color: '#4B5563', borderBottom: '1px solid #E5E7EB' }}>
+              <span>Tax Amount</span>
+              <span>₹ {Number(printingInvoice.tax_amount || 0).toLocaleString('en-IN')}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', fontWeight: '800', fontSize: '1.2rem', color: '#111116' }}>
+              <span>Total Paid</span>
+              <span>₹ {Number(printingInvoice.total || 0).toLocaleString('en-IN')}</span>
+            </div>
+            <div style={{ display: 'inline-block', marginTop: '10px', padding: '6px 12px', background: '#D1FAE5', color: '#059669', fontWeight: '700', borderRadius: '4px', border: '1px solid #10B981' }}>
+              ✓ PAID IN FULL
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ marginTop: '80px', textAlign: 'center', color: '#9CA3AF', fontSize: '0.85rem' }}>
+          Thank you for your business.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-container">
@@ -562,6 +649,26 @@ function UserDashboard({ user }) {
                       >
                         <Eye size={16} /> View
                       </button>
+                      {inv.status === 'PAID' && (
+                        <button
+                          onClick={() => handlePrint(inv)}
+                          style={{
+                            backgroundColor: '#FFFFFF',
+                            color: '#059669',
+                            border: '1px solid #10B981',
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> Print
+                        </button>
+                      )}
                       {inv.status !== 'PAID' && (
                         <button
                           onClick={() => handlePay(inv.id, inv.total)}

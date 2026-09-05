@@ -22,3 +22,28 @@ body, html {
 button, input, optgroup, select, textarea {
   font-family: inherit;
 }
+
+/* Print Styles */
+@media print {
+  .sidebar, .top-header, .header-actions {
+    display: none !important;
+  }
+  
+  .layout-container, .main-content, .page-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body, html {
+    overflow: visible !important;
+    height: auto !important;
+    background-color: white !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
