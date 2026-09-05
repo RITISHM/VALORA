@@ -26,7 +26,7 @@ class BudgetsService {
             _sum: { total: true },
             where: {
               analytic_account_id: analyticId,
-              vendor_bill: {
+              bill: {
                 status: { in: ["CONFIRMED", "PAID"] },
                 bill_date: { gte: start, lte: end },
               },
@@ -36,7 +36,7 @@ class BudgetsService {
             _sum: { total: true },
             where: {
               analytic_account_id: analyticId,
-              customer_invoice: {
+              invoice: {
                 status: { in: ["CONFIRMED", "PAID"] },
                 invoice_date: { gte: start, lte: end },
               },

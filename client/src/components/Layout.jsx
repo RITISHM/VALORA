@@ -11,7 +11,8 @@ import React, { useState } from 'react';
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Package, FileText, BarChart3, LogOut, Hexagon, Search, Bell, Settings,
-  Store, ShoppingBag, ShoppingCart, BookOpen, PieChart, Layers, Tag, DollarSign, ListFilter
+  Store, ShoppingBag, ShoppingCart, BookOpen, PieChart, Layers, Tag, DollarSign, ListFilter,
+  TrendingUp, Wallet, BarChart2
 } from 'lucide-react';
 import '../styles/layout.css';
 import { useCartStore } from '../store/useCartStore';
@@ -113,14 +114,34 @@ export default function Layout() {
                   <span className="nav-label">Journal Entries</span>
                 </NavLink>
 
+                <NavLink to="/analytic-accounts" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Analytic Accounts">
+                  <TrendingUp size={20} className="nav-icon" />
+                  <span className="nav-label">Analytic Accounts</span>
+                </NavLink>
+
+                <NavLink to="/budgets" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Budgets">
+                  <PieChart size={20} className="nav-icon" />
+                  <span className="nav-label">Budgets</span>
+                </NavLink>
+
+                <NavLink to="/payments" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Payments">
+                  <Wallet size={20} className="nav-icon" />
+                  <span className="nav-label">Payments</span>
+                </NavLink>
+
                 <NavLink to="/reports/balance-sheet" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Balance Sheet">
                   <BarChart3 size={20} className="nav-icon" />
                   <span className="nav-label">Balance Sheet</span>
                 </NavLink>
 
                 <NavLink to="/reports/pnl" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Profit & Loss">
-                  <BarChart3 size={20} className="nav-icon" />
+                  <BarChart2 size={20} className="nav-icon" />
                   <span className="nav-label">Profit & Loss</span>
+                </NavLink>
+
+                <NavLink to="/reports/budget" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Budget Report">
+                  <DollarSign size={20} className="nav-icon" />
+                  <span className="nav-label">Budget Report</span>
                 </NavLink>
               </>
             )}

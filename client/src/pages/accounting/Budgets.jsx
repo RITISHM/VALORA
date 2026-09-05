@@ -192,13 +192,21 @@ export default function Budgets() {
   if (view === 'list') {
     return (
       <div className="page-content" style={{ padding: 0 }}>
-        <div className="page-header"><h1 className="page-title">Analytical Budgets</h1></div>
-        {isLoading ? <p>Loading budgets...</p> : (
+        <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 className="page-title">Analytical Budgets</h1>
+          <button
+            className="primary-btn"
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            onClick={() => { setFormData(emptyForm); setView('form'); }}
+          >
+            <Plus size={18} /> New Budget
+          </button>
+        </div>
+        {isLoading ? <p style={{ padding: '24px', color: '#64748B' }}>Loading budgets...</p> : (
           <DataTable
             title="Budget"
             columns={columns}
             data={budgets}
-            onNewClick={() => { setFormData(emptyForm); setView('form'); }}
             searchPlaceholder="Search budgets..."
           />
         )}
