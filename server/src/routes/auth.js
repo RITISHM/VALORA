@@ -129,4 +129,74 @@ router.put("/me", authenticateToken, async (req, res, next) => {
   }
 });
 
+const updateUserSchema = z.object({
+  name: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+  role: z.enum(["ADMIN", "ACCOUNTANT", "CONTACT"]).optional(),
+  contact_id: z.string().nullable().optional(),
+});
+
+router.get("/users", authenticateToken, async (req, res, next) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        login_id: true,
+        email: true,
+        role: true,
+        contact_id: true,
+      }
+    });
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put("/users/:id", authenticateToken, async (req, res, next) => {
+  try {
+    const validatedData = updateUserSchema.parse(req.body);
+
+    const user = await prisma.user.update({
+      where: { id: req.params.id },
+      data: validatedData,
+      select: {
+        id: true,
+        name: true,
+        login_id: true,
+        email: true,
+        role: true,
+        contact_id: true,
+      }
+    });
+    res.json(user);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.issues });
+    }
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "User not found" });
+    }
+    if (error.code === "P2002") {
+      return res.status(400).json({ error: "Email already exists" });
+    }
+    next(error);
+  }
+});
+
+router.delete("/users/:id", authenticateToken, async (req, res, next) => {
+  try {
+    await prisma.user.delete({
+      where: { id: req.params.id },
+    });
+    res.status(204).send();
+  } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "User not found" });
+    }
+    next(error);
+  }
+});
+
 module.exports = router;

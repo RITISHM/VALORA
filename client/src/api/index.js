@@ -27,6 +27,27 @@ const handleResponse = async (response) => {
 };
 
 export const api = {
+  // Users
+  getUsers: async () => {
+    const response = await fetch(`${BACKEND_URL}/auth/users`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+  updateUser: async (id, userData) => {
+    const response = await fetch(`${BACKEND_URL}/auth/users/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(userData)
+    });
+    return handleResponse(response);
+  },
+  deleteUser: async (id) => {
+    const response = await fetch(`${BACKEND_URL}/auth/users/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
+
   // Contacts
   getContacts: async () => {
     const response = await fetch(`${BACKEND_URL}/contacts`, { headers: getAuthHeaders() });
