@@ -8,7 +8,10 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Network, Activity, Sunrise, MoreHorizontal, FileText, ArrowRight, Loader2 } from 'lucide-react';
+import { 
+  ChevronDown, ShoppingBag, ShoppingCart, BookOpen, PieChart, Layers, Tag, DollarSign, ListFilter, Users, Package, FileText, BarChart3, ArrowRight, Network, Activity, Sunrise, Loader2
+} from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import { BACKEND_URL } from '../api';
 import '../styles/dashboard.css';
 
@@ -19,29 +22,137 @@ import '../styles/dashboard.css';
  * @returns {JSX.Element} The rendered admin dashboard view.
  */
 function AdminDashboard() {
+  const navigate = useNavigate();
+  const [activeDropdown, setActiveDropdown] = useState(null);
+
+  const toggleDropdown = (menu, e) => {
+    e.stopPropagation();
+    setActiveDropdown(activeDropdown === menu ? null : menu);
+  };
+
+  const closeDropdowns = () => {
+    setActiveDropdown(null);
+  };
+
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-greeting">
-        <h1>Hi, Admin 👋</h1>
+    <div className="dashboard-container" onClick={closeDropdowns}>
+      <div className="dashboard-greeting" style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: '800', margin: 0 }}>Hi, Admin 👋</h1>
       </div>
 
       <div className="dashboard-grid">
         {/* Left Column */}
-        <div className="dashboard-main-col">
+        <div className="dashboard-main-col" style={{ flex: 1.6 }}>
           <div className="section-header">
             <h2>Recent Transactions</h2>
-            <a href="#" className="see-all">See all <ArrowRight size={14} /></a>
+            <Link to="/sales-orders" className="see-all">See all <ArrowRight size={14} /></Link>
           </div>
-          
-          <div className="dashboard-tabs">
-            <span className="tab">All</span>
-            <span className="tab">Sales</span>
-            <span className="tab active">Purchases</span>
-            <span className="tab">Journals</span>
+
+          {/* The 4 Dropdown Menu Tabs in Dashboard Page (Replacing All | Sales | Purchases | Journals) */}
+          <div className="dashboard-tabs" style={{ gap: '24px', display: 'flex', alignItems: 'center', marginBottom: '32px', borderBottom: '1px solid #F3F4F6', paddingBottom: '12px', position: 'relative', zIndex: 50 }}>
+            {/* 1. SALES TAB */}
+            <div className="mega-dropdown-wrapper" style={{ position: 'relative' }}>
+              <button 
+                type="button"
+                className={`tab ${activeDropdown === 'sales' ? 'active' : ''}`}
+                onClick={(e) => toggleDropdown('sales', e)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  background: 'transparent', border: 'none',
+                  fontSize: '0.95rem', fontWeight: '600', color: activeDropdown === 'sales' ? '#111116' : '#9CA3AF',
+                  cursor: 'pointer', padding: 0
+                }}
+              >
+                Sales <ChevronDown size={14} />
+              </button>
+              {activeDropdown === 'sales' && (
+                <div className="mega-dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, marginTop: '8px' }}>
+                  <Link to="/sales-orders" onClick={closeDropdowns}><ShoppingBag size={15} /> Sales order</Link>
+                  <Link to="/customer-invoices" onClick={closeDropdowns}><FileText size={15} /> Sale Invoice</Link>
+                  <Link to="/payments" onClick={closeDropdowns}><DollarSign size={15} /> Receipt</Link>
+                </div>
+              )}
+            </div>
+
+            {/* 2. PURCHASE TAB */}
+            <div className="mega-dropdown-wrapper" style={{ position: 'relative' }}>
+              <button 
+                type="button"
+                className={`tab ${activeDropdown === 'purchase' ? 'active' : ''}`}
+                onClick={(e) => toggleDropdown('purchase', e)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  background: 'transparent', border: 'none',
+                  fontSize: '0.95rem', fontWeight: '600', color: activeDropdown === 'purchase' ? '#111116' : '#9CA3AF',
+                  cursor: 'pointer', padding: 0
+                }}
+              >
+                Purchase <ChevronDown size={14} />
+              </button>
+              {activeDropdown === 'purchase' && (
+                <div className="mega-dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, marginTop: '8px' }}>
+                  <Link to="/purchase-orders" onClick={closeDropdowns}><ShoppingCart size={15} /> Purchase Order</Link>
+                  <Link to="/vendor-bills" onClick={closeDropdowns}><FileText size={15} /> Purchase Bill</Link>
+                  <Link to="/payments" onClick={closeDropdowns}><DollarSign size={15} /> Payment</Link>
+                </div>
+              )}
+            </div>
+
+            {/* 3. ACCOUNT TAB */}
+            <div className="mega-dropdown-wrapper" style={{ position: 'relative' }}>
+              <button 
+                type="button"
+                className={`tab ${activeDropdown === 'account' ? 'active' : ''}`}
+                onClick={(e) => toggleDropdown('account', e)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  background: 'transparent', border: 'none',
+                  fontSize: '0.95rem', fontWeight: '600', color: activeDropdown === 'account' ? '#111116' : '#9CA3AF',
+                  cursor: 'pointer', padding: 0
+                }}
+              >
+                Account <ChevronDown size={14} />
+              </button>
+              {activeDropdown === 'account' && (
+                <div className="mega-dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, marginTop: '8px' }}>
+                  <Link to="/contacts" onClick={closeDropdowns}><Users size={15} /> Contact</Link>
+                  <Link to="/products" onClick={closeDropdowns}><Package size={15} /> Product</Link>
+                  <Link to="/analytic-accounts" onClick={closeDropdowns}><Tag size={15} /> Analyticals</Link>
+                  <Link to="/budgets" onClick={closeDropdowns}><PieChart size={15} /> Analytical Budget</Link>
+                  <Link to="/accounts" onClick={closeDropdowns}><BookOpen size={15} /> Chart of Account</Link>
+                  <Link to="/journals" onClick={closeDropdowns}><ListFilter size={15} /> Journals</Link>
+                  <Link to="/journal-entries" onClick={closeDropdowns}><Layers size={15} /> Journal Entries</Link>
+                </div>
+              )}
+            </div>
+
+            {/* 4. REPORT TAB */}
+            <div className="mega-dropdown-wrapper" style={{ position: 'relative' }}>
+              <button 
+                type="button"
+                className={`tab ${activeDropdown === 'report' ? 'active' : ''}`}
+                onClick={(e) => toggleDropdown('report', e)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  background: 'transparent', border: 'none',
+                  fontSize: '0.95rem', fontWeight: '600', color: activeDropdown === 'report' ? '#111116' : '#9CA3AF',
+                  cursor: 'pointer', padding: 0
+                }}
+              >
+                Report <ChevronDown size={14} />
+              </button>
+              {activeDropdown === 'report' && (
+                <div className="mega-dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, marginTop: '8px' }}>
+                  <Link to="/reports/balance-sheet" onClick={closeDropdowns}><BarChart3 size={15} /> Balancesheet</Link>
+                  <Link to="/reports/pnl" onClick={closeDropdowns}><BarChart3 size={15} /> Profit and Loss</Link>
+                  <Link to="/reports/budget" onClick={closeDropdowns}><PieChart size={15} /> Budget Report</Link>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="transaction-cards">
-            <div className="transaction-card">
+            <div className="transaction-card" onClick={() => navigate('/vendor-bills')} style={{ cursor: 'pointer' }}>
               <div className="card-graphic bg-mint">
                 <Network size={40} strokeWidth={1} color="#017E84" />
               </div>
@@ -59,7 +170,7 @@ function AdminDashboard() {
               </div>
             </div>
 
-            <div className="transaction-card">
+            <div className="transaction-card" onClick={() => navigate('/customer-invoices')} style={{ cursor: 'pointer' }}>
               <div className="card-graphic bg-purple">
                 <Activity size={40} strokeWidth={1} color="#714B67" />
               </div>
@@ -76,7 +187,7 @@ function AdminDashboard() {
               </div>
             </div>
 
-            <div className="transaction-card">
+            <div className="transaction-card" onClick={() => navigate('/journal-entries')} style={{ cursor: 'pointer' }}>
               <div className="card-graphic bg-peach">
                 <Sunrise size={40} strokeWidth={1} color="#D46243" />
               </div>
@@ -96,7 +207,7 @@ function AdminDashboard() {
           </div>
         </div>
 
-        {/* Right Column */}
+        {/* Right Column: Original Calendar, Schedule, and Cash Flow Widgets */}
         <div className="dashboard-side-col">
           {/* Calendar Widget */}
           <div className="calendar-widget">
@@ -122,9 +233,9 @@ function AdminDashboard() {
           <div className="schedule-widget">
             <div className="section-header">
               <h3>Schedule</h3>
-              <a href="#" className="see-all">See all <ArrowRight size={14} /></a>
+              <Link to="/sales-orders" className="see-all">See all <ArrowRight size={14} /></Link>
             </div>
-            
+
             <div className="schedule-list">
               <div className="schedule-item dark">
                 <div className="sch-date">05</div>
@@ -159,7 +270,7 @@ function AdminDashboard() {
               <h3>Cash Flow</h3>
               <span className="meta-text">₹ 1.2M Total</span>
             </div>
-            
+
             <div className="bar-chart">
               <div className="y-axis">
                 <span>80k</span><span>60k</span><span>40k</span><span>20k</span><span>0k</span>
@@ -175,7 +286,7 @@ function AdminDashboard() {
               </div>
             </div>
           </div>
-          
+
         </div>
       </div>
     </div>
@@ -193,7 +304,7 @@ function AdminDashboard() {
 function UserDashboard({ user }) {
   const [activeTab, setActiveTab] = useState('Unpaid');
   const [invoices, setInvoices] = useState([]);
-  const [outstanding, setOutstanding] = useState({ total_unpaid_invoices: 0, recently_paid: 0 }); // We will approximate recently paid
+  const [outstanding, setOutstanding] = useState({ total_unpaid_invoices: 0, recently_paid: 0 });
   const [loading, setLoading] = useState(true);
   const [payingId, setPayingId] = useState(null);
 
@@ -208,7 +319,6 @@ function UserDashboard({ user }) {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Fetch outstanding
       const outRes = await fetch(`${BACKEND_URL}/portal/outstanding`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -217,15 +327,12 @@ function UserDashboard({ user }) {
         setOutstanding(prev => ({ ...prev, total_unpaid_invoices: outData.total_unpaid_invoices || 0 }));
       }
 
-      // Fetch invoices
       const invRes = await fetch(`${BACKEND_URL}/portal/invoices`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (invRes.ok) {
         const invData = await invRes.json();
         setInvoices(invData);
-
-        // Calculate recently paid (sum of PAID invoices)
         const paidInvoices = invData.filter(i => i.status === 'PAID');
         const paidTotal = paidInvoices.reduce((sum, i) => sum + i.total, 0);
         setOutstanding(prev => ({ ...prev, recently_paid: paidTotal }));
@@ -240,112 +347,6 @@ function UserDashboard({ user }) {
   useEffect(() => {
     fetchData();
   }, []);
-
-  // Helper to dynamically load the Razorpay script
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
-  /**
-   * Initiates invoice payment via real Razorpay API
-   */
-  const handlePay = async (invoiceId, total) => {
-    try {
-      setPayingId(invoiceId);
-
-      const resLoad = await loadRazorpayScript();
-      if (!resLoad) {
-        alert('Razorpay SDK failed to load. Are you online?');
-        setPayingId(null);
-        return;
-      }
-
-      // 1. Fetch Order ID from backend
-      const orderRes = await fetch(`${BACKEND_URL}/portal/invoices/${invoiceId}/razorpay-order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!orderRes.ok) {
-        const errText = await orderRes.text();
-        alert(`Failed to create Razorpay order: ${errText}`);
-        setPayingId(null);
-        return;
-      }
-
-      const orderData = await orderRes.json();
-
-      // 2. Open Razorpay Checkout
-      const options = {
-        key: orderData.key_id, 
-        amount: orderData.amount, 
-        currency: 'INR',
-        name: 'Valora ERP',
-        description: `Payment for Invoice #${invoiceId}`,
-        image: 'https://cdn-icons-png.flaticon.com/512/2953/2953363.png',
-        order_id: orderData.order_id,
-        handler: async function (response) {
-          try {
-            const res = await fetch(`${BACKEND_URL}/portal/invoices/${invoiceId}/pay`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({ 
-                method: 'BANK', 
-                amount: total, 
-                payment_id: response.razorpay_payment_id,
-                order_id: response.razorpay_order_id,
-                signature: response.razorpay_signature
-              })
-            });
-            if (res.ok) {
-              await fetchData();
-            } else {
-              alert("Backend settlement failed after payment.");
-            }
-          } catch (err) {
-            console.error(err);
-            alert("Error settling invoice.");
-          } finally {
-            setPayingId(null);
-          }
-        },
-        prefill: {
-          name: user?.name || 'Valora Customer',
-          email: user?.email || 'customer@valora.com',
-          contact: '9999999999'
-        },
-        theme: {
-          color: '#017E84'
-        }
-      };
-
-      const paymentObject = new window.Razorpay(options);
-      
-      paymentObject.on('payment.failed', function (response){
-        alert(`Payment Failed! Reason: ${response.error.description}`);
-        setPayingId(null);
-      });
-
-      paymentObject.open();
-
-    } catch (err) {
-      console.error(err);
-      alert("Error initiating Razorpay checkout");
-      setPayingId(null);
-    }
-  };
 
   const filteredInvoices = invoices.filter(inv => {
     if (activeTab === 'Unpaid') {
@@ -413,19 +414,6 @@ function UserDashboard({ user }) {
                     <span className="amount" style={{ color: inv.status === 'PAID' ? '#9CA3AF' : '#111116', fontWeight: '700', fontSize: '1.2rem' }}>
                       ₹ {inv.total.toLocaleString('en-IN')}
                     </span>
-                    {inv.status === 'PAID' ? (
-                      <button className="primary-btn" disabled style={{ padding: '8px 16px', fontSize: '0.85rem', backgroundColor: '#F3F4F6', color: '#6B7280', opacity: 1, cursor: 'not-allowed' }}>Paid</button>
-                    ) : (
-                      <button 
-                        className="primary-btn" 
-                        style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
-                        onClick={() => handlePay(inv.id, inv.total)}
-                        disabled={payingId === inv.id}
-                      >
-                        {payingId === inv.id && <Loader2 size={14} className="spinner" style={{ animation: 'spin 1s linear infinite' }} />}
-                        {payingId === inv.id ? 'Processing' : 'Pay Now'}
-                      </button>
-                    )}
                   </div>
                 </div>
               ))
