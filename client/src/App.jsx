@@ -6,6 +6,9 @@ import Layout from './components/Layout.jsx';
 import ContactList from './pages/masters/ContactList.jsx';
 import ProductList from './pages/masters/ProductList.jsx';
 import ChartOfAccounts from './pages/masters/ChartOfAccounts.jsx';
+import JournalEntries from './pages/accounting/JournalEntries.jsx';
+import BalanceSheet from './pages/reports/BalanceSheet.jsx';
+import ProfitAndLoss from './pages/reports/ProfitAndLoss.jsx';
 
 export default function App() {
   return (
@@ -21,8 +24,9 @@ export default function App() {
           <Route path="/contacts" element={<ContactList />} />
           <Route path="/products" element={<ProductList />} />
           <Route path="/accounts" element={<ChartOfAccounts />} />
-          <Route path="/journals" element={<div className="page-content"><h2>Journals (WIP)</h2></div>} />
-          <Route path="/reports" element={<div className="page-content"><h2>Reports (WIP)</h2></div>} />
+          <Route path="/journals" element={<JournalEntries />} />
+          <Route path="/reports/balance-sheet" element={<BalanceSheet />} />
+          <Route path="/reports/pnl" element={<ProfitAndLoss />} />
         </Route>
       </Routes>
     </Router>

@@ -1,84 +1,83 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Package, FileText, BarChart3, LogOut, Hexagon } from 'lucide-react';
+import { LayoutDashboard, Users, Package, FileText, BarChart3, LogOut, Hexagon, Search, Bell, Settings } from 'lucide-react';
 import '../styles/layout.css';
 
 export default function Layout() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Clear any mock auth tokens here if we add them
     navigate('/login');
   };
 
   return (
-    <div className="app-layout">
-      {/* Sidebar Navigation */}
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <Hexagon size={28} className="sidebar-logo-icon" />
-          <h2>VALORA</h2>
-        </div>
-        
-        <nav className="sidebar-nav">
-          <NavLink to="/dashboard" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <LayoutDashboard size={20} />
-            <span>Dashboard</span>
-          </NavLink>
+    <div className="app-wrapper">
+      <div className="app-layout">
+        {/* Sidebar Navigation */}
+        <aside className="sidebar">
+          <div className="sidebar-header">
+            <Hexagon size={28} className="sidebar-logo-icon" />
+          </div>
           
-          <div className="nav-section-title">Master Data</div>
+          <nav className="sidebar-nav">
+            <NavLink to="/dashboard" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Dashboard">
+              <LayoutDashboard size={20} />
+            </NavLink>
+            
+            <NavLink to="/contacts" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Contacts">
+              <Users size={20} />
+            </NavLink>
+            
+            <NavLink to="/products" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Products">
+              <Package size={20} />
+            </NavLink>
+            
+            <NavLink to="/journals" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Journals">
+              <FileText size={20} />
+            </NavLink>
+            
+            <NavLink to="/reports/balance-sheet" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Balance Sheet">
+              <BarChart3 size={20} />
+            </NavLink>
+            
+            <NavLink to="/reports/pnl" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Profit & Loss">
+              <BarChart3 size={20} />
+            </NavLink>
+          </nav>
           
-          <NavLink to="/contacts" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <Users size={20} />
-            <span>Contacts</span>
-          </NavLink>
-          
-          <NavLink to="/products" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <Package size={20} />
-            <span>Products</span>
-          </NavLink>
-          
-          <div className="nav-section-title">Transactions</div>
-          
-          <NavLink to="/journals" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <FileText size={20} />
-            <span>Journals</span>
-          </NavLink>
-          
-          <div className="nav-section-title">Analytics</div>
-          
-          <NavLink to="/reports" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <BarChart3 size={20} />
-            <span>Reports</span>
-          </NavLink>
-        </nav>
-        
-        <div className="sidebar-footer">
-          <button className="logout-btn" onClick={handleLogout}>
-            <LogOut size={20} />
-            <span>Log Out</span>
-          </button>
-        </div>
-      </aside>
+          <div className="sidebar-footer">
+            <button className="logout-btn" onClick={handleLogout} title="Logout">
+              <LogOut size={20} />
+            </button>
+          </div>
+        </aside>
 
-      {/* Main Content Area */}
-      <div className="main-content">
-        <header className="top-header">
-          <div className="header-search">
-             {/* Future search bar */}
-          </div>
-          <div className="user-profile">
-            <div className="avatar">A</div>
-            <div className="user-info">
-              <span className="user-name">Admin User</span>
-              <span className="user-role">Administrator</span>
+        {/* Main Content Area */}
+        <div className="main-content">
+          <header className="top-header">
+            <div style={{ flex: 1 }}>
+              {/* Dashboard specific greeting will go here via portal or we just leave this space for layout, wait, image has greeting on left. Let's just put the greeting here for all pages or let the page handle it. Let's leave it blank and let page put title */}
             </div>
-          </div>
-        </header>
-        
-        <main className="page-content">
-          <Outlet />
-        </main>
+            
+            <div className="header-actions">
+              <div className="header-search">
+                <Search size={16} color="#9CA3AF" />
+                <input type="text" placeholder="Search..." />
+              </div>
+              
+              <Bell size={20} className="header-icon" />
+              <Settings size={20} className="header-icon" />
+              
+              <div className="user-profile">
+                <div className="avatar">ML</div>
+              </div>
+            </div>
+          </header>
+          
+          <main className="page-content">
+            <Outlet />
+          </main>
+        </div>
       </div>
     </div>
   );

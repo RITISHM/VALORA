@@ -1,102 +1,111 @@
 /* client/src/styles/layout.css */
 
-.app-layout {
+.app-wrapper {
   display: flex;
   height: 100vh;
   width: 100vw;
-  background-color: var(--valora-bg);
-  font-family: var(--font-family);
+  background-color: #E2E8F0; /* Soft blue-gray outer background */
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.app-layout {
+  display: flex;
+  flex: 1;
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  font-family: var(--font-family);
 }
 
 /* Sidebar */
 .sidebar {
-  width: 260px;
-  background-color: var(--valora-surface);
-  border-right: 1px solid var(--valora-border);
+  width: 80px;
+  background-color: #714B67; /* Odoo Enterprise Plum */
   display: flex;
   flex-direction: column;
+  align-items: center;
+  padding: 32px 0;
   transition: all 0.3s ease;
+  border-right: none;
 }
 
 .sidebar-header {
-  height: 70px;
+  margin-bottom: 40px;
+  color: #FFFFFF;
   display: flex;
+  justify-content: center;
   align-items: center;
-  padding: 0 24px;
-  gap: 12px;
-  border-bottom: 1px solid var(--valora-border);
-  color: var(--valora-primary);
+}
+
+.sidebar-logo-icon {
+  color: #9D72FF; /* Purple accent for logo */
 }
 
 .sidebar-header h2 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  margin: 0;
+  display: none; /* Hide text for slim sidebar */
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 24px 16px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 24px;
+  width: 100%;
+  align-items: center;
 }
 
 .nav-section-title {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--valora-text-muted);
-  font-weight: 600;
-  margin: 16px 0 8px 12px;
+  display: none; /* Hide section titles */
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  color: var(--valora-text-main);
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  color: #6B7280;
   text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 500;
   transition: all 0.2s;
 }
 
+.nav-item span {
+  display: none; /* Hide text */
+}
+
 .nav-item:hover {
-  background-color: var(--valora-bg);
-  color: var(--valora-primary);
+  color: #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .nav-item.active {
-  background-color: var(--valora-primary-light);
-  color: var(--valora-primary);
-  font-weight: 600;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
 }
 
 .sidebar-footer {
-  padding: 16px;
-  border-top: 1px solid var(--valora-border);
+  margin-top: auto;
 }
 
 .logout-btn {
   display: flex;
   align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   background: none;
   border: none;
-  color: var(--valora-text-muted);
-  font-size: 0.95rem;
-  font-weight: 500;
+  color: #6B7280;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.logout-btn span {
+  display: none;
 }
 
 .logout-btn:hover {
@@ -110,62 +119,81 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background-color: #FAFAFB; /* Very light inner background */
 }
 
 .top-header {
-  height: 70px;
-  background-color: var(--valora-surface);
-  border-bottom: 1px solid var(--valora-border);
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 32px;
+  padding: 0 40px;
+  background-color: #FFFFFF;
 }
 
 .header-search {
-  flex: 1;
+  display: flex;
+  align-items: center;
+  background-color: #F3F4F6;
+  padding: 10px 16px;
+  border-radius: 20px;
+  width: 300px;
+  gap: 8px;
+}
+
+.header-search input {
+  border: none;
+  background: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.9rem;
+  width: 100%;
 }
 
 .user-profile {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 24px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #6B7280;
+}
+
+.header-icon {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.header-icon:hover {
+  color: #111116;
 }
 
 .avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background-color: var(--valora-primary);
-  color: white;
+  background-color: #EBF0FA;
+  color: #111116;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1.1rem;
 }
 
 .user-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.user-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--valora-text-main);
-}
-
-.user-role {
-  font-size: 0.75rem;
-  color: var(--valora-text-muted);
+  display: none; /* Hide for cleaner look, greeting is on dashboard */
 }
 
 .page-content {
   flex: 1;
-  padding: 32px;
+  padding: 32px 40px;
   overflow-y: auto;
-  background-color: var(--valora-bg);
+  background-color: #FFFFFF;
 }
 
 /* Common Page Styles */
@@ -177,27 +205,27 @@
 }
 
 .page-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--valora-text-main);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #111116;
   margin: 0;
 }
 
 .primary-btn {
-  background-color: var(--valora-primary);
+  background-color: #714B67;
   color: white;
   border: none;
   padding: 10px 20px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: background-color 0.2s;
+  transition: opacity 0.2s;
 }
 
 .primary-btn:hover {
-  background-color: var(--valora-primary-dark);
+  opacity: 0.85;
 }
