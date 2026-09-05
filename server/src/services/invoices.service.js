@@ -204,26 +204,18 @@ class InvoicesService {
       },
     );
 
-    // 3. Find or create Chart of Accounts & Sales Journal (in parallel)
-    const [salesJournal, debtorsAccount, salesIncomeAccount, taxPayableAccountResult] =
+    // 3. Find Chart of Accounts & Sales Journal (in parallel)
+    const [salesJournal, debtorsAccount, salesIncomeAccount, taxPayableAccount] =
       await Promise.all([
         prisma.journal.findFirst({ where: { type: "SALES" } }),
-        prisma.account.findFirst({ where: { name: "Debtors" } }),
-        prisma.account.findFirst({ where: { name: "Sales Income" } }),
-        prisma.account.findFirst({ where: { name: "Tax Payable" } }),
+        prisma.account.findFirst({ where: { name: "Debtors A/c" } }),
+        prisma.account.findFirst({ where: { name: "Sales Income A/c" } }),
+        prisma.account.findFirst({ where: { name: "Tax Payable A/c" } }),
       ]);
-
-    let taxPayableAccount = taxPayableAccountResult;
-
-    if (!taxPayableAccount && invoice.tax_amount > 0) {
-      taxPayableAccount = await prisma.account.create({
-        data: { name: "Tax Payable", type: "LIABILITY" },
-      });
-    }
 
     if (!salesJournal || !debtorsAccount || !salesIncomeAccount) {
       const error = new Error(
-        "Required Chart of Accounts (Debtors, Sales Income) or Sales Journal missing",
+        "Required Chart of Accounts (Debtors A/c, Sales Income A/c) or Sales Journal missing",
       );
       error.statusCode = 400;
       throw error;
@@ -318,15 +310,15 @@ class InvoicesService {
       },
     );
 
-    // Auto-post Payment Journal Entry (parallel lookups)
-    const [bankJournal, cashJournal, debtorsAccount, bankAccount] = await Promise.all([
-      prisma.journal.findFirst({ where: { type: "BANK" } }),
-      prisma.journal.findFirst({ where: { type: "CASH" } }),
-      prisma.account.findFirst({ where: { name: "Debtors" } }),
-      prisma.account.findFirst({ where: { name: "Bank/Cash" } }),
-    ]);
+    const paymentMethod = method.toUpperCase() === "CASH" ? "CASH" : "BANK";
+    const journalType = paymentMethod === "CASH" ? "CASH" : "BANK";
 
-    const journal = method === "CASH" ? cashJournal || bankJournal : bankJournal;
+    // Auto-post Payment Journal Entry (parallel lookups)
+    const [journal, debtorsAccount, bankAccount] = await Promise.all([
+      prisma.journal.findFirst({ where: { type: journalType } }),
+      prisma.account.findFirst({ where: { name: "Debtors A/c" } }),
+      prisma.account.findFirst({ where: { name: paymentMethod === "CASH" ? "Cash A/c" : "Bank A/c" } }),
+    ]);
 
     if (journal && debtorsAccount && bankAccount) {
       await accountingService.postJournalEntry({

@@ -28,9 +28,9 @@ class PaymentsService {
     const [journal, cashOrBankAccount, debtorsAccount] = await Promise.all([
       prisma.journal.findFirst({ where: { type: journalType } }),
       prisma.account.findFirst({
-        where: { name: paymentMethod === "CASH" ? "Cash" : "Bank" },
+        where: { name: paymentMethod === "CASH" ? "Cash A/c" : "Bank A/c" },
       }),
-      prisma.account.findFirst({ where: { name: "Debtors" } }),
+      prisma.account.findFirst({ where: { name: "Debtors A/c" } }),
     ]);
 
     if (!journal || !cashOrBankAccount || !debtorsAccount) {
@@ -104,9 +104,9 @@ class PaymentsService {
     const [journal, cashOrBankAccount, partnerAccount] = await Promise.all([
       prisma.journal.findFirst({ where: { type: journalType } }),
       prisma.account.findFirst({
-        where: { name: paymentMethod === "CASH" ? "Cash" : "Bank" },
+        where: { name: paymentMethod === "CASH" ? "Cash A/c" : "Bank A/c" },
       }),
-      prisma.account.findFirst({ where: { name: type === "RECEIVE" ? "Debtors" : "Creditors" } }),
+      prisma.account.findFirst({ where: { name: type === "RECEIVE" ? "Debtors A/c" : "Creditors A/c" } }),
     ]);
 
     if (!journal || !cashOrBankAccount || !partnerAccount) {

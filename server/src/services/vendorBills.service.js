@@ -157,39 +157,51 @@ class VendorBillsService {
       }
     });
 
-    // 2. Post double-entry Journal Entry: Dr Purchase Expense, Cr Creditors (parallel lookups)
-    const [purchaseJournal, purchaseExpenseAccount, creditorsAccount] = await Promise.all([
+    // 2. Post double-entry Journal Entry: Dr Purchase Expense, Dr Input Tax, Cr Creditors (parallel lookups)
+    const [purchaseJournal, purchaseExpenseAccount, creditorsAccount, inputTaxAccount] = await Promise.all([
       prisma.journal.findFirst({ where: { type: "PURCHASE" } }),
-      prisma.account.findFirst({ where: { name: "Purchase Expense" } }),
-      prisma.account.findFirst({ where: { name: "Creditors" } }),
+      prisma.account.findFirst({ where: { name: "Purchase Expense A/c" } }),
+      prisma.account.findFirst({ where: { name: "Creditors A/c" } }),
+      prisma.account.findFirst({ where: { name: "Input Tax A/c" } }),
     ]);
 
     if (!purchaseJournal || !purchaseExpenseAccount || !creditorsAccount) {
       const error = new Error(
-        "Required accounts (Purchase Expense, Creditors) or Purchase Journal missing",
+        "Required accounts (Purchase Expense A/c, Creditors A/c) or Purchase Journal missing",
       );
       error.statusCode = 400;
       throw error;
+    }
+
+    const journalLines = [
+      {
+        accountId: purchaseExpenseAccount.id,
+        partnerId: null,
+        debit: bill.subtotal,
+        credit: 0,
+      },
+      {
+        accountId: creditorsAccount.id,
+        partnerId: bill.vendor_id,
+        debit: 0,
+        credit: bill.total,
+      },
+    ];
+
+    if (bill.tax_amount > 0 && inputTaxAccount) {
+      journalLines.push({
+        accountId: inputTaxAccount.id,
+        partnerId: null,
+        debit: bill.tax_amount,
+        credit: 0,
+      });
     }
 
     await accountingService.postJournalEntry({
       journalId: purchaseJournal.id,
       reference: `Vendor Bill ${bill.bill_reference}`,
       entryDate: bill.bill_date,
-      lines: [
-        {
-          accountId: purchaseExpenseAccount.id,
-          partnerId: null,
-          debit: bill.total,
-          credit: 0,
-        },
-        {
-          accountId: creditorsAccount.id,
-          partnerId: bill.vendor_id,
-          debit: 0,
-          credit: bill.total,
-        },
-      ],
+      lines: journalLines,
     });
 
     return await this.getById(id);
@@ -213,9 +225,9 @@ class VendorBillsService {
     const journalType = paymentMethod === "CASH" ? "CASH" : "BANK";
     const journal = await prisma.journal.findFirst({ where: { type: journalType } });
     const cashOrBankAccount = await prisma.account.findFirst({
-      where: { name: paymentMethod === "CASH" ? "Cash" : "Bank" },
+      where: { name: paymentMethod === "CASH" ? "Cash A/c" : "Bank A/c" },
     });
-    const creditorsAccount = await prisma.account.findFirst({ where: { name: "Creditors" } });
+    const creditorsAccount = await prisma.account.findFirst({ where: { name: "Creditors A/c" } });
 
     if (!journal || !cashOrBankAccount || !creditorsAccount) {
       const error = new Error("Required payment accounts missing");

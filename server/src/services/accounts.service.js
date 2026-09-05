@@ -17,6 +17,8 @@ class AccountsService {
         { name: "Cash A/c", type: "ASSET" },
         { name: "Other Expense A/c", type: "EXPENSE" },
         { name: "Capital A/c", type: "CAPITAL" },
+        { name: "Tax Payable A/c", type: "LIABILITY" },
+        { name: "Input Tax A/c", type: "ASSET" },
       ];
 
       await prisma.account.createMany({ data: defaults });
