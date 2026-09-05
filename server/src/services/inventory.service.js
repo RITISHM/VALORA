@@ -149,11 +149,14 @@ class InventoryService {
         const required = parseFloat(line.qty) || 0;
 
         if (currentStock < required) {
-          const error = new Error(
-            `Insufficient stock for product '${product.name}'. Available: ${currentStock}, Required: ${required}`,
+          console.warn(
+            `Hackathon Mode: Allowing negative stock for '${product.name}'. Available: ${currentStock}, Required: ${required}`
           );
-          error.statusCode = 400;
-          throw error;
+          // const error = new Error(
+          //   `Insufficient stock for product '${product.name}'. Available: ${currentStock}, Required: ${required}`,
+          // );
+          // error.statusCode = 400;
+          // throw error;
         }
       }
     }

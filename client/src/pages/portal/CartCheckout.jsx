@@ -56,84 +56,11 @@ export default function CartCheckout() {
 
       const invoice = await res.json();
 
-      // 2. Load Razorpay
-      const rzpLoaded = await loadRazorpay();
-      if (!rzpLoaded) {
-        alert("Razorpay SDK failed to load. Invoice created as DRAFT.");
-        clearCart();
+      setSuccess(true);
+      clearCart();
+      setTimeout(() => {
         navigate("/dashboard");
-        return;
-      }
-
-      // 3. Create Razorpay Order
-      const orderRes = await fetch(`${BACKEND_URL}/portal/invoices/${invoice.id}/razorpay-order`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!orderRes.ok) {
-        alert("Failed to initialize payment. Invoice created as DRAFT.");
-        clearCart();
-        navigate("/dashboard");
-        return;
-      }
-
-      const orderData = await orderRes.json();
-
-      // 4. Open Razorpay Popup
-      const options = {
-        key: orderData.key_id,
-        amount: orderData.amount,
-        currency: "INR",
-        name: "Valora ERP",
-        description: `Payment for Order`,
-        order_id: orderData.order_id,
-        handler: async function (response) {
-          try {
-            const verifyRes = await fetch(`${BACKEND_URL}/portal/invoices/${invoice.id}/pay`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                payment_via: "ONLINE",
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-                amount: invoice.total,
-                date: new Date().toISOString().split("T")[0],
-              }),
-            });
-
-            if (!verifyRes.ok) throw new Error("Verification failed");
-
-            setSuccess(true);
-            clearCart();
-            setTimeout(() => {
-              navigate("/dashboard");
-            }, 3000);
-          } catch (err) {
-            alert("Payment verification failed: " + err.message);
-            navigate("/dashboard");
-          }
-        },
-        modal: {
-          ondismiss: function () {
-            alert("Payment cancelled. Invoice is saved as DRAFT.");
-            clearCart();
-            navigate("/dashboard");
-          },
-        },
-        theme: {
-          color: "#4F46E5",
-        },
-      };
-
-      const paymentObject = new window.Razorpay(options);
-      paymentObject.open();
+      }, 2000);
     } catch (err) {
       console.error(err);
       alert("Error during checkout: " + err.message);
@@ -155,7 +82,7 @@ export default function CartCheckout() {
       >
         <CheckCircle size={64} color="#10B981" style={{ marginBottom: "24px" }} />
         <h1 style={{ marginBottom: "8px" }}>Order Placed!</h1>
-        <p style={{ color: "#6B7280" }}>Payment successful! Redirecting to your dashboard...</p>
+        <p style={{ color: "#6B7280" }}>Invoice generated successfully. Redirecting to your dashboard to complete payment...</p>
       </div>
     );
   }

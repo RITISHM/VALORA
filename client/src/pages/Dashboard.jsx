@@ -659,6 +659,39 @@ function UserDashboard({ user }) {
 
       const orderData = await orderRes.json();
 
+      if (orderData.key_id === "mock") {
+        const verifyRes = await fetch(`${BACKEND_URL}/portal/invoices/${invoiceId}/pay`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            method: "ONLINE",
+            amount: total,
+            razorpay_payment_id: "mock_payment",
+          }),
+        });
+
+        if (!verifyRes.ok) throw new Error("Verification failed");
+
+        alert("Payment Successful!");
+
+        // Update UI
+        setInvoices((prev) =>
+          prev.map((inv) => (inv.id === invoiceId ? { ...inv, status: "PAID" } : inv)),
+        );
+
+        setOutstanding((prev) => ({
+          total_unpaid_invoices: Math.max(0, prev.total_unpaid_invoices - total),
+          recently_paid: prev.recently_paid + total,
+        }));
+
+        navigate(`/portal/invoices/${invoiceId}`);
+        setPayingId(null);
+        return;
+      }
+
       // 2. Open Razorpay options
       const options = {
         key: orderData.key_id,
