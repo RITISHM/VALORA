@@ -137,7 +137,7 @@
   border-color: #bbb;
 }
 
-/* Common form fields inside FormShell */
+/* Common form fields inside FormShell (Upgraded to match forms.css) */
 .form-field {
   display: flex;
   flex-direction: column;
@@ -145,33 +145,71 @@
 }
 
 .form-field label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--valora-text-main);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0F172A; /* var(--form-text) */
+  letter-spacing: 0.2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.form-field input, .form-field select {
-  padding: 10px 12px;
-  border: 1px solid var(--valora-border);
-  border-radius: 6px;
-  font-size: 0.95rem;
+.form-field input, .form-field select, .form-field textarea {
+  height: 42px; /* var(--form-input-h) */
+  padding: 0 14px;
+  border: 1.5px solid #E2E8F0; /* var(--form-border) */
+  border-radius: 10px;
+  font-size: 0.9rem;
   font-family: inherit;
+  font-weight: 500;
+  color: #0F172A; /* var(--form-text) */
+  background: #FFFFFF; /* var(--form-bg) */
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.form-field input:focus, .form-field select:focus {
-  border-color: var(--valora-primary);
-  box-shadow: 0 0 0 2px var(--valora-primary-light);
+.form-field select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 38px;
+  cursor: pointer;
+}
+
+.form-field input:hover, .form-field select:hover, .form-field textarea:hover {
+  border-color: #94A3B8;
+}
+
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+  border-color: #714B67; /* var(--form-accent) */
+  box-shadow: 0 0 0 3px rgba(113, 75, 103, 0.08); /* var(--form-accent-light) */
+}
+
+.form-field input:disabled, .form-field select:disabled, .form-field textarea:disabled {
+  background: #F8FAFC;
+  color: #64748B;
+  border-color: #E9EFF5;
+  cursor: not-allowed;
+  font-style: italic;
 }
 
 .form-row {
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.form-row:last-child {
+  margin-bottom: 0;
 }
 
 .form-row > .form-field {
-  flex: 1;
+  width: 100%;
 }
 
 /* Toolbar Actions */

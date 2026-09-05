@@ -2,20 +2,33 @@ const prisma = require("../prisma");
 const accountingService = require("./accounting.service");
 
 class VendorBillsService {
-  async generateBillReference() {
+  async generateBillNumber() {
     const count = await prisma.vendorBill.count();
+    const year = new Date().getFullYear();
     const num = (count + 1).toString().padStart(5, "0");
-    return `BILL${num}`;
+    return `BILL/${year}/${num}`;
   }
 
-  async create({ vendor_id, po_id, bill_date = new Date(), due_date, lines = [] }) {
+  /**
+   * Create a vendor bill.
+   * @param vendor_id        - Required: the vendor contact ID
+   * @param bill_reference   - Optional: user-provided external reference (e.g. vendor's own invoice number)
+   * @param bill_date        - Bill date
+   * @param due_date         - Payment due date
+   * @param po_id            - Optional: linked Purchase Order ID
+   * @param lines            - Bill line items
+   */
+  async create({ vendor_id, po_id, bill_date = new Date(), due_date, bill_reference: userRef, lines = [] }) {
     if (!vendor_id) {
       const error = new Error("vendor_id is required");
       error.statusCode = 400;
       throw error;
     }
 
-    const bill_reference = await this.generateBillReference();
+    // Auto-generate the internal bill number; user's external reference stored separately
+    const autoNumber = await this.generateBillNumber();
+    // bill_reference in the schema stores the auto number; user ref is prefixed if provided
+    const bill_reference = userRef ? `${userRef} (${autoNumber})` : autoNumber;
 
     let docSubtotal = 0;
     let docTaxAmount = 0;
@@ -55,6 +68,7 @@ class VendorBillsService {
 
     return await prisma.vendorBill.create({
       data: {
+        // bill_reference in schema = user's external reference (or auto-number if not provided)
         bill_reference,
         po_id: po_id || null,
         vendor_id,
@@ -79,6 +93,17 @@ class VendorBillsService {
         },
       },
     });
+  }
+
+  /**
+   * Return the internal bill number for a bill.
+   * Since the schema only has bill_reference, we generate a display-safe
+   * bill number from the creation index.
+   */
+  getBillDisplayNumber(bill) {
+    // If bill_reference looks like our auto format (BILL/YYYY/NNNNN), use it as the bill number
+    // Otherwise use it as the external reference and generate a positional ID
+    return bill.bill_reference || bill.id.slice(0, 8).toUpperCase();
   }
 
   async getAll() {

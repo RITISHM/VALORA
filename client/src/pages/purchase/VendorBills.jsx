@@ -1,32 +1,26 @@
 import React, { useState, useEffect } from "react";
-import {
-  ArrowLeft,
-  CheckCircle,
-  DollarSign,
-  PieChart,
-  ShoppingCart,
-  AlertTriangle,
-} from "lucide-react";
+import { ArrowLeft, CheckCircle, DollarSign, ShoppingCart, PieChart, AlertTriangle, Plus, X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DataTable from "../../components/DataTable";
 import { api } from "../../api";
+import "../../styles/forms.css";
 
 export default function VendorBills() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [bills, setBills] = useState([]);
-  const [contacts, setContacts] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [accounts, setAccounts] = useState([]);
-  const [analyticAccounts, setAnalyticAccounts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [selectedBill, setSelectedBill] = useState(null);
-  const [budgetWarning, setBudgetWarning] = useState(null);
+  const navigate  = useNavigate();
+  const location  = useLocation();
 
-  // Payment Modal state
+  const [bills, setBills]                   = useState([]);
+  const [contacts, setContacts]             = useState([]);
+  const [products, setProducts]             = useState([]);
+  const [accounts, setAccounts]             = useState([]);
+  const [analyticAccounts, setAnalyticAccounts] = useState([]);
+  const [isLoading, setIsLoading]           = useState(true);
+  const [isFormOpen, setIsFormOpen]         = useState(false);
+  const [isSaving, setIsSaving]             = useState(false);
+  const [selectedBill, setSelectedBill]     = useState(null);
+  const [budgetWarning, setBudgetWarning]   = useState(null);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+
   const [paymentData, setPaymentData] = useState({
     payment_via: "BANK",
     date: new Date().toISOString().split("T")[0],
@@ -43,6 +37,7 @@ export default function VendorBills() {
     lines: [{ productId: "", accountId: "", analyticAccountId: "", quantity: 1, unitPrice: 0 }],
   });
 
+  /* ── Data loading ── */
   const loadData = async () => {
     setIsLoading(true);
     try {
@@ -67,44 +62,66 @@ export default function VendorBills() {
 
   useEffect(() => {
     loadData();
-    const queryParams = new URLSearchParams(location.search);
-    if (queryParams.get("new") === "true" || location.pathname.endsWith("/new")) {
-      setIsFormOpen(true);
-    }
+    const q = new URLSearchParams(location.search);
+    if (q.get("new") === "true" || location.pathname.endsWith("/new")) setIsFormOpen(true);
   }, [location]);
 
-  const calculateTotal = () => {
-    return formData.lines.reduce(
-      (sum, line) => sum + (Number(line.quantity) * Number(line.unitPrice) || 0),
+  /* ── Totals ── */
+  const calculateTotal = () =>
+    formData.lines.reduce(
+      (sum, l) => sum + (Number(l.quantity) * Number(l.unitPrice) || 0),
       0,
     );
-  };
 
   useEffect(() => {
-    const total = calculateTotal();
-    if (total > 15000) {
+    if (calculateTotal() > 15000) {
       setBudgetWarning(
-        "Exceeds Approved Budget: The entered amount is higher than the remaining budget account for this budget line. Consider adjusting the value or revise the budget.",
+        "The entered amount exceeds the remaining budget for this account. Consider adjusting the value or revising the budget.",
       );
     } else {
       setBudgetWarning(null);
     }
   }, [formData.lines]);
 
+  /* ── Line management ── */
+  const handleAddLine = () =>
+    setFormData(prev => ({
+      ...prev,
+      lines: [...prev.lines, { productId: "", accountId: "", analyticAccountId: "", quantity: 1, unitPrice: 0 }],
+    }));
+
+  const handleRemoveLine = (idx) => {
+    if (formData.lines.length <= 1) return;
+    setFormData(prev => ({ ...prev, lines: prev.lines.filter((_, i) => i !== idx) }));
+  };
+
+  const handleLineChange = (idx, field, value) => {
+    setFormData(prev => {
+      const lines = [...prev.lines];
+      const line  = { ...lines[idx], [field]: value };
+      if (field === "productId") {
+        const prod = products.find(p => p.id === value);
+        if (prod) line.unitPrice = prod.cost || prod.sales_price || 0;
+      }
+      lines[idx] = line;
+      return { ...prev, lines };
+    });
+  };
+
+  /* ── CRUD ── */
   const handleSave = async () => {
     if (!formData.vendorId) return alert("Vendor is required");
     setIsSaving(true);
     try {
       const defaultPurchaseAccount =
-        accounts.find((a) => a.type === "EXPENSE" || a.name.toLowerCase().includes("purchase"))
-          ?.id || accounts[0]?.id;
+        accounts.find(a => a.type === "EXPENSE" || a.name.toLowerCase().includes("purchase"))?.id ||
+        accounts[0]?.id;
       const payload = {
         vendor_id: formData.vendorId,
-        bill_number: formData.billNumber,
-        bill_reference: formData.billReference,
+        bill_reference: formData.billReference || undefined,
         bill_date: formData.billDate,
         due_date: formData.dueDate,
-        lines: formData.lines.map((l) => ({
+        lines: formData.lines.map(l => ({
           product_id: l.productId,
           account_id: l.accountId || defaultPurchaseAccount,
           analytic_account_id: l.analyticAccountId || null,
@@ -112,7 +129,6 @@ export default function VendorBills() {
           unit_price: Number(l.unitPrice),
         })),
       };
-
       const created = await api.createVendorBill(payload);
       setSelectedBill(created);
       await loadData();
@@ -145,7 +161,7 @@ export default function VendorBills() {
       payment_via: "BANK",
       date: new Date().toISOString().split("T")[0],
       amount: selectedBill.total || calculateTotal(),
-      note: `Payment for Bill ${selectedBill.bill_number}`,
+      note: `Payment for ${selectedBill.bill_reference || "bill"}`,
     });
     setIsPayModalOpen(true);
   };
@@ -157,7 +173,7 @@ export default function VendorBills() {
       await api.payVendorBill(selectedBill.id, paymentData);
       setIsPayModalOpen(false);
       await loadData();
-      alert("Payment confirmed & vendor bill status updated to Paid!");
+      alert("Payment confirmed & vendor bill updated to Paid!");
       handleCloseForm();
     } catch (err) {
       alert(err.message || "Payment failed");
@@ -185,27 +201,14 @@ export default function VendorBills() {
     setIsLoading(true);
     try {
       const fullDoc = await api.getVendorBillById(row.id);
-      setSelectedBill
-        ? setSelectedBill(fullDoc)
-        : setSelectedOrder
-          ? setSelectedOrder(fullDoc)
-          : setSelectedInvoice(fullDoc);
+      setSelectedBill(fullDoc);
       setFormData({
-        ...(row.vendor_id ? { vendorId: fullDoc.vendor_id } : {}),
-        ...(row.customer_id ? { customerId: fullDoc.customer_id } : {}),
-        billNumber: fullDoc.bill_number || "",
-        billReference: fullDoc.bill_reference || "",
-        orderNumber: fullDoc.order_number || "",
-        invoiceNumber: fullDoc.invoice_number || "",
+        vendorId: fullDoc.vendor_id || "",
+        billNumber: fullDoc.bill_reference || "",
+        billReference: "",
         billDate: fullDoc.bill_date ? new Date(fullDoc.bill_date).toISOString().split("T")[0] : "",
-        orderDate: fullDoc.order_date
-          ? new Date(fullDoc.order_date).toISOString().split("T")[0]
-          : "",
-        invoiceDate: fullDoc.invoice_date
-          ? new Date(fullDoc.invoice_date).toISOString().split("T")[0]
-          : "",
         dueDate: fullDoc.due_date ? new Date(fullDoc.due_date).toISOString().split("T")[0] : "",
-        lines: fullDoc.lines?.map((l) => ({
+        lines: fullDoc.lines?.map(l => ({
           productId: l.product_id,
           accountId: l.account_id || "",
           analyticAccountId: l.analytic_account_id || "",
@@ -222,695 +225,462 @@ export default function VendorBills() {
     }
   };
 
+  /* ── Table columns ── */
   const columns = [
     {
       header: "Vendor Bill No.",
-      accessor: "bill_number",
-      render: (row) => <strong>{row.bill_number}</strong>,
+      accessor: "bill_reference",
+      render: (r) => <strong>{r.bill_reference}</strong>,
     },
-    { header: "Vendor Name", render: (row) => row.contact?.name || "-" },
-    { header: "Bill Date", render: (row) => new Date(row.bill_date).toLocaleDateString() },
-    {
-      header: "Due Date",
-      render: (row) => (row.due_date ? new Date(row.due_date).toLocaleDateString() : "-"),
-    },
-    { header: "Total", render: (row) => `₹ ${Number(row.total || 0).toLocaleString()}` },
+    { header: "Vendor Name", render: (r) => r.vendor?.name || "-" },
+    { header: "Bill Date", render: (r) => new Date(r.bill_date).toLocaleDateString("en-IN") },
+    { header: "Due Date", render: (r) => r.due_date ? new Date(r.due_date).toLocaleDateString("en-IN") : "-" },
+    { header: "Total", render: (r) => `₹ ${Number(r.total || 0).toLocaleString("en-IN")}` },
     {
       header: "Status",
-      render: (row) => (
-        <span
-          style={{
-            padding: "4px 10px",
-            borderRadius: "6px",
-            fontSize: "0.8rem",
-            fontWeight: "700",
-            backgroundColor:
-              row.status === "PAID"
-                ? "#D1FAE5"
-                : row.status === "CONFIRMED"
-                  ? "#DBEAFE"
-                  : "#FEF3C7",
-            color:
-              row.status === "PAID"
-                ? "#059669"
-                : row.status === "CONFIRMED"
-                  ? "#2563EB"
-                  : "#D97706",
-          }}
-        >
-          {row.status}
+      render: (r) => (
+        <span className={`fv-badge ${
+          r.status === "PAID"      ? "fv-badge-paid"      :
+          r.status === "CONFIRMED" ? "fv-badge-confirmed" :
+          "fv-badge-draft"
+        }`}>
+          {r.status}
         </span>
       ),
     },
     {
       header: "Action",
-      render: (row) => (
-        <button
-          className="secondary-btn"
-          onClick={() => handleRowClick(row)}
-          style={{ padding: "4px 10px", fontSize: "0.8rem" }}
-        >
-          View Form
+      render: (r) => (
+        <button className="secondary-btn" onClick={() => handleRowClick(r)} style={{ padding: "4px 12px", fontSize: "0.8rem" }}>
+          View
         </button>
       ),
     },
   ];
 
+  /* ═══════════════════════════════════════════
+     FORM VIEW
+  ═══════════════════════════════════════════ */
   if (isFormOpen) {
-    const userStr = localStorage.getItem("valora_user");
-    const user = userStr ? JSON.parse(userStr) : null;
+    const userStr     = localStorage.getItem("valora_user");
+    const user        = userStr ? JSON.parse(userStr) : null;
     const isAccountant = user?.role?.toLowerCase() === "accountant";
 
-    const isPosted = selectedBill?.status === "CONFIRMED" || selectedBill?.status === "POSTED";
-    const isPaid = selectedBill?.status === "PAID";
-    const isReadOnly = isPosted || isPaid || (isAccountant && Boolean(selectedBill));
-    const paidAmount = isPaid ? selectedBill?.total || calculateTotal() : 0;
-    const amountDue = (selectedBill?.total || calculateTotal()) - paidAmount;
+    const isPosted    = selectedBill?.status === "CONFIRMED" || selectedBill?.status === "POSTED";
+    const isPaid      = selectedBill?.status === "PAID";
+    const isReadOnly  = isPosted || isPaid || (isAccountant && Boolean(selectedBill));
+
+    const grandTotal  = calculateTotal();
+    const paidAmount  = isPaid ? selectedBill?.total || grandTotal : 0;
+    const amountDue   = (selectedBill?.total || grandTotal) - paidAmount;
 
     return (
-      <div className="page-content" style={{ maxWidth: "1000px", margin: "0 auto" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "24px",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <button
-              className="secondary-btn"
-              onClick={handleCloseForm}
-              style={{ display: "flex", alignItems: "center", gap: "6px" }}
-            >
-              <ArrowLeft size={16} /> Back
-            </button>
-            <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800" }}>
-              Vendor Bill Form View
-            </h2>
-          </div>
+      <div className="page-content">
+        <div className="fv-page">
 
-          <div style={{ display: "flex", gap: "10px" }}>
-            {!selectedBill && (
-              <button className="primary-btn" onClick={handleSave} disabled={isSaving}>
-                Save Bill
+          {/* ── Top bar ── */}
+          <div className="fv-topbar">
+            <div className="fv-topbar-left">
+              <button className="fv-btn fv-btn-back" onClick={handleCloseForm}>
+                <ArrowLeft size={15} /> Back
               </button>
-            )}
-            {selectedBill && !isPosted && !isPaid && (
-              <button
-                className="primary-btn"
-                onClick={handleConfirm}
-                disabled={isSaving}
-                style={{
-                  backgroundColor: "#059669",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                <CheckCircle size={16} /> Confirm
-              </button>
-            )}
-            {selectedBill && isPosted && !isPaid && (
-              <button
-                className="primary-btn"
-                onClick={handleOpenPayModal}
-                disabled={isSaving}
-                style={{
-                  backgroundColor: "#7C3AED",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                <DollarSign size={16} /> Pay
-              </button>
-            )}
-            {selectedBill && isPaid && (
-              <button
-                className="primary-btn"
-                onClick={handleOpenPayModal}
-                disabled={isSaving}
-                style={{
-                  backgroundColor: "#059669",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                <DollarSign size={16} /> View Payment
-              </button>
-            )}
-            {selectedBill?.purchase_order_id && (
-              <button className="secondary-btn" onClick={() => navigate("/purchase-orders")}>
-                <ShoppingCart size={16} /> PO
-              </button>
-            )}
-            <button className="secondary-btn" onClick={() => navigate("/reports/budget")}>
-              <PieChart size={16} /> Budget Report
-            </button>
-            <button className="secondary-btn" onClick={handleCloseForm}>
-              Cancel
-            </button>
-          </div>
-        </div>
-
-        {/* Yellow Non-blocking Warning Banner */}
-        {budgetWarning && (
-          <div
-            style={{
-              background: "#FEF3C7",
-              border: "2px solid #F59E0B",
-              borderRadius: "12px",
-              padding: "16px 20px",
-              marginBottom: "24px",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              color: "#92400E",
-            }}
-          >
-            <AlertTriangle size={24} color="#D97706" />
-            <div>
-              <strong style={{ fontSize: "0.95rem" }}>
-                Non-blocking Warning on Confirmation of Vendor Bill
-              </strong>
-              <div style={{ fontSize: "0.85rem", marginTop: "4px" }}>
-                ⚠️ <strong>Exceeds Approved Budget</strong>: {budgetWarning}
+              <div>
+                <h1 className="fv-topbar-title">
+                  {selectedBill ? selectedBill.bill_reference : "New Vendor Bill"}
+                </h1>
+                <p className="fv-topbar-subtitle">
+                  {selectedBill
+                    ? `Vendor: ${contacts.find(c => c.id === formData.vendorId)?.name || "—"}`
+                    : "Fill in the details below"}
+                </p>
               </div>
             </div>
-          </div>
-        )}
 
-        <div
-          style={{
-            background: "#FFFFFF",
-            border: "2px solid #1E293B",
-            borderRadius: "16px",
-            padding: "24px",
-          }}
-        >
-          <div
-            className="form-row"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr 1fr",
-              gap: "16px",
-              marginBottom: "24px",
-            }}
-          >
-            <div className="form-field">
-              <label style={{ fontWeight: "600", fontSize: "0.85rem" }}>Vendor Bill No.</label>
-              <input
-                type="text"
-                value={formData.billNumber}
-                placeholder="Auto-Generated"
-                disabled
-              />
-            </div>
-            <div className="form-field">
-              <label style={{ fontWeight: "600", fontSize: "0.85rem" }}>Vendor Name *</label>
-              <select
-                value={formData.vendorId}
-                disabled={isReadOnly}
-                onChange={(e) => setFormData({ ...formData, vendorId: e.target.value })}
-              >
-                <option value="">-- Select Vendor --</option>
-                {contacts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.type ? (c.type.toUpperCase() === 'BOTH' ? 'Customer & Vendor' : c.type.charAt(0).toUpperCase() + c.type.slice(1).toLowerCase()) : 'Contact'})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-field">
-              <label style={{ fontWeight: "600", fontSize: "0.85rem" }}>Bill Reference</label>
-              <input
-                type="text"
-                value={formData.billReference}
-                disabled={isReadOnly}
-                onChange={(e) => setFormData({ ...formData, billReference: e.target.value })}
-                placeholder="Alpha-numeric (Text)"
-              />
-            </div>
-            <div className="form-field">
-              <label style={{ fontWeight: "600", fontSize: "0.85rem" }}>Bill Date</label>
-              <input
-                type="date"
-                value={formData.billDate}
-                disabled={isReadOnly}
-                onChange={(e) => setFormData({ ...formData, billDate: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <h3 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "16px" }}>
-            Bill Lines
-          </h3>
-          <table className="valora-table" style={{ width: "100%", marginBottom: "16px" }}>
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Chart of Account (Purchase default)</th>
-                <th>Budget Analytics</th>
-                <th style={{ textAlign: "right" }}>Qty</th>
-                <th style={{ textAlign: "right" }}>Unit Price (₹)</th>
-                <th style={{ textAlign: "right" }}>Total (₹)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {formData.lines.map((line, idx) => (
-                <tr key={idx}>
-                  <td>
-                    <select
-                      value={line.productId}
-                      disabled={isReadOnly}
-                      onChange={(e) => {
-                        const newLines = [...formData.lines];
-                        newLines[idx].productId = e.target.value;
-                        const prod = products.find((p) => p.id === e.target.value);
-                        if (prod) newLines[idx].unitPrice = prod.cost || prod.sales_price || 0;
-                        setFormData({ ...formData, lines: newLines });
-                      }}
-                    >
-                      <option value="">-- Select Product --</option>
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <select
-                      value={line.accountId}
-                      disabled={isReadOnly}
-                      onChange={(e) => {
-                        const newLines = [...formData.lines];
-                        newLines[idx].accountId = e.target.value;
-                        setFormData({ ...formData, lines: newLines });
-                      }}
-                    >
-                      <option value="">Purchase Expense A/C (Default)</option>
-                      {accounts.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.name}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <select
-                      value={line.analyticAccountId}
-                      disabled={isReadOnly}
-                      onChange={(e) => {
-                        const newLines = [...formData.lines];
-                        newLines[idx].analyticAccountId = e.target.value;
-                        setFormData({ ...formData, lines: newLines });
-                      }}
-                    >
-                      <option value="">-- Select Analytics --</option>
-                      {analyticAccounts.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.name}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td style={{ textAlign: "right" }}>{line.quantity}</td>
-                  <td style={{ textAlign: "right" }}>
-                    ₹ {Number(line.unitPrice).toLocaleString()}
-                  </td>
-                  <td style={{ textAlign: "right", fontWeight: "700" }}>
-                    ₹ {(Number(line.quantity) * Number(line.unitPrice)).toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Dynamic Payment Breakdown Box from Excalidraw */}
-          <div
-            style={{
-              background: "#F8FAFC",
-              border: "1px solid #CBD5E1",
-              borderRadius: "12px",
-              padding: "16px 24px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: "20px",
-            }}
-          >
-            <div>
-              <span style={{ fontSize: "0.85rem", color: "#64748B", display: "block" }}>
-                Paid Via Bank / Cash
-              </span>
-              <strong style={{ fontSize: "1.1rem", color: "#059669" }}>
-                ₹ {paidAmount.toLocaleString()}
-              </strong>
-            </div>
-            <div>
-              <span style={{ fontSize: "0.85rem", color: "#64748B", display: "block" }}>
-                Amount Due (Total - Amount Paid)
-              </span>
-              <strong style={{ fontSize: "1.2rem", color: amountDue > 0 ? "#DC2626" : "#059669" }}>
-                ₹ {amountDue.toLocaleString()}
-              </strong>
-            </div>
-          </div>
-        </div>
-
-        {/* Vendor Bill Payment Modal */}
-        {isPayModalOpen && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: "rgba(0,0,0,0.6)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 1000,
-              backdropFilter: "blur(4px)",
-            }}
-          >
-            <div
-              style={{
-                background: "#FFFFFF",
-                borderRadius: "16px",
-                width: "800px",
-                display: "flex",
-                flexDirection: "column",
-                overflow: "hidden",
-                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-              }}
-            >
-              {/* Modal Header */}
-              <div style={{ padding: "24px 32px 0 32px" }}>
-                <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "#111116" }}>
-                  Register Payment
-                </h2>
+            <div className="fv-topbar-actions">
+              {/* Status pipeline */}
+              <div className="fv-status-bar">
+                <span className={`fv-status-step ${!selectedBill || selectedBill.status === "DRAFT" ? "active" : "done"}`}>Draft</span>
+                <span className={`fv-status-step ${isPosted && !isPaid ? "active" : isPaid ? "done" : ""}`}>Confirmed</span>
+                <span className={`fv-status-step ${isPaid ? "active" : ""}`}>Paid</span>
               </div>
 
-              {/* Action Bar (Buttons + Status) */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "24px 32px",
-                  borderBottom: "1px solid #E5E7EB",
-                }}
-              >
-                <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                  {!isPaid && (
-                    <button
-                      className="primary-btn"
-                      onClick={handleConfirmPayment}
-                      style={{ backgroundColor: "#714B67", padding: "10px 24px", fontSize: "1rem" }}
-                    >
-                      Confirm
-                    </button>
-                  )}
-                  <button
-                    className="secondary-btn"
-                    onClick={() => setIsPayModalOpen(false)}
-                    style={{ padding: "10px 24px", fontSize: "1rem" }}
-                  >
-                    {isPaid ? "Close" : "Cancel"}
-                  </button>
-                  <button
-                    className="secondary-btn"
-                    title="Options"
-                    style={{
-                      padding: "10px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="12" cy="12" r="3"></circle>
-                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
-                  </button>
-                </div>
+              {!selectedBill && (
+                <button className="fv-btn fv-btn-save" onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? "Saving…" : "Save Bill"}
+                </button>
+              )}
+              {selectedBill && !isPosted && !isPaid && (
+                <button className="fv-btn fv-btn-confirm" onClick={handleConfirm} disabled={isSaving}>
+                  <CheckCircle size={15} /> Confirm
+                </button>
+              )}
+              {selectedBill && isPosted && !isPaid && (
+                <button className="fv-btn fv-btn-pay" onClick={handleOpenPayModal} disabled={isSaving}>
+                  <DollarSign size={15} /> Pay
+                </button>
+              )}
+              {selectedBill && isPaid && (
+                <button className="fv-btn fv-btn-pay" onClick={handleOpenPayModal} disabled={isSaving}>
+                  <DollarSign size={15} /> View Payment
+                </button>
+              )}
+              {selectedBill?.purchase_order_id && (
+                <button className="fv-btn fv-btn-ghost" onClick={() => navigate("/purchase-orders")}>
+                  <ShoppingCart size={15} /> PO
+                </button>
+              )}
+              <button className="fv-btn fv-btn-ghost" onClick={() => navigate("/reports/budget")}>
+                <PieChart size={15} /> Budget
+              </button>
+              <button className="fv-btn fv-btn-ghost" onClick={handleCloseForm}>Cancel</button>
+            </div>
+          </div>
 
-                <div style={{ display: "flex" }}>
-                  {!isPaid ? (
-                    <>
-                      <div
-                        style={{
-                          padding: "8px 24px",
-                          background: "#F3F4F6",
-                          color: "#6B7280",
-                          fontWeight: "600",
-                          clipPath: "polygon(0 0, 90% 0, 100% 50%, 90% 100%, 0 100%, 10% 50%)",
-                          paddingLeft: "32px",
-                        }}
-                      >
-                        Draft
-                      </div>
-                      <div
-                        style={{
-                          padding: "8px 24px",
-                          background: "#017E84",
-                          color: "#FFFFFF",
-                          fontWeight: "600",
-                          clipPath: "polygon(0 0, 90% 0, 100% 50%, 90% 100%, 0 100%, 10% 50%)",
-                          marginLeft: "-16px",
-                          paddingLeft: "32px",
-                        }}
-                      >
-                        Confirm
-                      </div>
-                      <div
-                        style={{
-                          padding: "8px 24px",
-                          background: "#F3F4F6",
-                          color: "#6B7280",
-                          fontWeight: "600",
-                          clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%, 10% 50%)",
-                          marginLeft: "-16px",
-                          paddingLeft: "32px",
-                        }}
-                      >
-                        Cancelled
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div
-                        style={{
-                          padding: "8px 24px",
-                          background: "#059669",
-                          color: "#FFFFFF",
-                          fontWeight: "600",
-                          clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 50%)",
-                          paddingLeft: "32px",
-                        }}
-                      >
-                        Confirmed
-                      </div>
-                    </>
-                  )}
-                </div>
+          {/* ── Budget warning ── */}
+          {budgetWarning && (
+            <div className="fv-warning-banner">
+              <AlertTriangle size={20} className="fv-warning-icon" />
+              <div>
+                <p className="fv-warning-title">⚠ Non-Blocking Warning — Exceeds Approved Budget</p>
+                <p className="fv-warning-body">{budgetWarning}</p>
               </div>
+            </div>
+          )}
 
-              {/* Form Content */}
-              <div
-                style={{
-                  padding: "32px",
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "32px",
-                }}
-              >
-                {/* Left Column */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <label style={{ width: "140px", fontWeight: "700", color: "#4B5563" }}>
-                      Payment Type
-                    </label>
-                    <div style={{ display: "flex", gap: "16px", flex: 1 }}>
-                      <label
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          fontWeight: "600",
-                          color: "#017E84",
-                        }}
-                      >
-                        <input type="radio" checked readOnly /> Send
-                      </label>
-                      <label
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          cursor: "not-allowed",
-                          opacity: 0.5,
-                        }}
-                      >
-                        <input type="radio" disabled /> Receive
-                      </label>
-                    </div>
-                  </div>
+          {/* ── Main card ── */}
+          <div className="fv-card">
 
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <label style={{ width: "140px", fontWeight: "700", color: "#4B5563" }}>
-                      Partner
-                    </label>
-                    <div
-                      style={{
-                        flex: 1,
-                        borderBottom: "1px solid #D1D5DB",
-                        paddingBottom: "4px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      {contacts.find((c) => c.id === formData.vendorId)?.name || "Unknown Partner"}
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <label style={{ width: "140px", fontWeight: "700", color: "#4B5563" }}>
-                      Amount
-                    </label>
-                    <div
-                      style={{
-                        flex: 1,
-                        borderBottom: "1px solid #D1D5DB",
-                        paddingBottom: "4px",
-                        fontWeight: "800",
-                        color: "#111116",
-                        fontSize: "1.1rem",
-                      }}
-                    >
-                      <input
-                        type="number"
-                        value={paymentData.amount}
-                        onChange={(e) =>
-                          setPaymentData({ ...paymentData, amount: Number(e.target.value) })
-                        }
-                        disabled={isPaid}
-                        style={{
-                          border: "none",
-                          background: "transparent",
-                          width: "100%",
-                          fontWeight: "inherit",
-                          fontSize: "inherit",
-                          outline: "none",
-                        }}
-                      />
-                    </div>
-                  </div>
+            {/* Header fields */}
+            <div className="fv-card-body">
+              <p className="fv-section-label">Bill Details</p>
+              <div className="fv-grid fv-grid-5">
+                <div className="fv-field">
+                  <label className="fv-label">Vendor Bill No.</label>
+                  <input
+                    className="fv-input fv-input-autogen"
+                    value={formData.billNumber}
+                    disabled
+                    placeholder="Auto-Generated"
+                  />
                 </div>
-
-                {/* Right Column */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <label style={{ width: "140px", fontWeight: "700", color: "#4B5563" }}>
-                      Payment Date
-                    </label>
-                    <div
-                      style={{ flex: 1, borderBottom: "1px solid #D1D5DB", paddingBottom: "4px" }}
-                    >
-                      <input
-                        type="date"
-                        value={paymentData.date}
-                        onChange={(e) => setPaymentData({ ...paymentData, date: e.target.value })}
-                        disabled={isPaid}
-                        style={{
-                          border: "none",
-                          background: "transparent",
-                          width: "100%",
-                          outline: "none",
-                          fontWeight: "600",
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <label style={{ width: "140px", fontWeight: "700", color: "#4B5563" }}>
-                      Payment Via
-                    </label>
-                    <div
-                      style={{ flex: 1, borderBottom: "1px solid #D1D5DB", paddingBottom: "4px" }}
-                    >
-                      <select
-                        value={paymentData.payment_via}
-                        onChange={(e) =>
-                          setPaymentData({ ...paymentData, payment_via: e.target.value })
-                        }
-                        disabled={isPaid}
-                        style={{
-                          border: "none",
-                          background: "transparent",
-                          width: "100%",
-                          outline: "none",
-                          fontWeight: "600",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <option value="BANK">Bank</option>
-                        <option value="CASH">Cash</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Note Row - Full Width */}
-                <div
-                  style={{
-                    gridColumn: "span 2",
-                    display: "flex",
-                    alignItems: "flex-start",
-                    marginTop: "8px",
-                  }}
-                >
-                  <label
-                    style={{
-                      width: "140px",
-                      fontWeight: "700",
-                      color: "#4B5563",
-                      paddingTop: "4px",
-                    }}
+                <div className="fv-field">
+                  <label className="fv-label">Vendor Name <span className="fv-required">*</span></label>
+                  <select
+                    className="fv-select"
+                    value={formData.vendorId}
+                    disabled={isReadOnly}
+                    onChange={e => setFormData({ ...formData, vendorId: e.target.value })}
                   >
-                    Memo / Note
+                    <option value="">— Select Vendor —</option>
+                    {contacts.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}{c.type ? ` (${c.type === "BOTH" ? "Customer & Vendor" : c.type})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="fv-field">
+                  <label className="fv-label">
+                    Bill Reference
+                    <span className="fv-label-hint">(Vendor's own ref)</span>
                   </label>
-                  <div style={{ flex: 1, borderBottom: "1px solid #D1D5DB", paddingBottom: "4px" }}>
+                  <input
+                    className="fv-input"
+                    type="text"
+                    value={formData.billReference}
+                    disabled={isReadOnly}
+                    onChange={e => setFormData({ ...formData, billReference: e.target.value })}
+                    placeholder="e.g. ABC-34-001"
+                  />
+                </div>
+                <div className="fv-field">
+                  <label className="fv-label">Bill Date</label>
+                  <input
+                    className="fv-input"
+                    type="date"
+                    value={formData.billDate}
+                    disabled={isReadOnly}
+                    onChange={e => setFormData({ ...formData, billDate: e.target.value })}
+                  />
+                </div>
+                <div className="fv-field">
+                  <label className="fv-label">Due Date</label>
+                  <input
+                    className="fv-input"
+                    type="date"
+                    value={formData.dueDate}
+                    disabled={isReadOnly}
+                    onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Line items */}
+            <div className="fv-lines-section">
+              <p className="fv-lines-title">Bill Lines</p>
+              <div className="fv-table-wrap">
+                <table className="fv-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: 40 }}>Sr.</th>
+                      <th>Product <span style={{ color: "#DC2626" }}>*</span></th>
+                      <th>Chart of Account</th>
+                      <th>Budget Analytics</th>
+                      <th style={{ textAlign: "right", width: 80 }}>Qty <span style={{ color: "#DC2626" }}>*</span></th>
+                      <th style={{ textAlign: "right", width: 120 }}>Unit Price (₹) <span style={{ color: "#DC2626" }}>*</span></th>
+                      <th style={{ textAlign: "right", width: 120 }}>Total (₹)</th>
+                      {!isReadOnly && <th style={{ width: 40 }}></th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {formData.lines.map((line, idx) => {
+                      const lineTotal = Number(line.quantity || 0) * Number(line.unitPrice || 0);
+                      return (
+                        <tr key={idx}>
+                          <td style={{ textAlign: "center", fontWeight: 700, color: "#94A3B8", fontSize: "0.8rem" }}>{idx + 1}</td>
+                          <td>
+                            <select
+                              className="fv-table-select"
+                              value={line.productId}
+                              disabled={isReadOnly}
+                              onChange={e => handleLineChange(idx, "productId", e.target.value)}
+                            >
+                              <option value="">— Select Product —</option>
+                              {products.map(p => (
+                                <option key={p.id} value={p.id}>{p.name}</option>
+                              ))}
+                            </select>
+                          </td>
+                          <td>
+                            <select
+                              className="fv-table-select"
+                              value={line.accountId}
+                              disabled={isReadOnly}
+                              onChange={e => handleLineChange(idx, "accountId", e.target.value)}
+                            >
+                              <option value="">Purchase Expense A/C (Default)</option>
+                              {accounts.map(a => (
+                                <option key={a.id} value={a.id}>{a.name}</option>
+                              ))}
+                            </select>
+                          </td>
+                          <td>
+                            <select
+                              className="fv-table-select"
+                              value={line.analyticAccountId}
+                              disabled={isReadOnly}
+                              onChange={e => handleLineChange(idx, "analyticAccountId", e.target.value)}
+                            >
+                              <option value="">— Analytic Account —</option>
+                              {analyticAccounts.map(a => (
+                                <option key={a.id} value={a.id}>{a.name}</option>
+                              ))}
+                            </select>
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            {isReadOnly ? (
+                              <span style={{ fontWeight: 600 }}>{line.quantity}</span>
+                            ) : (
+                              <input
+                                className="fv-table-input fv-table-input-sm"
+                                type="number"
+                                min="1"
+                                value={line.quantity}
+                                onChange={e => handleLineChange(idx, "quantity", e.target.value)}
+                              />
+                            )}
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            {isReadOnly ? (
+                              <span style={{ fontWeight: 600 }}>₹ {Number(line.unitPrice).toLocaleString("en-IN")}</span>
+                            ) : (
+                              <input
+                                className="fv-table-input fv-table-input-md"
+                                type="number"
+                                value={line.unitPrice}
+                                onChange={e => handleLineChange(idx, "unitPrice", e.target.value)}
+                              />
+                            )}
+                          </td>
+                          <td style={{ textAlign: "right", fontWeight: 700, color: "#0F172A" }}>
+                            ₹ {lineTotal.toLocaleString("en-IN")}
+                          </td>
+                          {!isReadOnly && (
+                            <td>
+                              <button className="fv-remove-btn" type="button" onClick={() => handleRemoveLine(idx)} title="Remove">✕</button>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={!isReadOnly ? 6 : 6} style={{ textAlign: "right", color: "#64748B" }}>Grand Total</td>
+                      <td style={{ textAlign: "right", color: "#714B67", fontSize: "1rem" }}>
+                        ₹ {grandTotal.toLocaleString("en-IN")}
+                      </td>
+                      {!isReadOnly && <td />}
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              {!isReadOnly && (
+                <button className="fv-add-line" type="button" onClick={handleAddLine}>
+                  <Plus size={14} /> Add Product Line
+                </button>
+              )}
+            </div>
+
+            {/* Payment breakdown pills */}
+            <div className="fv-pay-breakdown">
+              <div className="fv-pay-pill">
+                <span className="fv-pay-pill-label">Paid Via Bank / Cash</span>
+                <span className={`fv-pay-pill-value ${isPaid ? "paid" : ""}`}>
+                  ₹ {paidAmount.toLocaleString("en-IN")}
+                </span>
+              </div>
+              <div className="fv-pay-pill">
+                <span className="fv-pay-pill-label">Amount Due</span>
+                <span className={`fv-pay-pill-value ${amountDue > 0 ? "due" : "clear"}`}>
+                  ₹ {amountDue.toLocaleString("en-IN")}
+                </span>
+              </div>
+              <div className="fv-pay-pill">
+                <span className="fv-pay-pill-label">Bill Total</span>
+                <span className="fv-pay-pill-value">
+                  ₹ {(selectedBill?.total || grandTotal).toLocaleString("en-IN")}
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ════ Payment Modal ════ */}
+        {isPayModalOpen && (
+          <div className="fv-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setIsPayModalOpen(false); }}>
+            <div className="fv-modal">
+              <div className="fv-modal-header">
+                <h2 className="fv-modal-title">Register Payment</h2>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  {/* Pipeline */}
+                  <div className="fv-modal-status">
+                    {isPaid ? (
+                      <span className="fv-modal-status-step confirmed">Confirmed</span>
+                    ) : (
+                      <>
+                        <span className="fv-modal-status-step">Draft</span>
+                        <span className="fv-modal-status-step active">Confirm</span>
+                        <span className="fv-modal-status-step">Cancelled</span>
+                      </>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsPayModalOpen(false)}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "#94A3B8", display: "flex" }}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="fv-modal-body">
+                {/* Payment Type */}
+                <div className="fv-modal-row">
+                  <span className="fv-modal-row-label">Payment Type</span>
+                  <div className="fv-modal-row-value fv-radio-group">
+                    <label className="fv-radio-label">
+                      <input type="radio" checked readOnly /> Send
+                    </label>
+                    <label className="fv-radio-label" style={{ opacity: 0.4 }}>
+                      <input type="radio" disabled /> Receive
+                    </label>
+                  </div>
+                </div>
+
+                {/* Partner */}
+                <div className="fv-modal-row">
+                  <span className="fv-modal-row-label">Partner</span>
+                  <div className="fv-modal-row-value">
+                    <div className="fv-static">
+                      {contacts.find(c => c.id === formData.vendorId)?.name || "Unknown Partner"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Amount */}
+                <div className="fv-modal-row">
+                  <span className="fv-modal-row-label">Amount (₹) <span style={{ color: "#DC2626" }}>*</span></span>
+                  <div className="fv-modal-row-value">
                     <input
-                      type="text"
-                      value={paymentData.note}
-                      onChange={(e) => setPaymentData({ ...paymentData, note: e.target.value })}
+                      className="fv-input"
+                      type="number"
+                      value={paymentData.amount}
+                      onChange={e => setPaymentData({ ...paymentData, amount: Number(e.target.value) })}
                       disabled={isPaid}
-                      placeholder="Alpha Numeric (Text)"
-                      style={{
-                        border: "none",
-                        background: "transparent",
-                        width: "100%",
-                        outline: "none",
-                        fontWeight: "500",
-                      }}
+                      style={{ fontWeight: 700, fontSize: "1.05rem" }}
                     />
                   </div>
                 </div>
+
+                {/* Payment Via */}
+                <div className="fv-modal-row">
+                  <span className="fv-modal-row-label">Payment Via</span>
+                  <div className="fv-modal-row-value">
+                    <select
+                      className="fv-select"
+                      value={paymentData.payment_via}
+                      onChange={e => setPaymentData({ ...paymentData, payment_via: e.target.value })}
+                      disabled={isPaid}
+                    >
+                      <option value="BANK">Bank Account</option>
+                      <option value="CASH">Cash Account</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Date */}
+                <div className="fv-modal-row">
+                  <span className="fv-modal-row-label">Payment Date</span>
+                  <div className="fv-modal-row-value">
+                    <input
+                      className="fv-input"
+                      type="date"
+                      value={paymentData.date}
+                      onChange={e => setPaymentData({ ...paymentData, date: e.target.value })}
+                      disabled={isPaid}
+                    />
+                  </div>
+                </div>
+
+                {/* Note */}
+                <div className="fv-modal-row">
+                  <span className="fv-modal-row-label">Memo / Note</span>
+                  <div className="fv-modal-row-value">
+                    <input
+                      className="fv-input"
+                      type="text"
+                      value={paymentData.note}
+                      onChange={e => setPaymentData({ ...paymentData, note: e.target.value })}
+                      disabled={isPaid}
+                      placeholder="Alpha-numeric note"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="fv-modal-footer">
+                <button className="fv-btn fv-btn-ghost" onClick={() => setIsPayModalOpen(false)}>
+                  {isPaid ? "Close" : "Cancel"}
+                </button>
+                {!isPaid && (
+                  <button className="fv-btn fv-btn-confirm" onClick={handleConfirmPayment} disabled={isSaving}>
+                    {isSaving ? "Processing…" : "Confirm Payment"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -919,23 +689,19 @@ export default function VendorBills() {
     );
   }
 
+  /* ── List view ── */
   return (
     <div className="page-content" style={{ padding: 0 }}>
-      <div className="page-header">
-        <h1 className="page-title">Vendor Bills</h1>
-      </div>
+      <div className="page-header"><h1 className="page-title">Vendor Bills</h1></div>
       {isLoading ? (
-        <p>Loading vendor bills...</p>
+        <p style={{ padding: "40px", color: "#64748B" }}>Loading vendor bills…</p>
       ) : (
         <DataTable
           title="Vendor Bill"
           columns={columns}
           data={bills}
-          onNewClick={() => {
-            setSelectedBill(null);
-            setIsFormOpen(true);
-          }}
-          searchPlaceholder="Search vendor bills..."
+          onNewClick={() => { setSelectedBill(null); setIsFormOpen(true); }}
+          searchPlaceholder="Search vendor bills…"
         />
       )}
     </div>

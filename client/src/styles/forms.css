@@ -1,0 +1,896 @@
+/* ================================================================
+   forms.css  –  Valora ERP  |  Premium Form View Design System
+   ================================================================ */
+
+/* ── CSS Variables (inherit from global, extend here) ── */
+:root {
+  --form-radius: 16px;
+  --form-border: #E2E8F0;
+  --form-bg: #FFFFFF;
+  --form-surface: #F8FAFC;
+  --form-accent: #714B67;
+  --form-accent-light: rgba(113, 75, 103, 0.08);
+  --form-accent-mid: rgba(113, 75, 103, 0.18);
+  --form-text: #0F172A;
+  --form-muted: #64748B;
+  --form-success: #059669;
+  --form-warning: #D97706;
+  --form-danger: #DC2626;
+  --form-info: #2563EB;
+  --form-input-h: 42px;
+  --form-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+  --form-shadow-hover: 0 4px 12px rgba(0,0,0,0.08), 0 16px 40px rgba(0,0,0,0.06);
+  --transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FORM PAGE WRAPPER
+   ════════════════════════════════════════════════════════════════ */
+.fv-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  animation: fv-enter 0.25s ease both;
+}
+
+@keyframes fv-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Top action bar ── */
+.fv-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 20px 0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.fv-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fv-topbar-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--form-text);
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+.fv-topbar-subtitle {
+  font-size: 0.82rem;
+  color: var(--form-muted);
+  margin: 2px 0 0 0;
+}
+
+.fv-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── Status breadcrumb (Odoo-style arrow pipeline) ── */
+.fv-status-bar {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid var(--form-border);
+}
+
+.fv-status-step {
+  padding: 6px 20px 6px 28px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--form-surface);
+  color: var(--form-muted);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%);
+  margin-left: -1px;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+
+.fv-status-step:first-child {
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+  padding-left: 16px;
+}
+
+.fv-status-step:last-child {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 10px 50%);
+}
+
+.fv-status-step.active {
+  background: var(--form-accent);
+  color: #fff;
+}
+
+.fv-status-step.done {
+  background: #ECFDF5;
+  color: var(--form-success);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   MAIN FORM CARD
+   ════════════════════════════════════════════════════════════════ */
+.fv-card {
+  background: var(--form-bg);
+  border: 1px solid var(--form-border);
+  border-radius: var(--form-radius);
+  box-shadow: var(--form-shadow);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.fv-card:hover {
+  box-shadow: var(--form-shadow-hover);
+}
+
+/* ── Card inner section ── */
+.fv-card-body {
+  padding: 28px 32px;
+}
+
+.fv-card-section {
+  padding: 24px 32px;
+  border-top: 1px solid var(--form-border);
+}
+
+.fv-card-section:first-child {
+  border-top: none;
+}
+
+/* ── Section heading ── */
+.fv-section-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--form-muted);
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fv-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--form-border);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FORM GRID & FIELDS
+   ════════════════════════════════════════════════════════════════ */
+.fv-grid {
+  display: grid;
+  gap: 20px 24px;
+}
+
+.fv-grid-2  { grid-template-columns: 1fr 1fr; }
+.fv-grid-3  { grid-template-columns: 1fr 1fr 1fr; }
+.fv-grid-4  { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.fv-grid-5  { grid-template-columns: 1fr 1fr 1fr 1fr 1fr; }
+.fv-span-2  { grid-column: span 2; }
+.fv-span-full { grid-column: 1 / -1; }
+
+@media (max-width: 900px) {
+  .fv-grid-3, .fv-grid-4, .fv-grid-5 { grid-template-columns: 1fr 1fr; }
+  .fv-span-2 { grid-column: span 1; }
+}
+@media (max-width: 600px) {
+  .fv-grid-2, .fv-grid-3, .fv-grid-4, .fv-grid-5 { grid-template-columns: 1fr; }
+  .fv-span-2, .fv-span-full { grid-column: 1; }
+}
+
+/* ── Individual Field ── */
+.fv-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fv-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--form-text);
+  letter-spacing: 0.2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fv-label-hint {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--form-muted);
+  margin-left: 2px;
+}
+
+.fv-required {
+  color: var(--form-danger);
+  margin-left: 2px;
+  line-height: 1;
+}
+
+/* ── Input / Select ── */
+.fv-input,
+.fv-select {
+  height: var(--form-input-h);
+  padding: 0 14px;
+  border: 1.5px solid var(--form-border);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--form-text);
+  background: var(--form-bg);
+  outline: none;
+  transition: var(--transition);
+  width: 100%;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.fv-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 38px;
+  cursor: pointer;
+}
+
+.fv-input:hover,
+.fv-select:hover {
+  border-color: #94A3B8;
+}
+
+.fv-input:focus,
+.fv-select:focus {
+  border-color: var(--form-accent);
+  box-shadow: 0 0 0 3px var(--form-accent-light);
+}
+
+.fv-input:disabled,
+.fv-select:disabled {
+  background: var(--form-surface);
+  color: var(--form-muted);
+  border-color: #E9EFF5;
+  cursor: not-allowed;
+  font-style: italic;
+}
+
+.fv-input::placeholder {
+  color: #CBD5E1;
+  font-weight: 400;
+}
+
+/* ── Textarea ── */
+.fv-textarea {
+  padding: 12px 14px;
+  border: 1.5px solid var(--form-border);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--form-text);
+  background: var(--form-bg);
+  outline: none;
+  transition: var(--transition);
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.fv-textarea:focus {
+  border-color: var(--form-accent);
+  box-shadow: 0 0 0 3px var(--form-accent-light);
+}
+
+/* ── Static read-only value display ── */
+.fv-static {
+  height: var(--form-input-h);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--form-text);
+  background: var(--form-surface);
+  border: 1.5px solid var(--form-border);
+  border-radius: 10px;
+  cursor: default;
+}
+
+/* ── Auto-generated badge input ── */
+.fv-input-autogen {
+  background: #F1F5F9 !important;
+  border-color: #E2E8F0 !important;
+  color: var(--form-muted) !important;
+  font-style: italic !important;
+  font-size: 0.85rem !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   LINE ITEMS TABLE
+   ════════════════════════════════════════════════════════════════ */
+.fv-lines-section {
+  padding: 0 32px 28px;
+}
+
+.fv-lines-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--form-muted);
+  margin: 0 0 14px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fv-lines-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--form-border);
+}
+
+.fv-table-wrap {
+  border: 1.5px solid var(--form-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--form-bg);
+}
+
+.fv-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.fv-table thead tr {
+  background: var(--form-surface);
+  border-bottom: 1.5px solid var(--form-border);
+}
+
+.fv-table th {
+  padding: 10px 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--form-muted);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.fv-table td {
+  padding: 8px 10px;
+  font-size: 0.88rem;
+  color: var(--form-text);
+  border-bottom: 1px solid #F1F5F9;
+  vertical-align: middle;
+}
+
+.fv-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.fv-table tbody tr:hover td {
+  background: rgba(113, 75, 103, 0.02);
+}
+
+.fv-table tfoot td {
+  padding: 12px 14px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  background: var(--form-surface);
+  border-top: 1.5px solid var(--form-border);
+}
+
+/* ── Table inline inputs ── */
+.fv-table-input,
+.fv-table-select {
+  height: 34px;
+  padding: 0 10px;
+  border: 1.5px solid var(--form-border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--form-text);
+  background: var(--form-bg);
+  outline: none;
+  transition: var(--transition);
+  width: 100%;
+  box-sizing: border-box;
+  appearance: none;
+}
+
+.fv-table-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 28px;
+  cursor: pointer;
+}
+
+.fv-table-input:focus,
+.fv-table-select:focus {
+  border-color: var(--form-accent);
+  box-shadow: 0 0 0 2px var(--form-accent-light);
+}
+
+.fv-table-input-sm {
+  width: 72px;
+  text-align: right;
+}
+
+.fv-table-input-md {
+  width: 110px;
+  text-align: right;
+}
+
+/* ── Add line / remove line buttons ── */
+.fv-add-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 7px 16px;
+  background: transparent;
+  border: 1.5px dashed #CBD5E1;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--form-muted);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.fv-add-line:hover {
+  border-color: var(--form-accent);
+  color: var(--form-accent);
+  background: var(--form-accent-light);
+}
+
+.fv-remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #CBD5E1;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: var(--transition);
+}
+
+.fv-remove-btn:hover {
+  background: #FEE2E2;
+  color: var(--form-danger);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   TOTALS / SUMMARY FOOTER
+   ════════════════════════════════════════════════════════════════ */
+.fv-totals {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 32px 24px;
+}
+
+.fv-totals-box {
+  background: var(--form-surface);
+  border: 1.5px solid var(--form-border);
+  border-radius: 12px;
+  padding: 16px 24px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fv-totals-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  color: var(--form-muted);
+}
+
+.fv-totals-row.total {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--form-text);
+  padding-top: 8px;
+  border-top: 1.5px solid var(--form-border);
+  margin-top: 4px;
+}
+
+.fv-totals-row .amount {
+  font-weight: 700;
+  color: var(--form-text);
+}
+
+.fv-totals-row.total .amount {
+  color: var(--form-accent);
+  font-size: 1.15rem;
+}
+
+/* ── Payment breakdown ── */
+.fv-pay-breakdown {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  padding: 0 32px 24px;
+}
+
+.fv-pay-pill {
+  background: var(--form-surface);
+  border: 1.5px solid var(--form-border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fv-pay-pill-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--form-muted);
+}
+
+.fv-pay-pill-value {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--form-text);
+}
+
+.fv-pay-pill-value.paid   { color: var(--form-success); }
+.fv-pay-pill-value.due    { color: var(--form-danger); }
+.fv-pay-pill-value.clear  { color: var(--form-success); }
+
+/* ════════════════════════════════════════════════════════════════
+   BUTTONS  (override / extend global primary / secondary)
+   ════════════════════════════════════════════════════════════════ */
+.fv-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: 9px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.fv-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.fv-btn-back {
+  background: var(--form-surface);
+  color: var(--form-muted);
+  border-color: var(--form-border);
+}
+
+.fv-btn-back:hover:not(:disabled) {
+  background: #F1F5F9;
+  color: var(--form-text);
+}
+
+.fv-btn-save {
+  background: var(--form-accent);
+  color: #fff;
+  border-color: var(--form-accent);
+}
+
+.fv-btn-save:hover:not(:disabled) {
+  background: #5A3A52;
+  border-color: #5A3A52;
+}
+
+.fv-btn-confirm {
+  background: #059669;
+  color: #fff;
+  border-color: #059669;
+}
+
+.fv-btn-confirm:hover:not(:disabled) {
+  background: #047857;
+}
+
+.fv-btn-pay {
+  background: #7C3AED;
+  color: #fff;
+  border-color: #7C3AED;
+}
+
+.fv-btn-pay:hover:not(:disabled) {
+  background: #6D28D9;
+}
+
+.fv-btn-bill {
+  background: #2563EB;
+  color: #fff;
+  border-color: #2563EB;
+}
+
+.fv-btn-bill:hover:not(:disabled) {
+  background: #1D4ED8;
+}
+
+.fv-btn-ghost {
+  background: transparent;
+  color: var(--form-muted);
+  border-color: var(--form-border);
+}
+
+.fv-btn-ghost:hover:not(:disabled) {
+  background: var(--form-surface);
+  color: var(--form-text);
+}
+
+.fv-btn-danger {
+  background: #FEE2E2;
+  color: var(--form-danger);
+  border-color: #FECACA;
+}
+
+.fv-btn-danger:hover:not(:disabled) {
+  background: #FECACA;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   BUDGET WARNING BANNER
+   ════════════════════════════════════════════════════════════════ */
+.fv-warning-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  background: #FFFBEB;
+  border: 1.5px solid #FCD34D;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  animation: fv-enter 0.2s ease both;
+}
+
+.fv-warning-icon {
+  flex-shrink: 0;
+  color: #D97706;
+  margin-top: 2px;
+}
+
+.fv-warning-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #92400E;
+  margin: 0 0 3px 0;
+}
+
+.fv-warning-body {
+  font-size: 0.82rem;
+  color: #78350F;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   JOURNAL ENTRY ACCOUNTING DATA BLOCK
+   ════════════════════════════════════════════════════════════════ */
+.fv-je-block {
+  background: var(--form-surface);
+  border: 1.5px solid var(--form-border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 0 32px 28px;
+}
+
+.fv-je-header {
+  padding: 12px 20px;
+  background: #F8FAFC;
+  border-bottom: 1.5px solid var(--form-border);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--form-muted);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   STATUS BADGE CHIPS
+   ════════════════════════════════════════════════════════════════ */
+.fv-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.fv-badge-draft    { background: #FEF3C7; color: #92400E; }
+.fv-badge-confirmed { background: #DBEAFE; color: #1E40AF; }
+.fv-badge-paid     { background: #DCFCE7; color: #166534; }
+.fv-badge-cancelled { background: #FEE2E2; color: #991B1B; }
+.fv-badge-posted   { background: #EDE9FE; color: #5B21B6; }
+
+/* ════════════════════════════════════════════════════════════════
+   MODAL OVERLAY
+   ════════════════════════════════════════════════════════════════ */
+.fv-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fv-fade 0.2s ease;
+}
+
+@keyframes fv-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.fv-modal {
+  background: var(--form-bg);
+  border-radius: 18px;
+  width: 680px;
+  max-width: 95vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+  animation: fv-slide-up 0.25s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+@keyframes fv-slide-up {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.fv-modal-header {
+  padding: 22px 28px 16px;
+  border-bottom: 1px solid var(--form-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fv-modal-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--form-text);
+  margin: 0;
+}
+
+.fv-modal-body {
+  padding: 24px 28px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+}
+
+.fv-modal-footer {
+  padding: 16px 28px;
+  border-top: 1px solid var(--form-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: var(--form-surface);
+}
+
+/* ── Modal form row ── */
+.fv-modal-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.fv-modal-row-label {
+  width: 130px;
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--form-muted);
+}
+
+.fv-modal-row-value {
+  flex: 1;
+}
+
+/* ── Modal payment type radio ── */
+.fv-radio-group {
+  display: flex;
+  gap: 20px;
+}
+
+.fv-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--form-text);
+}
+
+.fv-radio-label input[type="radio"] {
+  accent-color: var(--form-accent);
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Modal pipeline status bar ── */
+.fv-modal-status {
+  display: flex;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid var(--form-border);
+  align-self: flex-end;
+}
+
+.fv-modal-status-step {
+  padding: 7px 18px 7px 24px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--form-surface);
+  color: var(--form-muted);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%);
+  margin-left: -1px;
+}
+
+.fv-modal-status-step:first-child {
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+  padding-left: 14px;
+}
+
+.fv-modal-status-step:last-child {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 10px 50%);
+}
+
+.fv-modal-status-step.active {
+  background: #017E84;
+  color: #fff;
+}
+
+.fv-modal-status-step.confirmed {
+  background: var(--form-success);
+  color: #fff;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}

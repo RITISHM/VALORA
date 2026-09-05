@@ -122,6 +122,10 @@ class PaymentsService {
           partner_id,
           amount: payAmount,
           method: paymentMethod,
+          // against_type/against_id are required by schema;
+          // for standalone manual payments we use a sentinel value
+          against_type: "INVOICE",
+          against_id: "MANUAL",
           status: "CONFIRMED",
         },
         include: {
