@@ -32,7 +32,7 @@ class JournalsController {
       const journal = await accountingService.createJournal(validatedData);
       return res.status(201).json(journal);
     } catch (err) {
-      if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+      if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
       next(err);
     }
   }
@@ -43,7 +43,7 @@ class JournalsController {
       const journal = await accountingService.updateJournal(req.params.id, validatedData);
       return res.status(200).json(journal);
     } catch (err) {
-      if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+      if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
       next(err);
     }
   }

@@ -9,13 +9,13 @@ const prisma = new PrismaClient();
 
 const signupSchema = z.object({
   name: z.string().min(1),
-  login_id: z.string().min(6).max(12),
+  login_id: z.string().min(6), // Removed max(12) to allow email as login_id for customers
   email: z.string().email(),
   password: z
     .string()
     .min(8)
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).+$/,
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).+$/,
       "Password must have uppercase, lowercase, and special character",
     ),
   role: z.enum(["ADMIN", "ACCOUNTANT", "CONTACT"]),
@@ -60,7 +60,7 @@ router.post("/signup", async (req, res, next) => {
       .json({ user: { id: user.id, name: user.name, email: user.email, role: user.role }, token });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
+      return res.status(400).json({ error: error.issues });
     }
     next(error);
   }
@@ -75,8 +75,13 @@ router.post("/login", async (req, res, next) => {
   try {
     const validatedData = loginSchema.parse(req.body);
 
-    const user = await prisma.user.findUnique({
-      where: { login_id: validatedData.login_id },
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { login_id: validatedData.login_id },
+          { email: validatedData.login_id }
+        ]
+      },
     });
 
     if (!user) {
@@ -97,7 +102,7 @@ router.post("/login", async (req, res, next) => {
     res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role }, token });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
+      return res.status(400).json({ error: error.issues });
     }
     next(error);
   }

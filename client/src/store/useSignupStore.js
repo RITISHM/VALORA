@@ -46,61 +46,29 @@ export const validatePassword = (password) => {
   };
 };
 
+
+
 /**
- * Validates Login ID constraint rules:
- * 1. Must be between 6 and 12 characters.
- * 2. Must consist of the user's first name and last name.
+ * Validates a Login ID based on length and characters.
  * 
  * @function validateLoginId
- * @param {string} loginId - Candidate login identifier string.
- * @param {string} [firstName=''] - User's first name for composition check.
- * @param {string} [lastName=''] - User's last name for composition check.
- * @returns {Object} Validation result with status flag and localized error description.
- * @property {boolean} isValid - True if Login ID satisfies length and naming composition.
- * @property {string} errorMessage - Validation error message or empty string if valid.
+ * @param {string} loginId - The login ID to validate.
+ * @param {string} firstName - The first name.
+ * @param {string} lastName - The last name.
+ * @returns {Object} Object indicating validity and formatted error message.
  */
-export const validateLoginId = (loginId, firstName = '', lastName = '') => {
-  const trimmed = loginId.trim();
+export const validateLoginId = (loginId, firstName, lastName) => {
+  const trimmed = loginId ? loginId.trim() : '';
   if (!trimmed) {
     return { isValid: false, errorMessage: 'Login ID is required' };
   }
-
-  // Length check (6 - 12 characters)
   if (trimmed.length < 6 || trimmed.length > 12) {
-    return {
-      isValid: false,
-      errorMessage: `Login ID must be between 6 and 12 characters (currently ${trimmed.length})`,
-    };
+    return { isValid: false, errorMessage: 'Login ID must be 6-12 characters' };
   }
-
-  // Must consist of first name and last name
-  const cleanFirst = firstName.trim().toLowerCase();
-  const cleanLast = lastName.trim().toLowerCase();
-  const cleanLogin = trimmed.toLowerCase();
-
-  if (cleanFirst && cleanLast) {
-    // Check if login ID incorporates both first and last names
-    const hasFirst = cleanLogin.includes(cleanFirst) || cleanLogin.startsWith(cleanFirst[0]);
-    const hasLast = cleanLogin.includes(cleanLast) || (cleanLast.length > 0 && cleanLogin.endsWith(cleanLast.slice(0, 4)));
-
-    const directlyCombines = cleanLogin.replace(/[^a-z0-9]/g, '') === (cleanFirst + cleanLast).slice(0, cleanLogin.length);
-
-    if (!directlyCombines && (!hasFirst || !hasLast)) {
-      return {
-        isValid: false,
-        errorMessage: `Login ID must consist of your first name (${firstName.trim()}) and last name (${lastName.trim()})`,
-      };
-    }
-  } else if (!cleanFirst || !cleanLast) {
-    // If names not entered yet, ensure format has valid character set
-    if (!/^[a-zA-Z0-9._-]+$/.test(trimmed)) {
-      return {
-        isValid: false,
-        errorMessage: 'Login ID can only contain letters, numbers, dots, or underscores',
-      };
-    }
+  const idRegex = /^[a-zA-Z0-9]+$/;
+  if (!idRegex.test(trimmed)) {
+    return { isValid: false, errorMessage: 'Login ID can only contain letters and numbers' };
   }
-
   return { isValid: true, errorMessage: '' };
 };
 
@@ -133,7 +101,6 @@ export const useSignupStore = create((set, get) => ({
   formData: {
     firstName: '',
     lastName: '',
-    loginId: '',
     email: '',
     role: 'User',
     password: '',
@@ -143,7 +110,6 @@ export const useSignupStore = create((set, get) => ({
   touched: {
     firstName: false,
     lastName: false,
-    loginId: false,
     email: false,
     password: false,
     confirmPassword: false,
@@ -151,7 +117,6 @@ export const useSignupStore = create((set, get) => ({
   /** @type {Object} Field-level validation error messages */
   errors: {
     name: '',
-    loginId: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -183,17 +148,7 @@ export const useSignupStore = create((set, get) => ({
       const nextTouched = { ...state.touched, [name]: true };
       const nextErrors = { ...state.errors, submit: '' };
 
-      // Real-time validation for modified fields
-      if (name === 'loginId' || name === 'firstName' || name === 'lastName') {
-        const loginCheck = validateLoginId(
-          name === 'loginId' ? value : nextFormData.loginId,
-          name === 'firstName' ? value : nextFormData.firstName,
-          name === 'lastName' ? value : nextFormData.lastName
-        );
-        if (nextFormData.loginId) {
-          nextErrors.loginId = loginCheck.errorMessage;
-        }
-      }
+
 
       if (name === 'email') {
         const emailCheck = validateEmail(value);
@@ -242,24 +197,7 @@ export const useSignupStore = create((set, get) => ({
     }));
   },
 
-  /**
-   * Automatically derives a compliant 6-12 character Login ID from first and last name.
-   * 
-   * @function suggestLoginId
-   */
-  suggestLoginId: () => {
-    const { firstName, lastName } = get().formData;
-    if (!firstName && !lastName) return;
-    const cleanFirst = firstName.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-    const cleanLast = lastName.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-    let combined = cleanFirst + cleanLast;
-    if (combined.length < 6) {
-      combined = (combined + '123456').slice(0, 6);
-    } else if (combined.length > 12) {
-      combined = combined.slice(0, 12);
-    }
-    get().setField('loginId', combined);
-  },
+
 
   /**
    * Validates all form fields simultaneously prior to form submission.
@@ -278,8 +216,7 @@ export const useSignupStore = create((set, get) => ({
       nextErrors.lastName = 'Last name is required';
     }
 
-    const loginCheck = validateLoginId(formData.loginId, formData.firstName, formData.lastName);
-    if (!loginCheck.isValid) nextErrors.loginId = loginCheck.errorMessage;
+
 
     const emailCheck = validateEmail(formData.email);
     if (!emailCheck.isValid) nextErrors.email = emailCheck.errorMessage;
@@ -300,7 +237,6 @@ export const useSignupStore = create((set, get) => ({
       touched: {
         firstName: true,
         lastName: true,
-        loginId: true,
         email: true,
         password: true,
         confirmPassword: true,
@@ -336,7 +272,6 @@ export const useSignupStore = create((set, get) => ({
       formData: {
         firstName: '',
         lastName: '',
-        loginId: '',
         email: '',
         role: 'User',
         password: '',
@@ -345,14 +280,12 @@ export const useSignupStore = create((set, get) => ({
       touched: {
         firstName: false,
         lastName: false,
-        loginId: false,
         email: false,
         password: false,
         confirmPassword: false,
       },
       errors: {
         name: '',
-        loginId: '',
         email: '',
         password: '',
         confirmPassword: '',

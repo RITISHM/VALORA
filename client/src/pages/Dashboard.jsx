@@ -757,7 +757,196 @@ function UserDashboard({ user }) {
 }
 
 /**
- * Root Dashboard router component that selectively renders AdminDashboard or UserDashboard
+ * Accountant specific dashboard focused on quick entries and analytics.
+ */
+function AccountantDashboard({ user }) {
+  const navigate = useNavigate();
+  const [activeDropdown, setActiveDropdown] = useState(null);
+
+  const toggleDropdown = (menu, e) => {
+    e.stopPropagation();
+    setActiveDropdown(activeDropdown === menu ? null : menu);
+  };
+  const closeDropdowns = () => setActiveDropdown(null);
+
+  return (
+    <div className="dashboard-container" onClick={closeDropdowns}>
+      <div className="dashboard-greeting" style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: '800', margin: 0 }}>Hi, {user?.name || 'Accountant'} 👋</h1>
+        <p style={{ color: '#6B7280', margin: '8px 0 0 0', fontSize: '1rem' }}>Here is your financial overview for today.</p>
+      </div>
+
+      {/* The 4 Dropdown Menu Tabs */}
+      <div className="dashboard-tabs" style={{ gap: '24px', display: 'flex', alignItems: 'center', marginBottom: '32px', borderBottom: '1px solid #F3F4F6', paddingBottom: '12px', position: 'relative', zIndex: 50 }}>
+        {/* 1. SALES TAB */}
+        <div className="mega-dropdown-wrapper" style={{ position: 'relative' }}>
+          <button type="button" className={`tab ${activeDropdown === 'sales' ? 'active' : ''}`} onClick={(e) => toggleDropdown('sales', e)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'transparent', border: 'none', fontSize: '0.95rem', fontWeight: '600', color: activeDropdown === 'sales' ? '#111116' : '#9CA3AF', cursor: 'pointer', padding: 0 }}>
+            Sales <ChevronDown size={14} />
+          </button>
+          {activeDropdown === 'sales' && (
+            <div className="mega-dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, marginTop: '8px' }}>
+              <Link to="/sales-orders" onClick={closeDropdowns}><ShoppingBag size={15} /> Sales order</Link>
+              <Link to="/customer-invoices" onClick={closeDropdowns}><FileText size={15} /> Sale Invoice</Link>
+              <Link to="/payments" onClick={closeDropdowns}><DollarSign size={15} /> Receipt</Link>
+            </div>
+          )}
+        </div>
+
+        {/* 2. PURCHASE TAB */}
+        <div className="mega-dropdown-wrapper" style={{ position: 'relative' }}>
+          <button type="button" className={`tab ${activeDropdown === 'purchase' ? 'active' : ''}`} onClick={(e) => toggleDropdown('purchase', e)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'transparent', border: 'none', fontSize: '0.95rem', fontWeight: '600', color: activeDropdown === 'purchase' ? '#111116' : '#9CA3AF', cursor: 'pointer', padding: 0 }}>
+            Purchase <ChevronDown size={14} />
+          </button>
+          {activeDropdown === 'purchase' && (
+            <div className="mega-dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, marginTop: '8px' }}>
+              <Link to="/purchase-orders" onClick={closeDropdowns}><ShoppingCart size={15} /> Purchase Order</Link>
+              <Link to="/vendor-bills" onClick={closeDropdowns}><FileText size={15} /> Purchase Bill</Link>
+              <Link to="/payments" onClick={closeDropdowns}><DollarSign size={15} /> Payment</Link>
+            </div>
+          )}
+        </div>
+
+        {/* 3. ACCOUNT TAB */}
+        <div className="mega-dropdown-wrapper" style={{ position: 'relative' }}>
+          <button type="button" className={`tab ${activeDropdown === 'account' ? 'active' : ''}`} onClick={(e) => toggleDropdown('account', e)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'transparent', border: 'none', fontSize: '0.95rem', fontWeight: '600', color: activeDropdown === 'account' ? '#111116' : '#9CA3AF', cursor: 'pointer', padding: 0 }}>
+            Account <ChevronDown size={14} />
+          </button>
+          {activeDropdown === 'account' && (
+            <div className="mega-dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, marginTop: '8px' }}>
+              <Link to="/contacts" onClick={closeDropdowns}><Users size={15} /> Contact</Link>
+              <Link to="/products" onClick={closeDropdowns}><Package size={15} /> Product</Link>
+              <Link to="/analytic-accounts" onClick={closeDropdowns}><Tag size={15} /> Analyticals</Link>
+              <Link to="/budgets" onClick={closeDropdowns}><PieChart size={15} /> Analytical Budget</Link>
+              <Link to="/accounts" onClick={closeDropdowns}><BookOpen size={15} /> Chart of Account</Link>
+              <Link to="/journals" onClick={closeDropdowns}><ListFilter size={15} /> Journals</Link>
+              <Link to="/journal-entries" onClick={closeDropdowns}><Layers size={15} /> Journal Entries</Link>
+            </div>
+          )}
+        </div>
+
+        {/* 4. REPORT TAB */}
+        <div className="mega-dropdown-wrapper" style={{ position: 'relative' }}>
+          <button type="button" className={`tab ${activeDropdown === 'report' ? 'active' : ''}`} onClick={(e) => toggleDropdown('report', e)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'transparent', border: 'none', fontSize: '0.95rem', fontWeight: '600', color: activeDropdown === 'report' ? '#111116' : '#9CA3AF', cursor: 'pointer', padding: 0 }}>
+            Report <ChevronDown size={14} />
+          </button>
+          {activeDropdown === 'report' && (
+            <div className="mega-dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, marginTop: '8px' }}>
+              <Link to="/reports/balance-sheet" onClick={closeDropdowns}><BarChart3 size={15} /> Balancesheet</Link>
+              <Link to="/reports/pnl" onClick={closeDropdowns}><BarChart3 size={15} /> Profit and Loss</Link>
+              <Link to="/reports/budget" onClick={closeDropdowns}><PieChart size={15} /> Budget Report</Link>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '32px' }}>
+        
+        {/* Main Analytics Column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          
+          {/* Quick Stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+            <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: '16px', padding: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <span style={{ color: '#4B5563', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Operating Cash</span>
+                <div style={{ background: '#E0F2FE', padding: '8px', borderRadius: '8px' }}>
+                  <DollarSign size={20} color="#0369A1" />
+                </div>
+              </div>
+              <h2 style={{ fontSize: '2rem', color: '#111116', margin: 0, fontWeight: '800' }}>₹ 1,240,500</h2>
+            </div>
+            
+            <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: '16px', padding: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <span style={{ color: '#4B5563', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Net Income (MTD)</span>
+                <div style={{ background: '#D1FAE5', padding: '8px', borderRadius: '8px' }}>
+                  <Activity size={20} color="#059669" />
+                </div>
+              </div>
+              <h2 style={{ fontSize: '2rem', color: '#111116', margin: 0, fontWeight: '800' }}>₹ 384,200</h2>
+            </div>
+
+            <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: '16px', padding: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <span style={{ color: '#4B5563', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Pending Approvals</span>
+                <div style={{ background: '#FCE7F3', padding: '8px', borderRadius: '8px' }}>
+                  <ListFilter size={20} color="#BE185D" />
+                </div>
+              </div>
+              <h2 style={{ fontSize: '2rem', color: '#111116', margin: 0, fontWeight: '800' }}>14 Drafts</h2>
+            </div>
+          </div>
+
+          {/* Quick Actions (Add Data) */}
+          <div style={{ backgroundColor: '#FFFFFF', borderRadius: '16px', padding: '24px', border: '1px solid #E5E7EB' }}>
+            <h3 style={{ margin: '0 0 20px 0', fontSize: '1.2rem', color: '#111116' }}>Quick Add Operations</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+              <button onClick={() => navigate('/customer-invoices/new')} style={{ backgroundColor: '#F3F4F6', color: '#714B67', border: 'none', padding: '16px', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', fontWeight: '600', transition: 'all 0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                <FileText size={24} /> New Invoice
+              </button>
+              <button onClick={() => navigate('/vendor-bills/new')} style={{ backgroundColor: '#F3F4F6', color: '#017E84', border: 'none', padding: '16px', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', fontWeight: '600', transition: 'all 0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                <Network size={24} /> New Bill
+              </button>
+              <button onClick={() => navigate('/journal-entries/new')} style={{ backgroundColor: '#F3F4F6', color: '#D46243', border: 'none', padding: '16px', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', fontWeight: '600', transition: 'all 0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                <Layers size={24} /> New Journal Entry
+              </button>
+              <button onClick={() => navigate('/reports/pnl')} style={{ backgroundColor: '#714B67', color: 'white', border: 'none', padding: '16px', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', fontWeight: '600', transition: 'all 0.2s', boxShadow: '0 4px 6px -1px rgba(113, 75, 103, 0.4)' }}>
+                <BarChart3 size={24} /> View Analytics
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Sidebar (Recent Activity) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ backgroundColor: '#FFFFFF', borderRadius: '16px', padding: '24px', border: '1px solid #E5E7EB' }}>
+            <h3 style={{ margin: '0 0 20px 0', fontSize: '1.2rem', color: '#111116', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              Recent Activity
+            </h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#FCE7F3', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#BE185D', flexShrink: 0 }}>
+                  <FileText size={16} />
+                </div>
+                <div>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '0.9rem', color: '#111116', fontWeight: '600' }}>Invoice #INV0004 Posted</p>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#6B7280' }}>2 hours ago by Admin</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0369A1', flexShrink: 0 }}>
+                  <Layers size={16} />
+                </div>
+                <div>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '0.9rem', color: '#111116', fontWeight: '600' }}>Journal Entry #JE012 Drafted</p>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#6B7280' }}>4 hours ago by You</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#D1FAE5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669', flexShrink: 0 }}>
+                  <Network size={16} />
+                </div>
+                <div>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '0.9rem', color: '#111116', fontWeight: '600' }}>Bill #BILL099 Confirmed</p>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#6B7280' }}>Yesterday</p>
+                </div>
+              </div>
+            </div>
+            
+            <button style={{ width: '100%', marginTop: '20px', padding: '10px', background: 'transparent', border: '1px solid #E5E7EB', borderRadius: '8px', color: '#4B5563', fontWeight: '600', cursor: 'pointer' }}>
+              View Audit Log
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Root Dashboard router component that selectively renders AdminDashboard, AccountantDashboard, or UserDashboard
  * based on the authenticated user's assigned role.
  * 
  * @component
@@ -770,6 +959,10 @@ export default function Dashboard() {
 
   if (userRole === 'contact') {
     return <UserDashboard user={user} />;
+  }
+
+  if (userRole === 'accountant' || userRole === 'user') {
+    return <AccountantDashboard user={user} />;
   }
 
   return <AdminDashboard />;

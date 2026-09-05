@@ -38,7 +38,7 @@ class ContactsController {
       return res.status(201).json(contact);
     } catch (err) {
       if (err instanceof z.ZodError) {
-        return res.status(400).json({ error: err.errors });
+        return res.status(400).json({ error: err.issues });
       }
       next(err);
     }
@@ -51,7 +51,7 @@ class ContactsController {
       return res.status(200).json(contact);
     } catch (err) {
       if (err instanceof z.ZodError) {
-        return res.status(400).json({ error: err.errors });
+        return res.status(400).json({ error: err.issues });
       }
       next(err);
     }

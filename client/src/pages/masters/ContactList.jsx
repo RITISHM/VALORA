@@ -10,7 +10,7 @@ import React, { useState, useEffect } from 'react';
 import { Trash2, Pencil } from 'lucide-react';
 import DataTable from '../../components/DataTable';
 import FormShell from '../../components/FormShell';
-import { api } from '../../api';
+import { api, BACKEND_URL } from '../../api';
 
 /**
  * Contact management view component.
@@ -24,6 +24,10 @@ export default function ContactList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [isUserFormOpen, setIsUserFormOpen] = useState(false);
+  const [userFormData, setUserFormData] = useState({
+    name: '', login_id: '', email: '', password: '', role: 'ACCOUNTANT', contact_id: ''
+  });
 
   const [formData, setFormData] = useState({
     name: '', type: 'Customer', email: '', mobile: '', city: '', state: ''
@@ -97,8 +101,39 @@ export default function ContactList() {
    */
   const handleCloseForm = () => {
     setIsFormOpen(false);
+    setIsUserFormOpen(false);
     setEditingId(null);
     setFormData({ name: '', type: 'Customer', email: '', mobile: '', city: '', state: '' });
+    setUserFormData({ name: '', login_id: '', email: '', password: '', role: 'ACCOUNTANT', contact_id: '' });
+  };
+
+  const handleSaveUser = async () => {
+    if (!userFormData.name || !userFormData.login_id || !userFormData.password || !userFormData.email) return alert('Name, Login ID, Email, and Password are required');
+    if (userFormData.role === 'CONTACT' && !userFormData.contact_id) return alert('Please link a Vendor profile for this user.');
+    setIsSaving(true);
+    try {
+      const payload = { ...userFormData };
+      if (payload.role !== 'CONTACT') delete payload.contact_id; // Clean payload
+
+      const response = await fetch(`${BACKEND_URL}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        if (Array.isArray(data.error)) {
+          throw new Error(data.error.map(e => `${e.path ? e.path.join('.') + ': ' : ''}${e.message}`).join(' | '));
+        }
+        throw new Error(data.error || 'Failed to create system user');
+      }
+      alert('System user created successfully!');
+      handleCloseForm();
+    } catch (err) {
+      alert(err.message || 'Failed to create system user');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   /**
@@ -205,8 +240,58 @@ export default function ContactList() {
 
   return (
     <div className="page-content" style={{ padding: 0 }}>
-      <div className="page-header">
-        <h1 className="page-title">Contacts</h1>
+      {isUserFormOpen ? (
+        <FormShell title="New System User" onSave={handleSaveUser} onCancel={handleCloseForm} isSaving={isSaving}>
+          <div className="form-row">
+            <div className="form-field">
+              <label>Name *</label>
+              <input value={userFormData.name} onChange={e => setUserFormData({...userFormData, name: e.target.value})} placeholder="e.g. Jane Doe" required />
+            </div>
+            <div className="form-field">
+              <label>Role</label>
+              <select value={userFormData.role} onChange={e => setUserFormData({...userFormData, role: e.target.value})}>
+                <option value="ACCOUNTANT">Accountant</option>
+                <option value="CONTACT">Vendor</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field">
+              <label>Login ID *</label>
+              <input value={userFormData.login_id} onChange={e => setUserFormData({...userFormData, login_id: e.target.value})} placeholder="Assign a unique Login ID" required />
+            </div>
+            <div className="form-field">
+              <label>Email Address *</label>
+              <input type="email" value={userFormData.email} onChange={e => setUserFormData({...userFormData, email: e.target.value})} placeholder="Required email address" required />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field">
+              <label>Initial Password *</label>
+              <input type="password" value={userFormData.password} onChange={e => setUserFormData({...userFormData, password: e.target.value})} placeholder="Must include upper, lower, number, special char" required />
+            </div>
+            {userFormData.role === 'CONTACT' ? (
+              <div className="form-field">
+                <label>Link to Vendor Profile *</label>
+                <select value={userFormData.contact_id} onChange={e => setUserFormData({...userFormData, contact_id: e.target.value})} required>
+                  <option value="">Select Vendor...</option>
+                  {contacts.map(c => (
+                    <option key={c.id} value={c.id}>{c.name} ({c.type})</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="form-field"></div>
+            )}
+          </div>
+        </FormShell>
+      ) : (
+      <>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1 className="page-title">Contacts & Users</h1>
+        <button className="submit-btn" onClick={() => setIsUserFormOpen(true)} style={{ width: 'auto', padding: '10px 16px', borderRadius: '8px' }}>
+          + Add System User
+        </button>
       </div>
       {isLoading ? (
         <p>Loading contacts...</p>
@@ -237,6 +322,8 @@ export default function ContactList() {
             </div>
           )}
         />
+      )}
+      </>
       )}
     </div>
   );
