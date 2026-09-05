@@ -19,7 +19,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, Plus, Trash2, CheckCircle, RefreshCw, XCircle, AlertTriangle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, CheckCircle, RefreshCw, XCircle, AlertTriangle, ExternalLink, LayoutList, LayoutGrid, Calendar, User } from 'lucide-react';
 import DataTable from '../../components/DataTable';
 import { api } from '../../api';
 
@@ -69,6 +69,7 @@ export default function Budgets() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [view, setView] = useState('list'); // 'list' | 'form' | 'view' | 'revise'
+  const [listMode, setListMode] = useState('list'); // 'list' | 'kanban'
   const [selectedBudget, setSelectedBudget] = useState(null);
   const [reviseData, setReviseData] = useState(null);
 
@@ -277,6 +278,91 @@ export default function Budgets() {
     });
   };
 
+  // ─── Kanban card ──────────────────────────────────────────────────────────────
+
+  const KANBAN_COLS = [
+    { status: 'DRAFT',     label: 'Draft',     icon: '📝', headerBg: '#FEF3C7', headerColor: '#D97706' },
+    { status: 'CONFIRMED', label: 'Confirmed', icon: '✅', headerBg: '#D1FAE5', headerColor: '#059669' },
+    { status: 'REVISED',   label: 'Revised',   icon: '🔄', headerBg: '#DBEAFE', headerColor: '#2563EB' },
+    { status: 'CANCELLED', label: 'Cancelled', icon: '❌', headerBg: '#FEE2E2', headerColor: '#DC2626' },
+  ];
+
+  function BudgetKanbanCard({ budget }) {
+    const totalAllowed = (budget.budget_lines || []).reduce((s, l) => s + (l.allowed_amount || 0), 0);
+    const totalCommitted = (budget.budget_lines || []).reduce((s, l) => s + (l.committed_amount || 0), 0);
+    const lineCount = (budget.budget_lines || []).length;
+    const s = STATUS_STYLE[budget.status] || STATUS_STYLE.DRAFT;
+    const isOver = totalCommitted > totalAllowed && totalAllowed > 0;
+    const pct = totalAllowed > 0 ? Math.min(100, Math.round((totalCommitted / totalAllowed) * 100)) : 0;
+
+    return (
+      <div onClick={() => openView(budget)} style={{
+        background: '#FFFFFF',
+        border: '1.5px solid #E2E8F0',
+        borderRadius: '12px',
+        padding: '16px',
+        cursor: 'pointer',
+        transition: 'all 0.18s ease',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+      }}
+        onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(113,75,103,0.14)'; e.currentTarget.style.borderColor = '#714B67'; }}
+        onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)'; e.currentTarget.style.borderColor = '#E2E8F0'; }}
+      >
+        {/* Name + status */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '10px' }}>
+          <div style={{ fontWeight: '700', fontSize: '0.95rem', color: '#1E293B', lineHeight: '1.3' }}>{budget.name}</div>
+          <StatusBadge status={budget.status} />
+        </div>
+
+        {/* Period */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#64748B', marginBottom: '6px' }}>
+          <Calendar size={13} />
+          {fmtDate(budget.period_start)} – {fmtDate(budget.period_end)}
+        </div>
+
+        {/* Responsible */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#64748B', marginBottom: '12px' }}>
+          <User size={13} />
+          {budget.responsible_contact?.name || '—'}
+        </div>
+
+        {/* Revision link */}
+        {budget.revised_from && (
+          <div style={{ fontSize: '0.75rem', color: '#2563EB', marginBottom: '10px', fontStyle: 'italic' }}>
+            🔗 Revision of: {budget.revised_from.name}
+          </div>
+        )}
+
+        {/* Budget summary */}
+        <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '10px', marginTop: '4px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#64748B', marginBottom: '6px' }}>
+            <span>Allowed Cap</span>
+            <span style={{ fontWeight: '700', color: '#1E293B' }}>{fmtMoney(totalAllowed)}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#64748B', marginBottom: '8px' }}>
+            <span>Committed</span>
+            <span style={{ fontWeight: '700', color: isOver ? '#DC2626' : '#059669' }}>{fmtMoney(totalCommitted)}</span>
+          </div>
+
+          {/* Progress bar */}
+          <div style={{ background: '#F1F5F9', borderRadius: '99px', height: '6px', overflow: 'hidden' }}>
+            <div style={{
+              width: `${pct}%`, height: '100%', borderRadius: '99px',
+              background: isOver ? '#EF4444' : pct > 80 ? '#F59E0B' : '#10B981',
+              transition: 'width 0.3s ease',
+            }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#94A3B8', marginTop: '4px' }}>
+            <span>{lineCount} analytic line{lineCount !== 1 ? 's' : ''}</span>
+            <span style={{ color: isOver ? '#DC2626' : '#64748B', fontWeight: isOver ? '700' : '400' }}>
+              {pct}% committed
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ─── List View ────────────────────────────────────────────────────────────────
 
   const columns = [
@@ -303,16 +389,118 @@ export default function Budgets() {
   if (view === 'list') {
     return (
       <div className="page-content" style={{ padding: 0 }}>
+        {/* Toolbar */}
         <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 className="page-title">Analytical Budgets</h1>
-          <button className="primary-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-            onClick={() => { setFormData(emptyForm); setView('form'); }}>
-            <Plus size={18} /> New Budget
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* View toggle */}
+            <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: '8px', padding: '3px', gap: '2px' }}>
+              <button
+                onClick={() => setListMode('list')}
+                title="List view"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '5px',
+                  padding: '6px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer',
+                  fontWeight: '600', fontSize: '0.82rem',
+                  background: listMode === 'list' ? '#714B67' : 'transparent',
+                  color: listMode === 'list' ? '#FFF' : '#64748B',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <LayoutList size={15} /> List
+              </button>
+              <button
+                onClick={() => setListMode('kanban')}
+                title="Kanban view"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '5px',
+                  padding: '6px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer',
+                  fontWeight: '600', fontSize: '0.82rem',
+                  background: listMode === 'kanban' ? '#714B67' : 'transparent',
+                  color: listMode === 'kanban' ? '#FFF' : '#64748B',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <LayoutGrid size={15} /> Kanban
+              </button>
+            </div>
+            <button className="primary-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+              onClick={() => { setFormData(emptyForm); setView('form'); }}>
+              <Plus size={18} /> New Budget
+            </button>
+          </div>
         </div>
+
         {isLoading
           ? <p style={{ padding: '24px', color: '#64748B' }}>Loading budgets...</p>
-          : <DataTable title="Budget" columns={columns} data={budgets} searchPlaceholder="Search budgets..." />
+          : listMode === 'list'
+            ? <DataTable title="Budget" columns={columns} data={budgets} searchPlaceholder="Search budgets..." />
+            : (
+              /* ── Kanban ── */
+              <div style={{ padding: '0 32px 32px', overflowX: 'auto' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(260px, 1fr))', gap: '16px', minWidth: '900px' }}>
+                  {KANBAN_COLS.map(col => {
+                    const colBudgets = budgets.filter(b => b.status === col.status);
+                    return (
+                      <div key={col.status}>
+                        {/* Column header */}
+                        <div style={{
+                          background: col.headerBg,
+                          color: col.headerColor,
+                          borderRadius: '10px',
+                          padding: '10px 14px',
+                          marginBottom: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          fontWeight: '700',
+                          fontSize: '0.875rem',
+                        }}>
+                          <span>{col.icon} {col.label}</span>
+                          <span style={{
+                            background: 'rgba(0,0,0,0.12)',
+                            borderRadius: '99px',
+                            padding: '1px 8px',
+                            fontSize: '0.78rem',
+                          }}>{colBudgets.length}</span>
+                        </div>
+
+                        {/* Cards */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          {colBudgets.length === 0
+                            ? (
+                              <div style={{ textAlign: 'center', padding: '32px 16px', color: '#CBD5E1', fontSize: '0.85rem', border: '2px dashed #E2E8F0', borderRadius: '10px' }}>
+                                No budgets
+                              </div>
+                            )
+                            : colBudgets.map(b => <BudgetKanbanCard key={b.id} budget={b} />)
+                          }
+                        </div>
+
+                        {/* Add new shortcut in DRAFT column */}
+                        {col.status === 'DRAFT' && (
+                          <button
+                            onClick={() => { setFormData(emptyForm); setView('form'); }}
+                            style={{
+                              width: '100%', marginTop: '10px', padding: '10px',
+                              border: '2px dashed #CBD5E1', borderRadius: '10px',
+                              background: 'transparent', color: '#94A3B8',
+                              cursor: 'pointer', fontSize: '0.83rem', fontWeight: '600',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                              transition: 'all 0.15s ease',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = '#714B67'; e.currentTarget.style.color = '#714B67'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#94A3B8'; }}
+                          >
+                            <Plus size={15} /> New Budget
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )
         }
       </div>
     );
