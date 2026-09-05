@@ -9,7 +9,7 @@
 
 import React, { useState } from 'react';
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
-import { 
+import {
   LayoutDashboard, Users, Package, FileText, BarChart3, LogOut, Hexagon, Search, Bell, Settings,
   Store, ShoppingBag, ShoppingCart, BookOpen, PieChart, Layers, Tag, DollarSign, ListFilter
 } from 'lucide-react';
@@ -124,14 +124,9 @@ export default function Layout() {
 
             {userRole === 'contact' && (
               <>
-                <NavLink to="/portal/customer" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Customer Marketplace">
+                <NavLink to="/portal/customer" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Customer">
                   <ShoppingBag size={20} className="nav-icon" />
-                  <span className="nav-label">Marketplace</span>
-                </NavLink>
-
-                <NavLink to="/portal/invoices" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="My Invoices">
-                  <FileText size={20} className="nav-icon" />
-                  <span className="nav-label">My Invoices</span>
+                  <span className="nav-label">Customer</span>
                 </NavLink>
 
                 <NavLink to="/portal/vendor" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Vendor">

@@ -110,14 +110,13 @@ export default function PurchaseOrders() {
     setIsSaving(true);
     try {
       const payload = {
-        contact_id: formData.vendorId,
+        vendor_id: formData.vendorId,
         po_number: formData.orderNumber,
         po_date: formData.poDate,
-        total: calculateTotal(),
         lines: formData.lines.map(l => ({
           product_id: l.productId,
           analytic_account_id: l.analyticAccountId || null,
-          quantity: Number(l.quantity),
+          qty: Number(l.quantity),
           unit_price: Number(l.unitPrice)
         }))
       };
@@ -152,19 +151,17 @@ export default function PurchaseOrders() {
     if (!selectedOrder) return;
     setIsSaving(true);
     try {
-      const defaultPurchaseAccount = null;
       const billData = {
-        contact_id: selectedOrder.contact_id,
+        vendor_id: selectedOrder.vendor_id || selectedOrder.contact_id,
         purchase_order_id: selectedOrder.id,
         bill_number: `Bill/2026/${Math.floor(1000 + Math.random() * 9000)}`,
         bill_reference: `Ref-${selectedOrder.po_number}`,
         bill_date: new Date().toISOString().split('T')[0],
         due_date: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
-        total: selectedOrder.total,
         lines: selectedOrder.lines?.map(l => ({
           product_id: l.product_id,
           analytic_account_id: l.analytic_account_id,
-          quantity: l.quantity,
+          qty: l.qty || l.quantity || 1,
           unit_price: l.unit_price
         })) || []
       };
@@ -195,14 +192,14 @@ export default function PurchaseOrders() {
   const handleRowClick = (row) => {
     setSelectedOrder(row);
     setFormData({
-      vendorId: row.contact_id || '',
+      vendorId: row.vendor_id || row.contact_id || '',
       poDate: row.po_date ? new Date(row.po_date).toISOString().split('T')[0] : '',
       orderNumber: row.po_number || '',
       lines: row.lines?.map(l => ({
         productId: l.product_id,
         analyticAccountId: l.analytic_account_id || '',
-        quantity: l.quantity,
-        unitPrice: l.unit_price
+        quantity: l.qty || l.quantity || 1,
+        unitPrice: l.unit_price || 0
       })) || [{ productId: '', analyticAccountId: '', quantity: 1, unitPrice: 0 }]
     });
     setIsFormOpen(true);

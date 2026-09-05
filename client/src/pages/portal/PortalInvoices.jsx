@@ -27,7 +27,7 @@ export default function PortalInvoices() {
         const data = await res.json();
         setInvoices(data);
       } else {
-        // Fallback to customer invoices API if accessed as admin or regular user
+        // Fallback to customer invoices API if accessed as admin
         const data = await api.getCustomerInvoices();
         setInvoices(data);
       }
@@ -247,9 +247,9 @@ export default function PortalInvoices() {
                 {selectedInvoice.lines?.map((line, i) => (
                   <tr key={i}>
                     <td>{line.product?.name || 'Product Item'}</td>
-                    <td style={{ textAlign: 'right' }}>{line.quantity || line.qty}</td>
+                    <td style={{ textAlign: 'right' }}>{line.qty || line.quantity}</td>
                     <td style={{ textAlign: 'right' }}>₹ {Number(line.unit_price).toLocaleString('en-IN')}</td>
-                    <td style={{ textAlign: 'right', fontWeight: '700' }}>₹ {(Number(line.quantity || line.qty) * Number(line.unit_price)).toLocaleString('en-IN')}</td>
+                    <td style={{ textAlign: 'right', fontWeight: '700' }}>₹ {(Number(line.qty || line.quantity) * Number(line.unit_price)).toLocaleString('en-IN')}</td>
                   </tr>
                 ))}
               </tbody>

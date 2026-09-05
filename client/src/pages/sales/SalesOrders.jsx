@@ -94,14 +94,13 @@ export default function SalesOrders() {
     setIsSaving(true);
     try {
       const payload = {
-        contact_id: formData.customerId,
+        customer_id: formData.customerId,
         so_number: formData.orderNumber,
         so_date: formData.soDate,
-        total: calculateTotal(),
         lines: formData.lines.map(l => ({
           product_id: l.productId,
           analytic_account_id: l.analyticAccountId || null,
-          quantity: Number(l.quantity),
+          qty: Number(l.quantity),
           unit_price: Number(l.unitPrice)
         }))
       };
@@ -161,14 +160,14 @@ export default function SalesOrders() {
   const handleRowClick = (row) => {
     setSelectedOrder(row);
     setFormData({
-      customerId: row.contact_id || '',
+      customerId: row.customer_id || row.contact_id || '',
       soDate: row.so_date ? new Date(row.so_date).toISOString().split('T')[0] : '',
       orderNumber: row.so_number || '',
       lines: row.lines?.map(l => ({
         productId: l.product_id,
         analyticAccountId: l.analytic_account_id || '',
-        quantity: l.quantity,
-        unitPrice: l.unit_price
+        quantity: l.qty || l.quantity || 1,
+        unitPrice: l.unit_price || 0
       })) || [{ productId: '', analyticAccountId: '', quantity: 1, unitPrice: 0 }]
     });
     setIsFormOpen(true);

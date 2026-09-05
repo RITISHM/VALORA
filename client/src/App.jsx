@@ -59,22 +59,22 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/admin/create-user" element={<AdminCreateUser />} />
-        
+
         {/* Authenticated Routes inside Layout */}
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          
+
           {/* Sales Tab */}
           <Route path="/sales-orders" element={<SalesOrders />} />
           <Route path="/customer-invoices" element={<CustomerInvoices />} />
-          
+
           {/* Purchase Tab */}
           <Route path="/purchase-orders" element={<PurchaseOrders />} />
           <Route path="/vendor-bills" element={<VendorBills />} />
-          
+
           {/* Payments & Receipts */}
           <Route path="/payments" element={<Payments />} />
-          
+
           {/* Master & Accounts Tab */}
           <Route path="/contacts" element={<ContactList />} />
           <Route path="/products" element={<ProductList />} />
@@ -87,12 +87,12 @@ export default function App() {
           <Route path="/accounts" element={<ChartOfAccounts />} />
           <Route path="/journals" element={<Journals />} />
           <Route path="/journal-entries" element={<JournalEntries />} />
-          
+
           {/* Reports Tab */}
           <Route path="/reports/balance-sheet" element={<BalanceSheet />} />
           <Route path="/reports/pnl" element={<ProfitAndLoss />} />
           <Route path="/reports/budget" element={<BudgetReport />} />
-          
+
           {/* Misc */}
           <Route path="/settings" element={<Settings />} />
           <Route path="/notifications" element={<Notifications />} />

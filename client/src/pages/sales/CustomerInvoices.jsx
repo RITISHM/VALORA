@@ -72,17 +72,16 @@ export default function CustomerInvoices() {
     try {
       const defaultSalesAccount = accounts.find(a => a.type === 'INCOME' || a.name.toLowerCase().includes('sales'))?.id || accounts[0]?.id;
       const payload = {
-        contact_id: formData.customerId,
+        customer_id: formData.customerId,
         invoice_number: formData.invoiceNumber,
         invoice_reference: formData.invoiceReference,
         invoice_date: formData.invoiceDate,
         due_date: formData.dueDate,
-        total: calculateTotal(),
         lines: formData.lines.map(l => ({
           product_id: l.productId,
           account_id: l.accountId || defaultSalesAccount,
           analytic_account_id: l.analyticAccountId || null,
-          quantity: Number(l.quantity),
+          qty: Number(l.quantity),
           unit_price: Number(l.unitPrice)
         }))
       };
@@ -157,7 +156,7 @@ export default function CustomerInvoices() {
   const handleRowClick = (row) => {
     setSelectedInvoice(row);
     setFormData({
-      customerId: row.contact_id || '',
+      customerId: row.customer_id || row.contact_id || '',
       invoiceNumber: row.invoice_number || '',
       invoiceReference: row.invoice_reference || '',
       invoiceDate: row.invoice_date ? new Date(row.invoice_date).toISOString().split('T')[0] : '',
@@ -166,8 +165,8 @@ export default function CustomerInvoices() {
         productId: l.product_id,
         accountId: l.account_id || '',
         analyticAccountId: l.analytic_account_id || '',
-        quantity: l.quantity,
-        unitPrice: l.unit_price
+        quantity: l.qty || l.quantity || 1,
+        unitPrice: l.unit_price || 0
       })) || [{ productId: '', accountId: '', analyticAccountId: '', quantity: 1, unitPrice: 0 }]
     });
     setIsFormOpen(true);

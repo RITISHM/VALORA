@@ -13,7 +13,7 @@ export default function CartCheckout() {
 
   const handleCheckout = async () => {
     if (items.length === 0) return;
-    
+
     setCheckingOut(true);
     try {
       const token = localStorage.getItem('valora_token');
@@ -38,7 +38,7 @@ export default function CartCheckout() {
         setSuccess(true);
         clearCart();
         setTimeout(() => {
-          navigate('/portal/invoices'); // Go to user portal invoices to complete payment
+          navigate('/dashboard'); // Go back to dashboard to pay the new invoice
         }, 2000);
       } else {
         const errText = await res.text();
@@ -57,7 +57,7 @@ export default function CartCheckout() {
       <div className="dashboard-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
         <CheckCircle size={64} color="#10B981" style={{ marginBottom: '24px' }} />
         <h1 style={{ marginBottom: '8px' }}>Order Placed!</h1>
-        <p style={{ color: '#6B7280' }}>Your invoice has been generated. Redirecting to your User Portal Invoices...</p>
+        <p style={{ color: '#6B7280' }}>Your invoice has been generated. Redirecting to your dashboard to complete payment...</p>
       </div>
     );
   }
@@ -81,29 +81,29 @@ export default function CartCheckout() {
             ) : (
               <div>
                 {items.map((item, idx) => (
-                  <div key={item.product_id} style={{ 
-                    display: 'flex', 
-                    padding: '24px', 
+                  <div key={item.product_id} style={{
+                    display: 'flex',
+                    padding: '24px',
                     borderBottom: idx < items.length - 1 ? '1px solid #F3F4F6' : 'none',
                     gap: '20px'
                   }}>
                     <div style={{ width: '100px', height: '100px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#F9FAFB', flexShrink: 0 }}>
                       <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
-                    
+
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{item.name}</h3>
                         <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
                       </div>
-                      
+
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #E5E7EB', borderRadius: '8px', overflow: 'hidden' }}>
                           <button onClick={() => updateQuantity(item.product_id, item.quantity - 1)} style={{ padding: '4px 12px', background: 'none', border: 'none', cursor: 'pointer', backgroundColor: '#F9FAFB' }}>-</button>
                           <span style={{ padding: '4px 16px', borderLeft: '1px solid #E5E7EB', borderRight: '1px solid #E5E7EB' }}>{item.quantity}</span>
                           <button onClick={() => updateQuantity(item.product_id, item.quantity + 1)} style={{ padding: '4px 12px', background: 'none', border: 'none', cursor: 'pointer', backgroundColor: '#F9FAFB' }}>+</button>
                         </div>
-                        
+
                         <button onClick={() => removeFromCart(item.product_id)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <Trash2 size={16} /> Remove
                         </button>
@@ -119,28 +119,28 @@ export default function CartCheckout() {
         <div style={{ flex: 1 }}>
           <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #F3F4F6', padding: '24px', position: 'sticky', top: '24px' }}>
             <h2 style={{ fontSize: '1.25rem', margin: '0 0 24px 0' }}>Order Summary</h2>
-            
+
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', color: '#4B5563' }}>
               <span>Subtotal</span>
               <span>₹{getTotal().toLocaleString('en-IN')}</span>
             </div>
-            
+
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', color: '#4B5563' }}>
               <span>Tax (Estimated)</span>
               <span>₹0</span>
             </div>
-            
+
             <div style={{ height: '1px', backgroundColor: '#E5E7EB', margin: '16px 0' }}></div>
-            
+
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', fontSize: '1.25rem', fontWeight: 'bold' }}>
               <span>Total</span>
               <span>₹{getTotal().toLocaleString('en-IN')}</span>
             </div>
-            
-            <button 
-              onClick={handleCheckout} 
+
+            <button
+              onClick={handleCheckout}
               disabled={items.length === 0 || checkingOut}
-              className="primary-btn" 
+              className="primary-btn"
               style={{ width: '100%', padding: '16px', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '1rem', backgroundColor: items.length === 0 ? '#9CA3AF' : undefined }}
             >
               {checkingOut ? 'Generating Invoice...' : 'Buy Now'}

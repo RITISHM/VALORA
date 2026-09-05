@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   ChevronDown, ShoppingBag, ShoppingCart, BookOpen, PieChart, Layers, Tag, DollarSign, ListFilter, Users, Package, FileText, BarChart3, ArrowRight, Network, Activity, Sunrise, Loader2
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -52,7 +52,7 @@ function AdminDashboard() {
           <div className="dashboard-tabs" style={{ gap: '24px', display: 'flex', alignItems: 'center', marginBottom: '32px', borderBottom: '1px solid #F3F4F6', paddingBottom: '12px', position: 'relative', zIndex: 50 }}>
             {/* 1. SALES TAB */}
             <div className="mega-dropdown-wrapper" style={{ position: 'relative' }}>
-              <button 
+              <button
                 type="button"
                 className={`tab ${activeDropdown === 'sales' ? 'active' : ''}`}
                 onClick={(e) => toggleDropdown('sales', e)}
@@ -68,8 +68,7 @@ function AdminDashboard() {
               {activeDropdown === 'sales' && (
                 <div className="mega-dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, marginTop: '8px' }}>
                   <Link to="/sales-orders" onClick={closeDropdowns}><ShoppingBag size={15} /> Sales order</Link>
-                  <Link to="/customer-invoices" onClick={closeDropdowns}><FileText size={15} /> Sale Invoice (Admin)</Link>
-                  <Link to="/portal/invoices" onClick={closeDropdowns}><FileText size={15} /> User Portal Invoices</Link>
+                  <Link to="/customer-invoices" onClick={closeDropdowns}><FileText size={15} /> Sale Invoice</Link>
                   <Link to="/payments" onClick={closeDropdowns}><DollarSign size={15} /> Receipt</Link>
                 </div>
               )}
@@ -77,7 +76,7 @@ function AdminDashboard() {
 
             {/* 2. PURCHASE TAB */}
             <div className="mega-dropdown-wrapper" style={{ position: 'relative' }}>
-              <button 
+              <button
                 type="button"
                 className={`tab ${activeDropdown === 'purchase' ? 'active' : ''}`}
                 onClick={(e) => toggleDropdown('purchase', e)}
@@ -101,7 +100,7 @@ function AdminDashboard() {
 
             {/* 3. ACCOUNT TAB */}
             <div className="mega-dropdown-wrapper" style={{ position: 'relative' }}>
-              <button 
+              <button
                 type="button"
                 className={`tab ${activeDropdown === 'account' ? 'active' : ''}`}
                 onClick={(e) => toggleDropdown('account', e)}
@@ -129,7 +128,7 @@ function AdminDashboard() {
 
             {/* 4. REPORT TAB */}
             <div className="mega-dropdown-wrapper" style={{ position: 'relative' }}>
-              <button 
+              <button
                 type="button"
                 className={`tab ${activeDropdown === 'report' ? 'active' : ''}`}
                 onClick={(e) => toggleDropdown('report', e)}
@@ -365,7 +364,7 @@ function UserDashboard({ user }) {
 
       <div className="dashboard-grid">
         <div className="dashboard-main-col" style={{ flex: 1.5 }}>
-          
+
           <div style={{ display: 'flex', gap: '24px', marginBottom: '40px' }}>
             <div style={{ flex: 1, backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '16px', border: '1px solid #F3F4F6' }}>
               <span style={{ color: '#6B7280', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Total Due</span>

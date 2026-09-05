@@ -82,17 +82,16 @@ export default function VendorBills() {
     try {
       const defaultPurchaseAccount = accounts.find(a => a.type === 'EXPENSE' || a.name.toLowerCase().includes('purchase'))?.id || accounts[0]?.id;
       const payload = {
-        contact_id: formData.vendorId,
+        vendor_id: formData.vendorId,
         bill_number: formData.billNumber,
         bill_reference: formData.billReference,
         bill_date: formData.billDate,
         due_date: formData.dueDate,
-        total: calculateTotal(),
         lines: formData.lines.map(l => ({
           product_id: l.productId,
           account_id: l.accountId || defaultPurchaseAccount,
           analytic_account_id: l.analyticAccountId || null,
-          quantity: Number(l.quantity),
+          qty: Number(l.quantity),
           unit_price: Number(l.unitPrice)
         }))
       };
@@ -168,7 +167,7 @@ export default function VendorBills() {
   const handleRowClick = (row) => {
     setSelectedBill(row);
     setFormData({
-      vendorId: row.contact_id || '',
+      vendorId: row.vendor_id || row.contact_id || '',
       billNumber: row.bill_number || '',
       billReference: row.bill_reference || '',
       billDate: row.bill_date ? new Date(row.bill_date).toISOString().split('T')[0] : '',
@@ -177,8 +176,8 @@ export default function VendorBills() {
         productId: l.product_id,
         accountId: l.account_id || '',
         analyticAccountId: l.analytic_account_id || '',
-        quantity: l.quantity,
-        unitPrice: l.unit_price
+        quantity: l.qty || l.quantity || 1,
+        unitPrice: l.unit_price || 0
       })) || [{ productId: '', accountId: '', analyticAccountId: '', quantity: 1, unitPrice: 0 }]
     });
     setIsFormOpen(true);
