@@ -125,3 +125,4 @@ dist
 /server/prisma/db.sqlite
 /server/prisma/db.sqlite-journal
 \n# Local Task Trackers\ntasks.md
+text.md
