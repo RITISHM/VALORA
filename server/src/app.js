@@ -22,7 +22,10 @@ app.use('/sales-orders', salesRoutes);
 app.use('/customer-invoices', invoicesRoutes);
 app.use('/payments', paymentsRoutes);
 app.use('/reports', reportsRoutes);
-app.use('/', journalsRoutes);
+app.use('/journals', journalsRoutes);
+app.use('/contacts', require('./routes/contacts'));
+app.use('/products', require('./routes/products'));
+app.use('/accounts', require('./routes/accounts'));
 if (authRoutes) {
   app.use('/auth', authRoutes);
 }
