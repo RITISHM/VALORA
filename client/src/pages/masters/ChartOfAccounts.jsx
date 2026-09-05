@@ -16,7 +16,7 @@ import { api } from '../../api';
  * @param {string} type - The account type (e.g. Asset, Liability, Income, Expenses)
  * @returns {'Balancesheet' | 'Profit and Loss'} The inferred financial report category.
  */
-export const inferReportCategory = (type = '') => {
+const inferReportCategory = (type = '') => {
   const t = type.toLowerCase();
   if (t.includes('income') || t.includes('expense')) {
     return 'Profit and Loss';
