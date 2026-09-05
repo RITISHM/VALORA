@@ -290,6 +290,76 @@ class InvoicesService {
 
     return await this.getById(id);
   }
+
+  /**
+   * Register Payment for Customer Invoice
+   * Updates status to PAID and creates payment journal entry
+   */
+  async pay(id, { method = 'BANK', amount }) {
+    const invoice = await this.getById(id);
+
+    if (invoice.status === 'PAID') {
+      const error = new Error('Invoice is already paid');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (invoice.status === 'DRAFT') {
+      // Auto-confirm if it was draft
+      await this.confirm(id);
+    }
+
+    const payAmount = parseFloat(amount) || invoice.total;
+
+    // Perform DB transaction for Status update
+    await prisma.$transaction(async (tx) => {
+      await tx.customerInvoice.update({
+        where: { id },
+        data: { status: 'PAID' },
+      });
+    });
+
+    // Auto-post Payment Journal Entry
+    const bankJournal = await prisma.journal.findFirst({
+      where: { type: 'BANK' },
+    });
+    const cashJournal = await prisma.journal.findFirst({
+      where: { type: 'CASH' },
+    });
+    
+    const journal = method === 'CASH' ? (cashJournal || bankJournal) : bankJournal;
+
+    const debtorsAccount = await prisma.account.findFirst({
+      where: { name: 'Debtors' },
+    });
+    const bankAccount = await prisma.account.findFirst({
+      where: { name: 'Bank/Cash' },
+    });
+
+    if (journal && debtorsAccount && bankAccount) {
+      await accountingService.postJournalEntry({
+        journalId: journal.id,
+        reference: `Payment for INV ${invoice.invoice_number}`,
+        entryDate: new Date(),
+        lines: [
+          {
+            accountId: bankAccount.id,
+            partnerId: invoice.customer_id,
+            debit: payAmount,
+            credit: 0,
+          },
+          {
+            accountId: debtorsAccount.id,
+            partnerId: invoice.customer_id,
+            debit: 0,
+            credit: payAmount,
+          },
+        ],
+      });
+    }
+
+    return await this.getById(id);
+  }
 }
 
 module.exports = new InvoicesService();

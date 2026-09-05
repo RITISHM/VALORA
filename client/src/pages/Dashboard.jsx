@@ -348,6 +348,116 @@ function UserDashboard({ user }) {
     fetchData();
   }, []);
 
+<<<<<<< HEAD
+  // Helper to dynamically load the Razorpay script
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  /**
+   * Initiates invoice payment via real Razorpay API
+   */
+  const handlePay = async (invoiceId, total) => {
+    try {
+      setPayingId(invoiceId);
+
+      const resLoad = await loadRazorpayScript();
+      if (!resLoad) {
+        alert('Razorpay SDK failed to load. Are you online?');
+        setPayingId(null);
+        return;
+      }
+
+      // 1. Fetch Order ID from backend
+      const orderRes = await fetch(`${BACKEND_URL}/portal/invoices/${invoiceId}/razorpay-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!orderRes.ok) {
+        const errText = await orderRes.text();
+        alert(`Failed to create Razorpay order: ${errText}`);
+        setPayingId(null);
+        return;
+      }
+
+      const orderData = await orderRes.json();
+
+      // 2. Open Razorpay Checkout
+      const options = {
+        key: orderData.key_id, 
+        amount: orderData.amount, 
+        currency: 'INR',
+        name: 'Valora ERP',
+        description: `Payment for Invoice #${invoiceId}`,
+        image: 'https://cdn-icons-png.flaticon.com/512/2953/2953363.png',
+        order_id: orderData.order_id,
+        handler: async function (response) {
+          try {
+            const res = await fetch(`${BACKEND_URL}/portal/invoices/${invoiceId}/pay`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ 
+                method: 'BANK', 
+                amount: total, 
+                payment_id: response.razorpay_payment_id,
+                order_id: response.razorpay_order_id,
+                signature: response.razorpay_signature
+              })
+            });
+            if (res.ok) {
+              await fetchData();
+            } else {
+              const errorText = await res.text();
+              alert(`Backend settlement failed after payment: ${errorText}`);
+            }
+          } catch (err) {
+            console.error(err);
+            alert("Error settling invoice.");
+          } finally {
+            setPayingId(null);
+          }
+        },
+        prefill: {
+          name: user?.name || 'Valora Customer',
+          email: user?.email || 'customer@valora.com',
+          contact: '9999999999'
+        },
+        theme: {
+          color: '#017E84'
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      
+      paymentObject.on('payment.failed', function (response){
+        alert(`Payment Failed! Reason: ${response.error.description}`);
+        setPayingId(null);
+      });
+
+      paymentObject.open();
+
+    } catch (err) {
+      console.error(err);
+      alert("Error initiating Razorpay checkout");
+      setPayingId(null);
+    }
+  };
+
+=======
+>>>>>>> acf701bdc20e188c41d698a1e108fdabc3d8cbc8
   const filteredInvoices = invoices.filter(inv => {
     if (activeTab === 'Unpaid') {
       return inv.status === 'DRAFT' || inv.status === 'CONFIRMED';
