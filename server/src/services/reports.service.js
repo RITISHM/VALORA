@@ -1,4 +1,5 @@
 const prisma = require("../prisma");
+const budgetsService = require("./budgets.service");
 
 class ReportsService {
   /**
@@ -182,25 +183,16 @@ class ReportsService {
    * Committed vs Allowed vs Allowed % vs Amount to Attain per Analytic Account
    */
   async getBudgetReport(period) {
-    const budgets = await prisma.budget.findMany({
-      include: {
-        responsible_contact: true,
-        budget_lines: {
-          include: {
-            analytic_account: true,
-          },
-        },
-      },
-    });
+    const budgets = await budgetsService.getAll();
 
     const reportItems = [];
 
     for (const budget of budgets) {
-      for (const line of budget.budget_lines) {
+      for (const line of (budget.budget_lines || [])) {
         const committed = line.committed_amount || 0;
         const allowed = line.allowed_amount || 0;
-        const allowed_pct = allowed > 0 ? Math.round((committed / allowed) * 10000) / 100 : 0;
-        const amount_to_attain = Math.round((allowed - committed) * 100) / 100;
+        const allowed_pct = line.allowed_pct !== undefined ? line.allowed_pct : (committed > 0 ? Math.round((allowed / committed) * 10000) / 100 : 0);
+        const amount_to_attain = line.amount_to_attain !== undefined ? line.amount_to_attain : Math.round((committed - allowed) * 100) / 100;
 
         reportItems.push({
           budget_id: budget.id,
