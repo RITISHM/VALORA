@@ -348,7 +348,6 @@ function UserDashboard({ user }) {
     fetchData();
   }, []);
 
-<<<<<<< HEAD
   // Helper to dynamically load the Razorpay script
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -455,9 +454,6 @@ function UserDashboard({ user }) {
       setPayingId(null);
     }
   };
-
-=======
->>>>>>> acf701bdc20e188c41d698a1e108fdabc3d8cbc8
   const filteredInvoices = invoices.filter(inv => {
     if (activeTab === 'Unpaid') {
       return inv.status === 'DRAFT' || inv.status === 'CONFIRMED';
