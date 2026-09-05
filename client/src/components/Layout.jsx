@@ -83,7 +83,9 @@ export default function Layout() {
               
               <Link to="/profile" style={{ textDecoration: 'none' }}>
                 <div className="user-profile">
-                  <div className="avatar">ML</div>
+                  <div className="avatar">
+                    {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'U'}
+                  </div>
                 </div>
               </Link>
             </div>
