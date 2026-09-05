@@ -45,6 +45,13 @@ export const api = {
     });
     return handleResponse(response);
   },
+  deleteContact: async (id) => {
+    const response = await fetch(`${BACKEND_URL}/contacts/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
 
   // Products
   getProducts: async () => {
@@ -59,6 +66,13 @@ export const api = {
         ...product,
         type: product.type.toUpperCase()
       })
+    });
+    return handleResponse(response);
+  },
+  deleteProduct: async (id) => {
+    const response = await fetch(`${BACKEND_URL}/products/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
     });
     return handleResponse(response);
   },
