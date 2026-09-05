@@ -1,14 +1,40 @@
 const prisma = require("../prisma");
 
+/**
+ * BUDGET LOGIC — as per spec (Urban_Furniture_Accounting_System_BuildPlan.md §2.7)
+ *
+ * Fields:
+ *   allowed_amount  = Budget CAP set by user ("You are allowed ₹2,00,000 for this account")
+ *   committed_amount = Auto-computed sum of all PO/Bill/Invoice lines tagged to this
+ *                      analytic account within the budget period.
+ *
+ * Computed (read-only, returned in API):
+ *   allowed_pct      = (Allowed Amount / Committed Amount) × 100
+ *   amount_to_attain = Committed Amount − Allowed Amount
+ *   is_over_budget   = committed_amount > allowed_amount
+ *
+ * Status lifecycle: DRAFT → CONFIRMED → REVISED → CANCELLED
+ *   DRAFT     = user is filling in allowed amounts
+ *   CONFIRMED = budget is locked and active; committed_amount is live-computed
+ *   REVISED   = this budget has been superseded by a newer revision (read-only archive)
+ *   CANCELLED = archived/cancelled
+ *
+ * Revise:
+ *   When a CONFIRMED budget needs its allowed_amount cap changed mid-period:
+ *   1. Original budget moves to REVISED status (read-only, for traceability)
+ *   2. A new CONFIRMED budget is created as a copy, with revised_from_id → original
+ *   3. User edits the allowed_amount values on the new budget
+ *   The new budget name keeps the original name with " Revised" appended once.
+ *
+ * Every PO/Invoice line tagged with an Analytic Account rolls up into that
+ * account's committed_amount automatically (live aggregation).
+ */
 class BudgetsService {
   /**
-   * Compute live committed and achieved amounts for each budget line.
-   * - committed_amount: stored value (set when line is saved, represents the monetary plan)
-   * - allowed_amount: the cap/budget limit set by user
-   * - achieved_amount: actual spend from confirmed/paid vendor bills + customer invoices
-   *   tagged to this analytic account within the budget period.
-   * - allowed_pct: (achieved_amount / committed_amount) * 100  [per spec]
-   * - amount_to_attain: committed_amount - achieved_amount  [per spec]
+   * Live-compute committed_amount for each budget line by summing all
+   * confirmed/paid vendor bill lines and customer invoice lines
+   * tagged to the same analytic account within the budget period.
+   * Then compute allowed_pct and amount_to_attain.
    */
   async enrichBudgetLines(budget) {
     if (!budget) return null;
@@ -20,8 +46,8 @@ class BudgetsService {
       (budget.budget_lines || []).map(async (line) => {
         const analyticId = line.analytic_account_id;
 
-        // Achieved = sum of vendor bill lines (confirmed/paid) within period for this analytic account
-        const [vendorBillAchieved, invoiceAchieved] = await Promise.all([
+        // committed_amount = sum of all transactions in this analytic account in period
+        const [vendorCommitted, invoiceCommitted] = await Promise.all([
           prisma.vendorBillLine.aggregate({
             _sum: { total: true },
             where: {
@@ -44,32 +70,47 @@ class BudgetsService {
           }),
         ]);
 
-        const achieved_amount =
+        // Also include PO lines (committed but not yet billed)
+        const poCommitted = await prisma.purchaseOrderLine.aggregate({
+          _sum: { total: true },
+          where: {
+            analytic_account_id: analyticId,
+            po: {
+              status: { in: ["CONFIRMED"] },
+              po_date: { gte: start, lte: end },
+            },
+          },
+        });
+
+        const committed_amount =
           Math.round(
-            ((vendorBillAchieved._sum.total || 0) +
-              (invoiceAchieved._sum.total || 0)) *
+            ((vendorCommitted._sum.total || 0) +
+              (invoiceCommitted._sum.total || 0) +
+              (poCommitted._sum.total || 0)) *
               100,
           ) / 100;
 
-        const committed = line.committed_amount || 0;
         const allowed = line.allowed_amount || 0;
 
-        // Per spec: Allowed % = (Achieved Amount / Committed Amount) * 100
+        // Allowed % = (Allowed Amount / Committed Amount) × 100
+        // i.e. what fraction of the actual spend is covered by the cap
         const allowed_pct =
-          committed > 0
-            ? Math.round((achieved_amount / committed) * 10000) / 100
+          committed_amount > 0
+            ? Math.round((allowed / committed_amount) * 10000) / 100
             : 0;
 
-        // Per spec: Amount to Attain = Committed Amount - Achieved Amount
+        // Amount to Attain = Committed Amount − Allowed Amount
+        // Positive = you're over budget (committed > cap)
+        // Negative = under budget (buffer remaining)
         const amount_to_attain =
-          Math.round((committed - achieved_amount) * 100) / 100;
+          Math.round((committed_amount - allowed) * 100) / 100;
 
         return {
           ...line,
-          achieved_amount,
+          committed_amount, // live value, overrides stored 0
           allowed_pct,
           amount_to_attain,
-          is_over_budget: achieved_amount > allowed,
+          is_over_budget: committed_amount > allowed,
         };
       }),
     );
@@ -100,16 +141,15 @@ class BudgetsService {
           create: lines.map((line) => ({
             analytic_account_id: line.analytic_account_id,
             type: line.type || "EXPENSE",
-            committed_amount: parseFloat(line.committed_amount) || 0,
+            // Only allowed_amount is user-set. committed_amount is live-computed.
             allowed_amount: parseFloat(line.allowed_amount) || 0,
+            committed_amount: 0,
           })),
         },
       },
       include: {
         responsible_contact: true,
-        budget_lines: {
-          include: { analytic_account: true },
-        },
+        budget_lines: { include: { analytic_account: true } },
       },
     });
 
@@ -122,9 +162,7 @@ class BudgetsService {
       include: {
         responsible_contact: true,
         revised_from: true,
-        budget_lines: {
-          include: { analytic_account: true },
-        },
+        budget_lines: { include: { analytic_account: true } },
       },
     });
 
@@ -137,10 +175,12 @@ class BudgetsService {
       include: {
         responsible_contact: true,
         revised_from: true,
-        revisions: true,
-        budget_lines: {
-          include: { analytic_account: true },
+        // Revisions (budgets that were created from this one)
+        revisions: {
+          include: { responsible_contact: true },
+          orderBy: { period_start: "asc" },
         },
+        budget_lines: { include: { analytic_account: true } },
       },
     });
 
@@ -162,8 +202,11 @@ class BudgetsService {
       throw error;
     }
 
-    if (existing.status === "REVISED" || existing.status === "CANCELLED") {
-      const error = new Error(`Cannot modify budget with status ${existing.status}`);
+    // Only DRAFT budgets can be freely edited
+    if (existing.status !== "DRAFT") {
+      const error = new Error(
+        `Cannot edit a budget with status ${existing.status}. Only DRAFT budgets can be edited.`,
+      );
       error.statusCode = 400;
       throw error;
     }
@@ -185,17 +228,15 @@ class BudgetsService {
               create: lines.map((line) => ({
                 analytic_account_id: line.analytic_account_id,
                 type: line.type || "EXPENSE",
-                committed_amount: parseFloat(line.committed_amount) || 0,
                 allowed_amount: parseFloat(line.allowed_amount) || 0,
+                committed_amount: 0,
               })),
             },
           }),
         },
         include: {
           responsible_contact: true,
-          budget_lines: {
-            include: { analytic_account: true },
-          },
+          budget_lines: { include: { analytic_account: true } },
         },
       });
 
@@ -221,6 +262,8 @@ class BudgetsService {
       data: { status: "CONFIRMED" },
       include: {
         responsible_contact: true,
+        revised_from: true,
+        revisions: true,
         budget_lines: { include: { analytic_account: true } },
       },
     });
@@ -228,6 +271,15 @@ class BudgetsService {
     return this.enrichBudgetLines(updated);
   }
 
+  /**
+   * Revise a CONFIRMED budget:
+   * 1. Mark the original as REVISED (read-only archive for traceability)
+   * 2. Create a new CONFIRMED budget copied from the original,
+   *    linking back via revised_from_id.
+   * 3. User provides updated allowed_amount values for each line.
+   *
+   * Name rule: append " Revised" once (strip existing " Revised" suffix first).
+   */
   async revise(id, { name, lines }) {
     const original = await prisma.budget.findUnique({
       where: { id },
@@ -247,43 +299,52 @@ class BudgetsService {
     }
 
     return await prisma.$transaction(async (tx) => {
-      // Mark original as REVISED (read-only going forward)
+      // Step 1: Archive original as REVISED (read-only from now on)
       await tx.budget.update({
         where: { id },
         data: { status: "REVISED" },
       });
 
-      // Copy original lines unless new lines are provided
-      const revisedLines =
-        lines ||
-        original.budget_lines.map((l) => ({
-          analytic_account_id: l.analytic_account_id,
-          type: l.type,
-          committed_amount: l.committed_amount,
-          allowed_amount: l.allowed_amount,
-        }));
+      // Step 2: Build revised name — strip trailing " Revised" then add once
+      const baseName = original.name.replace(/\s+Revised$/i, "").trim();
+      const revisedName = name
+        ? name.trim()
+        : `${baseName} Revised`;
 
+      // Step 3: Use provided lines (with new allowed_amounts) or copy from original
+      const revisedLines =
+        lines && lines.length > 0
+          ? lines
+          : original.budget_lines.map((l) => ({
+              analytic_account_id: l.analytic_account_id,
+              type: l.type,
+              allowed_amount: l.allowed_amount,
+            }));
+
+      // Step 4: Create new CONFIRMED budget linked to original
       const newBudget = await tx.budget.create({
         data: {
-          // Per spec: keep original name, append " Revised"
-          name: name ? name.trim() : `${original.name} Revised`,
+          name: revisedName,
           period_start: original.period_start,
           period_end: original.period_end,
           responsible_contact_id: original.responsible_contact_id,
-          status: "CONFIRMED",
+          status: "CONFIRMED", // Revised budget is immediately CONFIRMED per spec
           revised_from_id: original.id,
           budget_lines: {
             create: revisedLines.map((line) => ({
               analytic_account_id: line.analytic_account_id,
               type: line.type || "EXPENSE",
-              committed_amount: parseFloat(line.committed_amount) || 0,
               allowed_amount: parseFloat(line.allowed_amount) || 0,
+              committed_amount: 0, // will be live-computed
             })),
           },
         },
         include: {
           responsible_contact: true,
-          revised_from: true,
+          revised_from: {
+            select: { id: true, name: true, status: true },
+          },
+          revisions: true,
           budget_lines: { include: { analytic_account: true } },
         },
       });
@@ -305,6 +366,8 @@ class BudgetsService {
       data: { status: "CANCELLED" },
       include: {
         responsible_contact: true,
+        revised_from: { select: { id: true, name: true, status: true } },
+        revisions: true,
         budget_lines: { include: { analytic_account: true } },
       },
     });
