@@ -19,9 +19,7 @@ class AccountsService {
         { name: "Capital A/c", type: "CAPITAL" },
       ];
 
-      for (const item of defaults) {
-        await prisma.account.create({ data: item });
-      }
+      await prisma.account.createMany({ data: defaults });
 
       accounts = await prisma.account.findMany({ orderBy: { name: "asc" } });
     }

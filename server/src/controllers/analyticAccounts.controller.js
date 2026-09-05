@@ -26,10 +26,6 @@ const analyticAccountSchema = z.object({
 class AnalyticAccountsController {
   async create(req, res, next) {
     try {
-      if (!req.body || typeof req.body !== "object") {
-        return res.status(400).json({ error: "Request body must be a JSON object" });
-      }
-
       const parseResult = analyticAccountSchema.safeParse(req.body);
       if (!parseResult.success) {
         const issues = parseResult.error.issues || [];
@@ -82,10 +78,6 @@ class AnalyticAccountsController {
       const { id } = req.params;
       if (!id || typeof id !== "string") {
         return res.status(400).json({ error: "Invalid ID parameter" });
-      }
-
-      if (!req.body || typeof req.body !== "object") {
-        return res.status(400).json({ error: "Request body must be a JSON object" });
       }
 
       const parseResult = analyticAccountSchema.safeParse(req.body);

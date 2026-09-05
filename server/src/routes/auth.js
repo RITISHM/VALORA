@@ -1,11 +1,10 @@
 const express = require("express");
-const { PrismaClient } = require("@prisma/client");
+const prisma = require("../prisma");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { z } = require("zod");
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 const signupSchema = z.object({
   name: z.string().min(1),
@@ -25,16 +24,6 @@ const signupSchema = z.object({
 router.post("/signup", async (req, res, next) => {
   try {
     const validatedData = signupSchema.parse(req.body);
-
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ login_id: validatedData.login_id }, { email: validatedData.email }],
-      },
-    });
-
-    if (existingUser) {
-      return res.status(400).json({ error: "User with this login ID or email already exists" });
-    }
 
     const password_hash = await bcrypt.hash(validatedData.password, 10);
 
@@ -61,6 +50,9 @@ router.post("/signup", async (req, res, next) => {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors });
+    }
+    if (error.code === "P2002") {
+      return res.status(400).json({ error: "User with this login ID or email already exists" });
     }
     next(error);
   }

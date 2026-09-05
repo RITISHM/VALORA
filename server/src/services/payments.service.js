@@ -23,13 +23,15 @@ class PaymentsService {
     const payAmount = parseFloat(amount) || invoice.total;
     const paymentMethod = method.toUpperCase() === "CASH" ? "CASH" : "BANK";
 
-    // 1. Find Journals & Accounts
+    // 1. Find Journals & Accounts (in parallel)
     const journalType = paymentMethod === "CASH" ? "CASH" : "BANK";
-    const journal = await prisma.journal.findFirst({ where: { type: journalType } });
-    const cashOrBankAccount = await prisma.account.findFirst({
-      where: { name: paymentMethod === "CASH" ? "Cash" : "Bank" },
-    });
-    const debtorsAccount = await prisma.account.findFirst({ where: { name: "Debtors" } });
+    const [journal, cashOrBankAccount, debtorsAccount] = await Promise.all([
+      prisma.journal.findFirst({ where: { type: journalType } }),
+      prisma.account.findFirst({
+        where: { name: paymentMethod === "CASH" ? "Cash" : "Bank" },
+      }),
+      prisma.account.findFirst({ where: { name: "Debtors" } }),
+    ]);
 
     if (!journal || !cashOrBankAccount || !debtorsAccount) {
       const error = new Error(`Required accounts/journals for ${paymentMethod} payment missing`);

@@ -28,26 +28,25 @@ class AnalyticAccountsService {
   }
 
   async update(id, { name, type }) {
-    const existing = await prisma.analyticAccount.findUnique({
-      where: { id },
-    });
-
-    if (!existing) {
-      const error = new Error("Analytic account not found");
-      error.statusCode = 404;
-      throw error;
-    }
-
     const trimmedName = name.trim();
     const upperType = type.toUpperCase();
 
-    return await prisma.analyticAccount.update({
-      where: { id },
-      data: {
-        name: trimmedName,
-        type: upperType,
-      },
-    });
+    try {
+      return await prisma.analyticAccount.update({
+        where: { id },
+        data: {
+          name: trimmedName,
+          type: upperType,
+        },
+      });
+    } catch (error) {
+      if (error.code === "P2025") {
+        const err = new Error("Analytic account not found");
+        err.statusCode = 404;
+        throw err;
+      }
+      throw error;
+    }
   }
 
   async delete(id) {

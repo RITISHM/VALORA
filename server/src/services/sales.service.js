@@ -120,26 +120,28 @@ class SalesService {
   }
 
   async confirm(id) {
-    const existing = await prisma.salesOrder.findUnique({ where: { id } });
-    if (!existing) {
-      const error = new Error("Sales Order not found");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    return await prisma.salesOrder.update({
-      where: { id },
-      data: { status: "CONFIRMED" },
-      include: {
-        customer: true,
-        lines: {
-          include: {
-            product: true,
-            analytic_account: true,
+    try {
+      return await prisma.salesOrder.update({
+        where: { id },
+        data: { status: "CONFIRMED" },
+        include: {
+          customer: true,
+          lines: {
+            include: {
+              product: true,
+              analytic_account: true,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (error) {
+      if (error.code === "P2025") {
+        const err = new Error("Sales Order not found");
+        err.statusCode = 404;
+        throw err;
+      }
+      throw error;
+    }
   }
 }
 

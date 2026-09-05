@@ -153,26 +153,27 @@ class VendorBillsService {
         data: { status: "CONFIRMED" },
       });
 
-      for (const line of bill.lines) {
-        if (line.product && line.product.type === "GOODS") {
-          await tx.stockMovement.create({
-            data: {
-              product_id: line.product_id,
-              quantity: line.qty,
-              type: "PURCHASE",
-              reference: bill.bill_reference || bill.id,
-            },
-          });
-        }
+      // Batch create stock movements for GOODS products
+      const stockMovements = bill.lines
+        .filter((line) => line.product && line.product.type === "GOODS")
+        .map((line) => ({
+          product_id: line.product_id,
+          quantity: line.qty,
+          type: "PURCHASE",
+          reference: bill.bill_reference || bill.id,
+        }));
+
+      if (stockMovements.length > 0) {
+        await tx.stockMovement.createMany({ data: stockMovements });
       }
     });
 
-    // 2. Post double-entry Journal Entry: Dr Purchase Expense, Cr Creditors
-    const purchaseJournal = await prisma.journal.findFirst({ where: { type: "PURCHASE" } });
-    const purchaseExpenseAccount = await prisma.account.findFirst({
-      where: { name: "Purchase Expense" },
-    });
-    const creditorsAccount = await prisma.account.findFirst({ where: { name: "Creditors" } });
+    // 2. Post double-entry Journal Entry: Dr Purchase Expense, Cr Creditors (parallel lookups)
+    const [purchaseJournal, purchaseExpenseAccount, creditorsAccount] = await Promise.all([
+      prisma.journal.findFirst({ where: { type: "PURCHASE" } }),
+      prisma.account.findFirst({ where: { name: "Purchase Expense" } }),
+      prisma.account.findFirst({ where: { name: "Creditors" } }),
+    ]);
 
     if (!purchaseJournal || !purchaseExpenseAccount || !creditorsAccount) {
       const error = new Error(
