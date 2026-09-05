@@ -2,33 +2,18 @@ const request = require('supertest');
 const app = require('../src/app');
 
 describe('BE2 Complete Workflows & Engine Integration', () => {
-  let createdContactId;
-  let createdProductId;
-  let createdAnalyticAccountId;
-  let createdBudgetId;
-  let createdSOId;
-  let createdInvoiceId;
-  let salesJournalId;
-  let bankJournalId;
-  let debtorsAccountId;
-  let salesIncomeAccountId;
-  let bankAccountId;
-
-  // Setup mock store or database mock if running without live postgres
-  beforeAll(async () => {
-    // In unit test environment, we mock prisma if needed or verify routes
-  });
+  const nonExistentUUID = 'e0eebc99-9c0b-4ef8-bb6d-6bb9bd380a55';
 
   describe('Accounting Engine Service (Double-Entry Validation)', () => {
     it('should reject double-entry imbalance (sum(debit) !== sum(credit))', async () => {
       const res = await request(app)
         .post('/journal-entries')
         .send({
-          journalId: 'jrn-sales',
+          journalId: nonExistentUUID,
           reference: 'Test Imbalance',
           lines: [
-            { accountId: 'acc-debtors', debit: 500, credit: 0 },
-            { accountId: 'acc-income', debit: 0, credit: 400 }, // Imbalanced!
+            { accountId: nonExistentUUID, debit: 500, credit: 0 },
+            { accountId: nonExistentUUID, debit: 0, credit: 400 },
           ],
         });
 
@@ -59,12 +44,12 @@ describe('BE2 Complete Workflows & Engine Integration', () => {
     });
 
     it('should return 404 for non-existing sales order ID', async () => {
-      const res = await request(app).get('/sales-orders/non-existing-id');
+      const res = await request(app).get(`/sales-orders/${nonExistentUUID}`);
       expect(res.statusCode).toBe(404);
     });
 
     it('should return 404 for non-existing invoice ID', async () => {
-      const res = await request(app).get('/customer-invoices/non-existing-id');
+      const res = await request(app).get(`/customer-invoices/${nonExistentUUID}`);
       expect(res.statusCode).toBe(404);
     });
   });
