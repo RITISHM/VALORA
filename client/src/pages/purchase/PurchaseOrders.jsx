@@ -198,26 +198,11 @@ export default function PurchaseOrders() {
     setIsLoading(true);
     try {
       const fullDoc = await api.getPurchaseOrderById(row.id);
-      setSelectedBill
-        ? setSelectedBill(fullDoc)
-        : setSelectedOrder
-          ? setSelectedOrder(fullDoc)
-          : setSelectedInvoice(fullDoc);
+      setSelectedOrder(fullDoc);
       setFormData({
-        ...(row.vendor_id ? { vendorId: fullDoc.vendor_id } : {}),
-        ...(row.customer_id ? { customerId: fullDoc.customer_id } : {}),
-        billNumber: fullDoc.bill_number || "",
-        billReference: fullDoc.bill_reference || "",
-        orderNumber: fullDoc.order_number || "",
-        invoiceNumber: fullDoc.invoice_number || "",
-        billDate: fullDoc.bill_date ? new Date(fullDoc.bill_date).toISOString().split("T")[0] : "",
-        orderDate: fullDoc.order_date
-          ? new Date(fullDoc.order_date).toISOString().split("T")[0]
-          : "",
-        invoiceDate: fullDoc.invoice_date
-          ? new Date(fullDoc.invoice_date).toISOString().split("T")[0]
-          : "",
-        dueDate: fullDoc.due_date ? new Date(fullDoc.due_date).toISOString().split("T")[0] : "",
+        vendorId: fullDoc.vendor_id || "",
+        poDate: fullDoc.po_date ? new Date(fullDoc.po_date).toISOString().split("T")[0] : "",
+        orderNumber: fullDoc.po_number || "",
         lines: fullDoc.lines?.map((l) => ({
           productId: l.product_id,
           accountId: l.account_id || "",
@@ -237,7 +222,7 @@ export default function PurchaseOrders() {
 
   const columns = [
     { header: "PO No.", accessor: "po_number", render: (row) => <strong>{row.po_number}</strong> },
-    { header: "Vendor Name", render: (row) => row.contact?.name || "-" },
+    { header: "Vendor Name", render: (row) => row.vendor?.name || "-" },
     { header: "PO Date", render: (row) => new Date(row.po_date).toLocaleDateString() },
     { header: "Total", render: (row) => `₹ ${Number(row.total || 0).toLocaleString()}` },
     {

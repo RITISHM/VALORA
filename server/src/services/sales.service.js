@@ -79,7 +79,7 @@ class SalesService {
 
   async getAll() {
     return await prisma.salesOrder.findMany({
-      orderBy: { order_date: "desc" },
+      orderBy: { so_date: "desc" },
       include: { customer: true }
     });
   }

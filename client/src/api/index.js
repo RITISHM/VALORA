@@ -61,7 +61,8 @@ export const api = {
 
   // Contacts
   getContacts: async () => fetchWithCache("contacts", `${BACKEND_URL}/contacts`),
-  createContact: async (contact) => { clearCache("contacts");
+  createContact: async (contact) => {
+    clearCache("contacts");
     const response = await fetch(`${BACKEND_URL}/contacts`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -72,7 +73,8 @@ export const api = {
     });
     return handleResponse(response);
   },
-  updateContact: async (id, contact) => { clearCache("contacts");
+  updateContact: async (id, contact) => {
+    clearCache("contacts");
     const response = await fetch(`${BACKEND_URL}/contacts/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
@@ -83,7 +85,8 @@ export const api = {
     });
     return handleResponse(response);
   },
-  deleteContact: async (id) => { clearCache("contacts");
+  deleteContact: async (id) => {
+    clearCache("contacts");
     const response = await fetch(`${BACKEND_URL}/contacts/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders()
@@ -93,7 +96,8 @@ export const api = {
 
   // Products
   getProducts: async () => fetchWithCache("products", `${BACKEND_URL}/products`),
-  createProduct: async (product) => { clearCache("products");
+  createProduct: async (product) => {
+    clearCache("products");
     const response = await fetch(`${BACKEND_URL}/products`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -104,7 +108,8 @@ export const api = {
     });
     return handleResponse(response);
   },
-  updateProduct: async (id, product) => { clearCache("products");
+  updateProduct: async (id, product) => {
+    clearCache("products");
     const response = await fetch(`${BACKEND_URL}/products/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
@@ -115,7 +120,8 @@ export const api = {
     });
     return handleResponse(response);
   },
-  deleteProduct: async (id) => { clearCache("products");
+  deleteProduct: async (id) => {
+    clearCache("products");
     const response = await fetch(`${BACKEND_URL}/products/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders()
@@ -125,7 +131,8 @@ export const api = {
 
   // Chart of Accounts
   getChartOfAccounts: async () => fetchWithCache("accounts", `${BACKEND_URL}/accounts`),
-  createAccount: async (accountData) => { clearCache("accounts");
+  createAccount: async (accountData) => {
+    clearCache("accounts");
     const response = await fetch(`${BACKEND_URL}/accounts`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -289,7 +296,8 @@ export const api = {
 
   // Analytic Accounts & Budgets
   getAnalyticAccounts: async () => fetchWithCache("analyticAccounts", `${BACKEND_URL}/analytic-accounts`),
-  createAnalyticAccount: async (data) => { clearCache("analyticAccounts");
+  createAnalyticAccount: async (data) => {
+    clearCache("analyticAccounts");
     const response = await fetch(`${BACKEND_URL}/analytic-accounts`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -298,7 +306,8 @@ export const api = {
     return handleResponse(response);
   },
   getBudgets: async () => fetchWithCache("budgets", `${BACKEND_URL}/budgets`),
-  createBudget: async (data) => { clearCache("budgets");
+  createBudget: async (data) => {
+    clearCache("budgets");
     const response = await fetch(`${BACKEND_URL}/budgets`, {
       method: 'POST',
       headers: getAuthHeaders(),
