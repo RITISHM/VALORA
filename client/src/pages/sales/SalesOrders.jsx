@@ -44,7 +44,7 @@ export default function SalesOrders() {
       setIsLoading(false);
     }
   };
-
+// checkpoint 1
   useEffect(() => {
     loadData();
     const queryParams = new URLSearchParams(location.search);
