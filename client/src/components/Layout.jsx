@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, Package, FileText, BarChart3, LogOut, Hexagon, Search, Bell, Settings } from 'lucide-react';
 import '../styles/layout.css';
 
@@ -16,7 +16,9 @@ export default function Layout() {
         {/* Sidebar Navigation */}
         <aside className="sidebar">
           <div className="sidebar-header">
-            <Hexagon size={28} className="sidebar-logo-icon" />
+            <Link to="/dashboard">
+              <Hexagon size={28} className="sidebar-logo-icon" />
+            </Link>
           </div>
           
           <nav className="sidebar-nav">
@@ -65,12 +67,19 @@ export default function Layout() {
                 <input type="text" placeholder="Search..." />
               </div>
               
-              <Bell size={20} className="header-icon" />
-              <Settings size={20} className="header-icon" />
+              <Link to="/notifications" style={{ color: 'inherit', display: 'flex' }}>
+                <Bell size={20} className="header-icon" />
+              </Link>
               
-              <div className="user-profile">
-                <div className="avatar">ML</div>
-              </div>
+              <Link to="/settings" style={{ color: 'inherit', display: 'flex' }}>
+                <Settings size={20} className="header-icon" />
+              </Link>
+              
+              <Link to="/profile" style={{ textDecoration: 'none' }}>
+                <div className="user-profile">
+                  <div className="avatar">ML</div>
+                </div>
+              </Link>
             </div>
           </header>
           
