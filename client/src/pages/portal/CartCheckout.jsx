@@ -41,7 +41,8 @@ export default function CartCheckout() {
           navigate('/dashboard'); // Go back to dashboard to pay the new invoice
         }, 2000);
       } else {
-        alert('Checkout failed');
+        const errText = await res.text();
+        alert(`Checkout failed. Error: ${errText}`);
         setCheckingOut(false);
       }
     } catch (err) {

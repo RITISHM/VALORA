@@ -241,35 +241,88 @@ function UserDashboard({ user }) {
     fetchData();
   }, []);
 
+  // Helper to dynamically load the Razorpay script
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   /**
-   * Initiates invoice payment via backend portal settlement endpoint.
-   * 
-   * @async
-   * @function handlePay
-   * @param {string|number} invoiceId - Identifier of the invoice to pay.
-   * @param {number} total - Payment amount.
+   * Initiates invoice payment via Razorpay demo UI, then calls backend portal settlement endpoint.
    */
   const handlePay = async (invoiceId, total) => {
     try {
       setPayingId(invoiceId);
-      const res = await fetch(`${BACKEND_URL}/portal/invoices/${invoiceId}/pay`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ method: 'BANK', amount: total })
-      });
-      if (res.ok) {
-        // Refresh data
-        await fetchData();
-      } else {
-        alert("Payment failed");
+      
+      const resLoad = await loadRazorpayScript();
+      if (!resLoad) {
+        alert('Razorpay SDK failed to load. Are you online?');
+        setPayingId(null);
+        return;
       }
+
+      // We use a dummy test key for the demo presentation.
+      // In a real environment, you'd fetch an Order ID from the backend.
+      const options = {
+        key: 'rzp_test_TYrv3gI5U5nKRs', // Demo / Test Key
+        amount: total * 100, // Razorpay works in subunits (paise)
+        currency: 'INR',
+        name: 'Valora ERP',
+        description: `Payment for Invoice #${invoiceId}`,
+        image: 'https://cdn-icons-png.flaticon.com/512/2953/2953363.png',
+        handler: async function (response) {
+          // Razorpay Success Callback!
+          try {
+            const res = await fetch(`${BACKEND_URL}/portal/invoices/${invoiceId}/pay`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ method: 'BANK', amount: total })
+            });
+            if (res.ok) {
+              await fetchData();
+            } else {
+              alert("Backend settlement failed after payment.");
+            }
+          } catch (err) {
+            console.error(err);
+            alert("Error settling invoice.");
+          } finally {
+            setPayingId(null);
+          }
+        },
+        prefill: {
+          name: user?.name || 'Valora Customer',
+          email: user?.email || 'customer@valora.com',
+          contact: '9999999999'
+        },
+        notes: {
+          address: 'Valora Corporate Office'
+        },
+        theme: {
+          color: '#017E84' // Valora's primary color
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      
+      paymentObject.on('payment.failed', function (response){
+        alert(`Payment Failed! Reason: ${response.error.description}`);
+        setPayingId(null);
+      });
+
+      paymentObject.open();
+
     } catch (err) {
       console.error(err);
-      alert("Error paying invoice");
-    } finally {
+      alert("Error initiating Razorpay checkout");
       setPayingId(null);
     }
   };
