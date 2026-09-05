@@ -1,6 +1,23 @@
+/**
+ * @file BalanceSheet.jsx
+ * @description Financial Statement component for displaying the Company Balance Sheet in Valora ERP.
+ * Renders two-column accounting statement of Assets vs. Liabilities and Capital,
+ * verifies accounting equation equality (Assets = Liabilities + Equity), and supports year filtering and printing.
+ * @module pages/reports/BalanceSheet
+ */
+
 import React, { useState, useEffect } from 'react';
 import { api } from '../../api';
 
+/**
+ * BalanceSheet Component
+ * 
+ * Renders the Balance Sheet financial report for a selected fiscal year.
+ * Displays Assets, Liabilities, and Capital sections, calculating totals and verifying balance equilibrium.
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered Balance Sheet report page.
+ */
 export default function BalanceSheet() {
   const [report, setReport] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -10,6 +27,13 @@ export default function BalanceSheet() {
     loadReport();
   }, [year]);
 
+  /**
+   * Fetches the balance sheet report data for the currently selected fiscal year.
+   * 
+   * @async
+   * @function loadReport
+   * @returns {Promise<void>} Resolves when the report state is populated.
+   */
   const loadReport = async () => {
     setIsLoading(true);
     try {
@@ -22,6 +46,12 @@ export default function BalanceSheet() {
     }
   };
 
+  /**
+   * Triggers the native browser print dialog to print or export the statement as PDF.
+   * 
+   * @function handlePrint
+   * @returns {void}
+   */
   const handlePrint = () => {
     window.print();
   };

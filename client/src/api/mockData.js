@@ -1,3 +1,18 @@
+/**
+ * @file mockData.js
+ * @description Mock seed dataset and browser localStorage persistence bootstrap for offline / mock testing.
+ * Provides fallback initial records for Contacts, Products, Chart of Accounts, and Journals.
+ * @module api/mockData
+ */
+
+/**
+ * Initial static dataset used for bootstrapping mock business entities.
+ * @type {Object}
+ * @property {Array<Object>} contacts - Seed contact entities (vendors and customers).
+ * @property {Array<Object>} products - Seed inventory products and services.
+ * @property {Array<Object>} chartOfAccounts - Standard default GL account definitions.
+ * @property {Array<Object>} journals - Default transaction journals.
+ */
 export const initialData = {
   contacts: [
     { id: '1', name: 'Azure Furniture', type: 'Vendor', email: 'billing@azure.com', mobile: '9876543210', city: 'Mumbai', state: 'MH' },
@@ -25,7 +40,9 @@ export const initialData = {
   ]
 };
 
-// Initialize localStorage if empty
+/**
+ * Automatically populates browser localStorage with initial mock records if not already initialized.
+ */
 if (!localStorage.getItem('valora_data')) {
   localStorage.setItem('valora_data', JSON.stringify(initialData));
 }

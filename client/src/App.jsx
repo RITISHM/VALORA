@@ -1,3 +1,11 @@
+/**
+ * @file App.jsx
+ * @description Primary application router component for Valora.
+ * Defines public routes (Login, Signup, Admin Create User) and protected routes
+ * nested within the main application Layout shell.
+ * @module App
+ */
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/login.jsx';
@@ -18,6 +26,11 @@ import Settings from './pages/Settings.jsx';
 import Notifications from './pages/Notifications.jsx';
 import Profile from './pages/Profile.jsx';
 
+/**
+ * Root App component managing client-side navigation and routing structure.
+ * @component
+ * @returns {JSX.Element} The router hierarchy with all registered view routes.
+ */
 export default function App() {
   return (
     <Router>

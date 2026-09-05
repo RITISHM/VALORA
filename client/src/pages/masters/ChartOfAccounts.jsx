@@ -1,12 +1,35 @@
+/**
+ * @file ChartOfAccounts.jsx
+ * @description Master Chart of Accounts (COA) interface for Valora ERP.
+ * Displays financial ledger accounts (Assets, Liabilities, Equity, Income, Expenses)
+ * categorized by account types and codes.
+ * @module pages/masters/ChartOfAccounts
+ */
+
 import React, { useState, useEffect } from 'react';
 import DataTable from '../../components/DataTable';
 import { api } from '../../api';
 
+/**
+ * ChartOfAccounts Component
+ * 
+ * Renders the ledger accounts table displaying account IDs, names, and styled account type badges.
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered Chart of Accounts interface.
+ */
 export default function ChartOfAccounts() {
   const [accounts, setAccounts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    /**
+     * Fetches accounts from the API service and populates state.
+     * 
+     * @async
+     * @function loadAccounts
+     * @returns {Promise<void>} Resolves when accounts are loaded.
+     */
     const loadAccounts = async () => {
       setIsLoading(true);
       const data = await api.getChartOfAccounts();

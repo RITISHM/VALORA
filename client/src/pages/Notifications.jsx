@@ -1,5 +1,19 @@
+/**
+ * @file Notifications.jsx
+ * @description System alerts and notification feeds view in Valora ERP.
+ * Renders priority alerts such as upcoming vendor bill dues, budget threshold warnings,
+ * and system platform update notices.
+ * @module pages/Notifications
+ */
+
 import React from 'react';
 
+/**
+ * Notifications component displaying urgent workflow alerts and platform announcements.
+ * 
+ * @component
+ * @returns {JSX.Element} Rendered notifications feed page.
+ */
 export default function Notifications() {
   return (
     <div className="page-content">

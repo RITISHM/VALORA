@@ -1,6 +1,23 @@
+/**
+ * @file ProfitAndLoss.jsx
+ * @description Financial Statement component for displaying the Profit & Loss (P&L) Statement in Valora ERP.
+ * Renders Income and Expenses ledgers, calculates Total Income, Total Expenses,
+ * and Net Profit / Loss with color indicators, and supports year filtering and printing.
+ * @module pages/reports/ProfitAndLoss
+ */
+
 import React, { useState, useEffect } from 'react';
 import { api } from '../../api';
 
+/**
+ * ProfitAndLoss Component
+ * 
+ * Renders the Profit and Loss statement for the chosen accounting year,
+ * comparing operational revenues and expenses to derive Net Income.
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered Profit and Loss report page.
+ */
 export default function ProfitAndLoss() {
   const [report, setReport] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -10,6 +27,13 @@ export default function ProfitAndLoss() {
     loadReport();
   }, [year]);
 
+  /**
+   * Fetches the Profit & Loss report data for the selected fiscal year.
+   * 
+   * @async
+   * @function loadReport
+   * @returns {Promise<void>} Resolves when the statement state is updated.
+   */
   const loadReport = async () => {
     setIsLoading(true);
     try {
@@ -22,6 +46,12 @@ export default function ProfitAndLoss() {
     }
   };
 
+  /**
+   * Triggers the native browser print preview dialog for exporting or printing the statement.
+   * 
+   * @function handlePrint
+   * @returns {void}
+   */
   const handlePrint = () => {
     window.print();
   };

@@ -1,5 +1,19 @@
+/**
+ * @file Settings.jsx
+ * @description System Preferences and Configuration page for Valora ERP.
+ * Displays general company profile information (legal name, base accounting currency, fiscal year end)
+ * and provides navigation to administrative user provisioning.
+ * @module pages/Settings
+ */
+
 import React from 'react';
 
+/**
+ * Settings component displaying organization-wide configuration and administrative links.
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered settings page.
+ */
 export default function Settings() {
   return (
     <div className="page-content">

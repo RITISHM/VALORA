@@ -1,9 +1,26 @@
+/**
+ * @file ProductList.jsx
+ * @description Master Product Management component for Valora ERP.
+ * Provides a searchable data grid of all catalog products (Goods, Services, Combos)
+ * along with modal/drawer forms for creating, editing, and deleting products.
+ * @module pages/masters/ProductList
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Trash2, Pencil } from 'lucide-react';
 import DataTable from '../../components/DataTable';
 import FormShell from '../../components/FormShell';
 import { api } from '../../api';
 
+/**
+ * ProductList Component
+ * 
+ * Renders the product catalog management interface with real-time data table,
+ * creation/edit form toggle, and optimistic deletion handling.
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered ProductList master interface.
+ */
 export default function ProductList() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -15,6 +32,14 @@ export default function ProductList() {
     name: '', type: 'Goods', category: '', salesPrice: '', cost: ''
   });
 
+  /**
+   * Fetches the latest product catalog from the backend API or mock store.
+   * Updates component loading state and sets the product list.
+   * 
+   * @async
+   * @function loadProducts
+   * @returns {Promise<void>} Resolves when state is updated.
+   */
   const loadProducts = async () => {
     setIsLoading(true);
     const data = await api.getProducts();
@@ -26,6 +51,14 @@ export default function ProductList() {
     loadProducts();
   }, []);
 
+  /**
+   * Validates and submits the product form data to the backend.
+   * Handles both creation of new products and updating existing products.
+   * 
+   * @async
+   * @function handleSave
+   * @returns {Promise<void>} Resolves when save operation completes and form closes.
+   */
   const handleSave = async () => {
     if (!formData.name) return alert('Name is required');
     setIsSaving(true);
@@ -51,6 +84,19 @@ export default function ProductList() {
     }
   };
 
+  /**
+   * Populates the form state with selected product data and opens the edit form.
+   * 
+   * @function handleEdit
+   * @param {Object} row - The product record to edit.
+   * @param {number|string} row.id - Product unique identifier.
+   * @param {string} [row.name] - Product name.
+   * @param {string} [row.type] - Product type (e.g. 'Goods', 'Service', 'Combo').
+   * @param {string} [row.category] - Product category.
+   * @param {number|string} [row.sales_price] - Selling price.
+   * @param {number|string} [row.cost] - Cost price.
+   * @returns {void}
+   */
   const handleEdit = (row) => {
     setFormData({
       name: row.name || '',
@@ -63,12 +109,26 @@ export default function ProductList() {
     setIsFormOpen(true);
   };
 
+  /**
+   * Resets the form state, clears editing identifiers, and closes the form dialog.
+   * 
+   * @function handleCloseForm
+   * @returns {void}
+   */
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setEditingId(null);
     setFormData({ name: '', type: 'Goods', category: '', salesPrice: '', cost: '' });
   };
 
+  /**
+   * Prompts user for confirmation and deletes a product record with optimistic UI rollback.
+   * 
+   * @async
+   * @function handleDelete
+   * @param {number|string} id - Identifier of the product to delete.
+   * @returns {Promise<void>} Resolves after deletion request and state synchronization.
+   */
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       const previousProducts = [...products];

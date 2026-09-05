@@ -1,9 +1,25 @@
+/**
+ * @file Layout.jsx
+ * @description Core authenticated dashboard layout shell for Valora ERP.
+ * Implements a collapsible navigation sidebar with contrast hover animation, 
+ * top header with contextual actions (search, notifications, settings, profile avatar),
+ * and dynamic nested route rendering via React Router Outlet.
+ * @module components/Layout
+ */
+
 import React from 'react';
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, Package, FileText, BarChart3, LogOut, Hexagon, Search, Bell, Settings, Store, ShoppingBag, ShoppingCart } from 'lucide-react';
 import '../styles/layout.css';
 import { useCartStore } from '../store/useCartStore';
 
+/**
+ * Layout component providing the persistent frame for all authenticated views.
+ * Handles role-based sidebar link filtering and user logout flow.
+ * 
+ * @component
+ * @returns {JSX.Element} Authenticated layout wrapper with sidebar and main content outlet.
+ */
 export default function Layout() {
   const navigate = useNavigate();
   const cartItemCount = useCartStore((state) => state.getItemCount());
@@ -12,6 +28,10 @@ export default function Layout() {
   const user = userStr ? JSON.parse(userStr) : null;
   const userRole = user?.role?.toLowerCase() || '';
 
+  /**
+   * Logs out user by redirecting to the login view.
+   * @function handleLogout
+   */
   const handleLogout = () => {
     navigate('/login');
   };

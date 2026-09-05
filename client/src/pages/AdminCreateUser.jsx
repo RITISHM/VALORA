@@ -1,3 +1,11 @@
+/**
+ * @file AdminCreateUser.jsx
+ * @description Administrative user provisioning portal page for Valora ERP.
+ * Allows administrators to create new internal users, set credentials, and explicitly
+ * assign system permission roles (ADMIN, ACCOUNTANT, or CONTACT).
+ * @module pages/AdminCreateUser
+ */
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, ShieldCheck, Check, X, AlertCircle, UserPlus, ArrowLeft } from 'lucide-react';
@@ -5,6 +13,14 @@ import { validatePassword, validateLoginId, validateEmail } from '../store/useSi
 import { BACKEND_URL } from '../api';
 import '../styles/signup.css';
 
+/**
+ * Admin view component for provisioning new system users with role assignment.
+ * 
+ * @component
+ * @param {Object} props - Component properties.
+ * @param {boolean} [props.isEmbedded=false] - Whether rendered embedded within settings or standalone.
+ * @returns {JSX.Element} Rendered administrative user provisioning view.
+ */
 export default function AdminCreateUser({ isEmbedded = false }) {
   const navigate = useNavigate();
 
@@ -28,6 +44,12 @@ export default function AdminCreateUser({ isEmbedded = false }) {
   // Real-time password evaluation
   const passwordAnalysis = validatePassword(formData.password);
 
+  /**
+   * Controlled change handler executing real-time validation across inputs.
+   * 
+   * @function handleChange
+   * @param {React.ChangeEvent<HTMLInputElement>} e - Input change event.
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -69,11 +91,22 @@ export default function AdminCreateUser({ isEmbedded = false }) {
     }
   };
 
+  /**
+   * Tracks field blur event to initiate validation state display.
+   * 
+   * @function handleBlur
+   * @param {React.FocusEvent<HTMLInputElement>} e - Input blur event.
+   */
   const handleBlur = (e) => {
     const { name } = e.target;
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
+  /**
+   * Derives a compliant Login ID (6-12 characters) based on currently entered first and last name.
+   * 
+   * @function suggestLoginId
+   */
   const suggestLoginId = () => {
     const { firstName, lastName } = formData;
     if (!firstName && !lastName) return;
@@ -92,6 +125,12 @@ export default function AdminCreateUser({ isEmbedded = false }) {
     setErrors((prev) => ({ ...prev, loginId: loginCheck.errorMessage }));
   };
 
+  /**
+   * Performs full form validation check across all fields before submission.
+   * 
+   * @function validateAll
+   * @returns {boolean} True if all validation rules are satisfied.
+   */
   const validateAll = () => {
     const nextErrors = {};
 
@@ -126,6 +165,13 @@ export default function AdminCreateUser({ isEmbedded = false }) {
     return Object.keys(nextErrors).length === 0;
   };
 
+  /**
+   * Handles submission of the user creation form to the backend /auth/signup endpoint.
+   * 
+   * @async
+   * @function handleSubmit
+   * @param {React.FormEvent} e - Form submission event.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
 

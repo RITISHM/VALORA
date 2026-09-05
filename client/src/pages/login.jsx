@@ -1,9 +1,23 @@
+/**
+ * @file login.jsx
+ * @description Authentication Login Page component for Valora ERP.
+ * Provides user credential authentication against the backend /auth/login route,
+ * local token persistence, and redirection into the application dashboard.
+ * @module pages/Login
+ */
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Hexagon } from 'lucide-react';
 import { BACKEND_URL } from '../api';
 import '../styles/login.css';
 
+/**
+ * Login view component for authenticating registered users.
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered login interface with split branding and credential form.
+ */
 export default function Login() {
   const [formData, setFormData] = useState({
     loginId: '',
@@ -14,6 +28,12 @@ export default function Login() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  /**
+   * Updates controlled form input state and clears any existing validation error.
+   * 
+   * @function handleChange
+   * @param {React.ChangeEvent<HTMLInputElement>} e - Input change event.
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -21,6 +41,13 @@ export default function Login() {
     if (error) setError('');
   };
 
+  /**
+   * Submits user credentials to backend /auth/login, saves JWT and user profile, and navigates to /dashboard.
+   * 
+   * @async
+   * @function handleMockLogin
+   * @param {React.FormEvent} e - Form submission event.
+   */
   const handleMockLogin = async (e) => {
     e.preventDefault();
     setError('');

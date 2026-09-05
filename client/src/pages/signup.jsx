@@ -1,3 +1,12 @@
+/**
+ * @file signup.jsx
+ * @description Standard user registration page for Valora ERP.
+ * Matches Login Page styling continuity with global Comfortaa typography,
+ * transparent layout, and integrates real-time Zustand-powered validation
+ * for Login ID rules, email verification, and live password security analysis.
+ * @module pages/Signup
+ */
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Hexagon, Check, X, AlertCircle } from 'lucide-react';
@@ -5,6 +14,12 @@ import { useSignupStore } from '../store/useSignupStore';
 import { BACKEND_URL } from '../api';
 import '../styles/signup.css';
 
+/**
+ * Public Signup Page component for regular enterprise users.
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered signup interface with real-time validation feedback.
+ */
 export default function Signup() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -24,16 +39,36 @@ export default function Signup() {
     setSubmitError,
   } = useSignupStore();
 
+  /**
+   * Dispatches input field updates to the Zustand signup store.
+   * 
+   * @function handleChange
+   * @param {React.ChangeEvent<HTMLInputElement>} e - Input change event.
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setField(name, value);
   };
 
+  /**
+   * Marks field as touched on blur to activate validation message display.
+   * 
+   * @function handleBlur
+   * @param {React.FocusEvent<HTMLInputElement>} e - Input blur event.
+   */
   const handleBlur = (e) => {
     const { name } = e.target;
     setTouched(name);
   };
 
+  /**
+   * Validates all form inputs and dispatches registration request to backend /auth/signup.
+   * On success, navigates to /login.
+   * 
+   * @async
+   * @function handleSignup
+   * @param {React.FormEvent} e - Form submission event.
+   */
   const handleSignup = async (e) => {
     e.preventDefault();
 

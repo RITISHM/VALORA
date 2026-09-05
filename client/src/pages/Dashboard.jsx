@@ -1,8 +1,23 @@
+/**
+ * @file Dashboard.jsx
+ * @description Main dashboard view for Valora ERP.
+ * Renders role-specific dashboards:
+ * - AdminDashboard: Displays KPIs, recent transactions, meetings, and balance sheet summary for staff/admins.
+ * - UserDashboard: Displays customer portal invoices, total dues, and inline invoice payment flow for portal contacts.
+ * @module pages/Dashboard
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Network, Activity, Sunrise, MoreHorizontal, FileText, ArrowRight, Loader2 } from 'lucide-react';
 import { BACKEND_URL } from '../api';
 import '../styles/dashboard.css';
 
+/**
+ * Administrative and Accountant dashboard view featuring company-wide metrics and activities.
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered admin dashboard view.
+ */
 function AdminDashboard() {
   return (
     <div className="dashboard-container">
@@ -167,6 +182,14 @@ function AdminDashboard() {
   );
 }
 
+/**
+ * Customer and Contact portal dashboard displaying invoices and payment settlement actions.
+ * 
+ * @component
+ * @param {Object} props - Component properties.
+ * @param {Object} props.user - Active authenticated contact user profile.
+ * @returns {JSX.Element} The rendered contact portal dashboard.
+ */
 function UserDashboard({ user }) {
   const [activeTab, setActiveTab] = useState('Unpaid');
   const [invoices, setInvoices] = useState([]);
@@ -176,6 +199,12 @@ function UserDashboard({ user }) {
 
   const token = localStorage.getItem('valora_token');
 
+  /**
+   * Fetches outstanding amounts and customer invoices from the portal API.
+   * 
+   * @async
+   * @function fetchData
+   */
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -212,6 +241,14 @@ function UserDashboard({ user }) {
     fetchData();
   }, []);
 
+  /**
+   * Initiates invoice payment via backend portal settlement endpoint.
+   * 
+   * @async
+   * @function handlePay
+   * @param {string|number} invoiceId - Identifier of the invoice to pay.
+   * @param {number} total - Payment amount.
+   */
   const handlePay = async (invoiceId, total) => {
     try {
       setPayingId(invoiceId);
@@ -327,6 +364,13 @@ function UserDashboard({ user }) {
   );
 }
 
+/**
+ * Root Dashboard router component that selectively renders AdminDashboard or UserDashboard
+ * based on the authenticated user's assigned role.
+ * 
+ * @component
+ * @returns {JSX.Element} Role-appropriate dashboard interface.
+ */
 export default function Dashboard() {
   const userStr = localStorage.getItem('valora_user');
   const user = userStr ? JSON.parse(userStr) : null;

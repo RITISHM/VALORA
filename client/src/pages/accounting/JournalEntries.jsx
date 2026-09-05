@@ -1,7 +1,23 @@
+/**
+ * @file JournalEntries.jsx
+ * @description General Ledger and Double-Entry Bookkeeping Journal Entries view for Valora ERP.
+ * Displays financial journal transactions, including dates, references, journal names,
+ * posting status, and total debit amounts computed across journal line items.
+ * @module pages/accounting/JournalEntries
+ */
+
 import React, { useState, useEffect } from 'react';
 import DataTable from '../../components/DataTable';
 import { api } from '../../api';
 
+/**
+ * JournalEntries Component
+ * 
+ * Renders the list of posted and draft accounting journal entries in a data table.
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered Journal Entries table interface.
+ */
 export default function JournalEntries() {
   const [entries, setEntries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -10,6 +26,13 @@ export default function JournalEntries() {
     loadEntries();
   }, []);
 
+  /**
+   * Fetches the journal entries list from the API service and manages loading state.
+   * 
+   * @async
+   * @function loadEntries
+   * @returns {Promise<void>} Resolves when journal entries are fetched.
+   */
   const loadEntries = async () => {
     setIsLoading(true);
     try {

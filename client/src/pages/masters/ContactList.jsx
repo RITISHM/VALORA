@@ -1,9 +1,23 @@
+/**
+ * @file ContactList.jsx
+ * @description Master data view for managing business contacts (Vendors and Customers).
+ * Provides full CRUD capabilities: list view with filtering via DataTable,
+ * inline modal/shell creation, record editing, and optimistic deletion.
+ * @module pages/masters/ContactList
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Trash2, Pencil } from 'lucide-react';
 import DataTable from '../../components/DataTable';
 import FormShell from '../../components/FormShell';
 import { api } from '../../api';
 
+/**
+ * Contact management view component.
+ * 
+ * @component
+ * @returns {JSX.Element} Contact master data view or creation/edit form shell.
+ */
 export default function ContactList() {
   const [contacts, setContacts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -15,6 +29,12 @@ export default function ContactList() {
     name: '', type: 'Customer', email: '', mobile: '', city: '', state: ''
   });
 
+  /**
+   * Fetches all registered contacts from the backend API.
+   * 
+   * @async
+   * @function loadContacts
+   */
   const loadContacts = async () => {
     setIsLoading(true);
     const data = await api.getContacts();
@@ -26,6 +46,12 @@ export default function ContactList() {
     loadContacts();
   }, []);
 
+  /**
+   * Persists new or updated contact record via backend API.
+   * 
+   * @async
+   * @function handleSave
+   */
   const handleSave = async () => {
     if (!formData.name) return alert('Name is required');
     setIsSaving(true);
@@ -45,6 +71,12 @@ export default function ContactList() {
     }
   };
 
+  /**
+   * Pre-fills form fields and opens form shell for editing an existing contact.
+   * 
+   * @function handleEdit
+   * @param {Object} row - Target contact record to edit.
+   */
   const handleEdit = (row) => {
     setFormData({
       name: row.name || '',
@@ -58,12 +90,24 @@ export default function ContactList() {
     setIsFormOpen(true);
   };
 
+  /**
+   * Resets form state and closes the editing FormShell.
+   * 
+   * @function handleCloseForm
+   */
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setEditingId(null);
     setFormData({ name: '', type: 'Customer', email: '', mobile: '', city: '', state: '' });
   };
 
+  /**
+   * Removes a contact with optimistic UI update and server rollback on failure.
+   * 
+   * @async
+   * @function handleDelete
+   * @param {string|number} id - Identifier of contact to delete.
+   */
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this contact?')) {
       const previousContacts = [...contacts];

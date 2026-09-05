@@ -1,5 +1,29 @@
+/**
+ * @file useSignupStore.js
+ * @description Zustand state management store for the user registration and onboarding flow.
+ * Handles form field states, touched tracking, real-time input validation, criteria analysis
+ * for password security, and automated Login ID suggestion.
+ * @module store/useSignupStore
+ */
+
 import { create } from 'zustand';
 
+/**
+ * Evaluates password string against enterprise security complexity criteria.
+ * Criteria: length > 8, at least 1 lowercase letter, at least 1 uppercase letter, at least 1 special character.
+ * 
+ * @function validatePassword
+ * @param {string} password - Raw password string entered by the user.
+ * @returns {Object} Analysis result containing criteria boolean flags, missing criteria descriptions, and overall validity.
+ * @property {Object} criteria - Individual requirement pass/fail flags.
+ * @property {boolean} criteria.length - True if password length is strictly greater than 8 characters.
+ * @property {boolean} criteria.lowercase - True if contains at least one lowercase letter.
+ * @property {boolean} criteria.uppercase - True if contains at least one uppercase letter.
+ * @property {boolean} criteria.special - True if contains at least one special symbol.
+ * @property {Array<string>} missing - List of human-readable missing criteria.
+ * @property {boolean} isValid - True if all criteria are satisfied.
+ * @property {string} errorMessage - User-facing formatted error string.
+ */
 export const validatePassword = (password) => {
   const criteria = {
     length: password.length > 8,
@@ -22,6 +46,19 @@ export const validatePassword = (password) => {
   };
 };
 
+/**
+ * Validates Login ID constraint rules:
+ * 1. Must be between 6 and 12 characters.
+ * 2. Must consist of the user's first name and last name.
+ * 
+ * @function validateLoginId
+ * @param {string} loginId - Candidate login identifier string.
+ * @param {string} [firstName=''] - User's first name for composition check.
+ * @param {string} [lastName=''] - User's last name for composition check.
+ * @returns {Object} Validation result with status flag and localized error description.
+ * @property {boolean} isValid - True if Login ID satisfies length and naming composition.
+ * @property {string} errorMessage - Validation error message or empty string if valid.
+ */
 export const validateLoginId = (loginId, firstName = '', lastName = '') => {
   const trimmed = loginId.trim();
   if (!trimmed) {
@@ -43,7 +80,6 @@ export const validateLoginId = (loginId, firstName = '', lastName = '') => {
 
   if (cleanFirst && cleanLast) {
     // Check if login ID incorporates both first and last names
-    // (e.g. johndoe, john.doe, jdoe, or first name + last name)
     const hasFirst = cleanLogin.includes(cleanFirst) || cleanLogin.startsWith(cleanFirst[0]);
     const hasLast = cleanLogin.includes(cleanLast) || (cleanLast.length > 0 && cleanLogin.endsWith(cleanLast.slice(0, 4)));
 
@@ -56,7 +92,7 @@ export const validateLoginId = (loginId, firstName = '', lastName = '') => {
       };
     }
   } else if (!cleanFirst || !cleanLast) {
-    // If names not entered yet, ensure format has at least two name components (e.g. john.doe or letters)
+    // If names not entered yet, ensure format has valid character set
     if (!/^[a-zA-Z0-9._-]+$/.test(trimmed)) {
       return {
         isValid: false,
@@ -68,6 +104,15 @@ export const validateLoginId = (loginId, firstName = '', lastName = '') => {
   return { isValid: true, errorMessage: '' };
 };
 
+/**
+ * Validates email address format against standard RFC-compliant regex pattern.
+ * 
+ * @function validateEmail
+ * @param {string} email - Email address string to test.
+ * @returns {Object} Object indicating validity and formatted error message.
+ * @property {boolean} isValid - True if email format is syntactically valid.
+ * @property {string} errorMessage - Error description or empty string.
+ */
 export const validateEmail = (email) => {
   const trimmed = email.trim();
   if (!trimmed) {
@@ -80,7 +125,11 @@ export const validateEmail = (email) => {
   return { isValid: true, errorMessage: '' };
 };
 
+/**
+ * Zustand Hook Store for Signup State and Form Management.
+ */
 export const useSignupStore = create((set, get) => ({
+  /** @type {Object} Form field input values */
   formData: {
     firstName: '',
     lastName: '',
@@ -90,6 +139,7 @@ export const useSignupStore = create((set, get) => ({
     password: '',
     confirmPassword: '',
   },
+  /** @type {Object} Tracks whether an input field has been focused/blurred */
   touched: {
     firstName: false,
     lastName: false,
@@ -98,6 +148,7 @@ export const useSignupStore = create((set, get) => ({
     password: false,
     confirmPassword: false,
   },
+  /** @type {Object} Field-level validation error messages */
   errors: {
     name: '',
     loginId: '',
@@ -106,6 +157,7 @@ export const useSignupStore = create((set, get) => ({
     confirmPassword: '',
     submit: '',
   },
+  /** @type {Object} Real-time evaluation breakdown of password complexity */
   passwordAnalysis: {
     criteria: {
       length: false,
@@ -115,8 +167,16 @@ export const useSignupStore = create((set, get) => ({
     },
     missing: [],
   },
+  /** @type {boolean} Network submission loading indicator */
   isLoading: false,
 
+  /**
+   * Updates a specific form field value and executes real-time validation checks.
+   * 
+   * @function setField
+   * @param {string} name - Field name identifier.
+   * @param {string} value - New field value.
+   */
   setField: (name, value) => {
     set((state) => {
       const nextFormData = { ...state.formData, [name]: value };
@@ -170,12 +230,23 @@ export const useSignupStore = create((set, get) => ({
     });
   },
 
+  /**
+   * Marks an input field as visited/touched to trigger validation display.
+   * 
+   * @function setTouched
+   * @param {string} name - Field name identifier.
+   */
   setTouched: (name) => {
     set((state) => ({
       touched: { ...state.touched, [name]: true },
     }));
   },
 
+  /**
+   * Automatically derives a compliant 6-12 character Login ID from first and last name.
+   * 
+   * @function suggestLoginId
+   */
   suggestLoginId: () => {
     const { firstName, lastName } = get().formData;
     if (!firstName && !lastName) return;
@@ -190,6 +261,12 @@ export const useSignupStore = create((set, get) => ({
     get().setField('loginId', combined);
   },
 
+  /**
+   * Validates all form fields simultaneously prior to form submission.
+   * 
+   * @function validateAll
+   * @returns {boolean} True if all form inputs pass validation.
+   */
   validateAll: () => {
     const { formData } = get();
     const nextErrors = {};
@@ -233,9 +310,27 @@ export const useSignupStore = create((set, get) => ({
     return allValid;
   },
 
+  /**
+   * Sets network loading state during authentication requests.
+   * 
+   * @function setIsLoading
+   * @param {boolean} isLoading - Loading status flag.
+   */
   setIsLoading: (isLoading) => set({ isLoading }),
+
+  /**
+   * Sets top-level server or network error message for display in form banner.
+   * 
+   * @function setSubmitError
+   * @param {string} errorMsg - Error description from backend or network layer.
+   */
   setSubmitError: (errorMsg) => set((state) => ({ errors: { ...state.errors, submit: errorMsg } })),
 
+  /**
+   * Resets form state, validation flags, and errors back to initial blank values.
+   * 
+   * @function resetForm
+   */
   resetForm: () =>
     set({
       formData: {

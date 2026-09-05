@@ -1,8 +1,22 @@
+/**
+ * @file Profile.jsx
+ * @description User Profile management view in Valora ERP.
+ * Displays user identity details (name, initials avatar, role badge, email address)
+ * and allows in-place editing of the user's display name with backend persistence.
+ * @module pages/Profile
+ */
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '../api';
 import { Loader2 } from 'lucide-react';
 
+/**
+ * Profile component for inspecting and updating authenticated user profile attributes.
+ * 
+ * @component
+ * @returns {JSX.Element} Rendered profile details and inline edit form.
+ */
 export default function Profile() {
   const navigate = useNavigate();
 
@@ -15,6 +29,12 @@ export default function Profile() {
 
   const initials = user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'U';
 
+  /**
+   * Persists modified user display name to backend /auth/me endpoint and updates localStorage.
+   * 
+   * @async
+   * @function handleSave
+   */
   const handleSave = async () => {
     if (!name.trim()) {
       alert('Name cannot be empty');
