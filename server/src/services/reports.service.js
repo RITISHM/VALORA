@@ -236,12 +236,12 @@ class ReportsService {
     ] = await Promise.all([
       prisma.customerInvoice.findMany({
         take: 5,
-        orderBy: { created_at: "desc" },
+        orderBy: { invoice_date: "desc" },
         include: { customer: true },
       }),
       prisma.vendorBill.findMany({
         take: 5,
-        orderBy: { created_at: "desc" },
+        orderBy: { bill_date: "desc" },
         include: { vendor: true },
       }),
       prisma.customerInvoice.aggregate({ _sum: { total: true }, where: { status: "PAID" } }),
