@@ -157,27 +157,29 @@ class BudgetsService {
   }
 
   async confirm(id) {
-    const existing = await prisma.budget.findUnique({ where: { id } });
-    if (!existing) {
-      const error = new Error("Budget not found");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    const updated = await prisma.budget.update({
-      where: { id },
-      data: { status: "CONFIRMED" },
-      include: {
-        responsible_contact: true,
-        budget_lines: {
-          include: {
-            analytic_account: true,
+    try {
+      const updated = await prisma.budget.update({
+        where: { id },
+        data: { status: "CONFIRMED" },
+        include: {
+          responsible_contact: true,
+          budget_lines: {
+            include: {
+              analytic_account: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return this.formatBudget(updated);
+      return this.formatBudget(updated);
+    } catch (error) {
+      if (error.code === "P2025") {
+        const err = new Error("Budget not found");
+        err.statusCode = 404;
+        throw err;
+      }
+      throw error;
+    }
   }
 
   async revise(id, { name, lines }) {
@@ -242,27 +244,29 @@ class BudgetsService {
   }
 
   async cancel(id) {
-    const existing = await prisma.budget.findUnique({ where: { id } });
-    if (!existing) {
-      const error = new Error("Budget not found");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    const updated = await prisma.budget.update({
-      where: { id },
-      data: { status: "CANCELLED" },
-      include: {
-        responsible_contact: true,
-        budget_lines: {
-          include: {
-            analytic_account: true,
+    try {
+      const updated = await prisma.budget.update({
+        where: { id },
+        data: { status: "CANCELLED" },
+        include: {
+          responsible_contact: true,
+          budget_lines: {
+            include: {
+              analytic_account: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return this.formatBudget(updated);
+      return this.formatBudget(updated);
+    } catch (error) {
+      if (error.code === "P2025") {
+        const err = new Error("Budget not found");
+        err.statusCode = 404;
+        throw err;
+      }
+      throw error;
+    }
   }
 }
 

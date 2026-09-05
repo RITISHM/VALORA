@@ -1,20 +1,20 @@
 const prisma = require("../prisma");
 
-class SalesService {
-  async generateSONumber() {
-    const count = await prisma.salesOrder.count();
+class PurchaseOrdersService {
+  async generatePONumber() {
+    const count = await prisma.purchaseOrder.count();
     const num = (count + 1).toString().padStart(5, "0");
-    return `S${num}`;
+    return `PO${num}`;
   }
 
-  async create({ customer_id, so_date = new Date(), lines = [] }) {
-    if (!customer_id) {
-      const error = new Error("customer_id is required");
+  async create({ vendor_id, po_date = new Date(), lines = [] }) {
+    if (!vendor_id) {
+      const error = new Error("vendor_id is required");
       error.statusCode = 400;
       throw error;
     }
 
-    const so_number = await this.generateSONumber();
+    const po_number = await this.generatePONumber();
 
     let docSubtotal = 0;
     let docTaxAmount = 0;
@@ -52,11 +52,11 @@ class SalesService {
     docTaxAmount = Math.round(docTaxAmount * 100) / 100;
     const docTotal = Math.round((docSubtotal + docTaxAmount) * 100) / 100;
 
-    return await prisma.salesOrder.create({
+    return await prisma.purchaseOrder.create({
       data: {
-        so_number,
-        customer_id,
-        so_date: new Date(so_date),
+        po_number,
+        vendor_id,
+        po_date: new Date(po_date),
         status: "DRAFT",
         subtotal: docSubtotal,
         tax_amount: docTaxAmount,
@@ -66,7 +66,7 @@ class SalesService {
         },
       },
       include: {
-        customer: true,
+        vendor: true,
         lines: {
           include: {
             product: true,
@@ -78,13 +78,13 @@ class SalesService {
   }
 
   async getAll() {
-    return await prisma.salesOrder.findMany({
+    return await prisma.purchaseOrder.findMany({
       orderBy: {
-        so_date: "desc",
+        po_date: "desc",
       },
       include: {
-        customer: true,
-        customer_invoices: true,
+        vendor: true,
+        vendor_bills: true,
         lines: {
           include: {
             product: true,
@@ -96,11 +96,11 @@ class SalesService {
   }
 
   async getById(id) {
-    const so = await prisma.salesOrder.findUnique({
+    const po = await prisma.purchaseOrder.findUnique({
       where: { id },
       include: {
-        customer: true,
-        customer_invoices: true,
+        vendor: true,
+        vendor_bills: true,
         lines: {
           include: {
             product: true,
@@ -110,22 +110,22 @@ class SalesService {
       },
     });
 
-    if (!so) {
-      const error = new Error("Sales Order not found");
+    if (!po) {
+      const error = new Error("Purchase Order not found");
       error.statusCode = 404;
       throw error;
     }
 
-    return so;
+    return po;
   }
 
   async confirm(id) {
     try {
-      return await prisma.salesOrder.update({
+      return await prisma.purchaseOrder.update({
         where: { id },
         data: { status: "CONFIRMED" },
         include: {
-          customer: true,
+          vendor: true,
           lines: {
             include: {
               product: true,
@@ -136,7 +136,7 @@ class SalesService {
       });
     } catch (error) {
       if (error.code === "P2025") {
-        const err = new Error("Sales Order not found");
+        const err = new Error("Purchase Order not found");
         err.statusCode = 404;
         throw err;
       }
@@ -145,4 +145,4 @@ class SalesService {
   }
 }
 
-module.exports = new SalesService();
+module.exports = new PurchaseOrdersService();

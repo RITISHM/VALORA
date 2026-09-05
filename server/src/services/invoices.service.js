@@ -195,18 +195,18 @@ class InvoicesService {
           data: { status: "CONFIRMED" },
         });
 
-        // Deduct stock for GOODS products
-        for (const line of invoice.lines) {
-          if (line.product && line.product.type === "GOODS") {
-            await tx.stockMovement.create({
-              data: {
-                product_id: line.product_id,
-                quantity: line.qty,
-                type: "SALE",
-                reference: invoice.invoice_number,
-              },
-            });
-          }
+        // Batch deduct stock for GOODS products
+        const stockMovements = invoice.lines
+          .filter((line) => line.product && line.product.type === "GOODS")
+          .map((line) => ({
+            product_id: line.product_id,
+            quantity: line.qty,
+            type: "SALE",
+            reference: invoice.invoice_number,
+          }));
+
+        if (stockMovements.length > 0) {
+          await tx.stockMovement.createMany({ data: stockMovements });
         }
       },
       {
@@ -215,20 +215,16 @@ class InvoicesService {
       },
     );
 
-    // 3. Find or create Chart of Accounts & Sales Journal
-    const salesJournal = await prisma.journal.findFirst({
-      where: { type: "SALES" },
-    });
-    const debtorsAccount = await prisma.account.findFirst({
-      where: { name: "Debtors" },
-    });
-    const salesIncomeAccount = await prisma.account.findFirst({
-      where: { name: "Sales Income" },
-    });
+    // 3. Find or create Chart of Accounts & Sales Journal (in parallel)
+    const [salesJournal, debtorsAccount, salesIncomeAccount, taxPayableAccountResult] =
+      await Promise.all([
+        prisma.journal.findFirst({ where: { type: "SALES" } }),
+        prisma.account.findFirst({ where: { name: "Debtors" } }),
+        prisma.account.findFirst({ where: { name: "Sales Income" } }),
+        prisma.account.findFirst({ where: { name: "Tax Payable" } }),
+      ]);
 
-    let taxPayableAccount = await prisma.account.findFirst({
-      where: { name: "Tax Payable" },
-    });
+    let taxPayableAccount = taxPayableAccountResult;
 
     if (!taxPayableAccount && invoice.tax_amount > 0) {
       taxPayableAccount = await prisma.account.create({
@@ -333,22 +329,15 @@ class InvoicesService {
       },
     );
 
-    // Auto-post Payment Journal Entry
-    const bankJournal = await prisma.journal.findFirst({
-      where: { type: "BANK" },
-    });
-    const cashJournal = await prisma.journal.findFirst({
-      where: { type: "CASH" },
-    });
+    // Auto-post Payment Journal Entry (parallel lookups)
+    const [bankJournal, cashJournal, debtorsAccount, bankAccount] = await Promise.all([
+      prisma.journal.findFirst({ where: { type: "BANK" } }),
+      prisma.journal.findFirst({ where: { type: "CASH" } }),
+      prisma.account.findFirst({ where: { name: "Debtors" } }),
+      prisma.account.findFirst({ where: { name: "Bank/Cash" } }),
+    ]);
 
     const journal = method === "CASH" ? cashJournal || bankJournal : bankJournal;
-
-    const debtorsAccount = await prisma.account.findFirst({
-      where: { name: "Debtors" },
-    });
-    const bankAccount = await prisma.account.findFirst({
-      where: { name: "Bank/Cash" },
-    });
 
     if (journal && debtorsAccount && bankAccount) {
       await accountingService.postJournalEntry({

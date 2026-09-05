@@ -136,32 +136,26 @@ class PortalService {
       throw error;
     }
 
-    const unpaidInvoices = await prisma.customerInvoice.findMany({
-      where: {
-        customer_id: contactId,
-        status: { in: ["DRAFT", "CONFIRMED"] },
-      },
-    });
+    // Use DB-level aggregation instead of fetching all records into memory
+    const [invoiceResult, billResult] = await Promise.all([
+      prisma.customerInvoice.aggregate({
+        _sum: { total: true },
+        where: {
+          customer_id: contactId,
+          status: { in: ["DRAFT", "CONFIRMED"] },
+        },
+      }),
+      prisma.vendorBill.aggregate({
+        _sum: { total: true },
+        where: {
+          vendor_id: contactId,
+          status: { in: ["DRAFT", "CONFIRMED"] },
+        },
+      }),
+    ]);
 
-    const unpaidBills = await prisma.vendorBill.findMany({
-      where: {
-        vendor_id: contactId,
-        status: { in: ["DRAFT", "CONFIRMED"] },
-      },
-    });
-
-    let totalUnpaidInvoices = 0;
-    for (const inv of unpaidInvoices) {
-      totalUnpaidInvoices += inv.total;
-    }
-
-    let totalUnpaidBills = 0;
-    for (const bill of unpaidBills) {
-      totalUnpaidBills += bill.total;
-    }
-
-    totalUnpaidInvoices = Math.round(totalUnpaidInvoices * 100) / 100;
-    totalUnpaidBills = Math.round(totalUnpaidBills * 100) / 100;
+    const totalUnpaidInvoices = Math.round((invoiceResult._sum.total || 0) * 100) / 100;
+    const totalUnpaidBills = Math.round((billResult._sum.total || 0) * 100) / 100;
 
     return {
       contact_id: contactId,

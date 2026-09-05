@@ -96,6 +96,8 @@ model User {
   role          Role
   contact_id    String?
   contact       Contact? @relation(fields: [contact_id], references: [id])
+
+  @@index([contact_id])
 }
 
 model Contact {
@@ -140,6 +142,9 @@ model StockMovement {
   type         MovementType
   reference    String?
   created_at   DateTime     @default(now())
+
+  @@index([product_id])
+  @@index([type])
 }
 
 model Account {
@@ -157,6 +162,9 @@ model Journal {
   default_account_id String
   default_account    Account        @relation(fields: [default_account_id], references: [id])
   journal_entries    JournalEntry[]
+
+  @@index([default_account_id])
+  @@index([type])
 }
 
 model JournalEntry {
@@ -167,6 +175,9 @@ model JournalEntry {
   reference    String?
   status       Status        @default(DRAFT)
   journal_items JournalItem[]
+
+  @@index([journal_id])
+  @@index([status])
 }
 
 model JournalItem {
@@ -179,6 +190,10 @@ model JournalItem {
   partner          Contact?     @relation(fields: [partner_id], references: [id])
   debit            Float        @default(0.0)
   credit           Float        @default(0.0)
+
+  @@index([journal_entry_id])
+  @@index([account_id])
+  @@index([partner_id])
 }
 
 model AnalyticAccount {
@@ -204,6 +219,8 @@ model Budget {
   revised_from           Budget?      @relation("RevisedBudget", fields: [revised_from_id], references: [id])
   revisions              Budget[]     @relation("RevisedBudget")
   budget_lines           BudgetLine[]
+
+  @@index([responsible_contact_id])
 }
 
 model BudgetLine {
@@ -215,6 +232,9 @@ model BudgetLine {
   type                AnalyticType
   committed_amount    Float           @default(0.0)
   allowed_amount      Float           @default(0.0)
+
+  @@index([budget_id])
+  @@index([analytic_account_id])
 }
 
 model PurchaseOrder {
@@ -229,6 +249,9 @@ model PurchaseOrder {
   total         Float               @default(0.0)
   lines         PurchaseOrderLine[]
   vendor_bills  VendorBill[]
+
+  @@index([vendor_id])
+  @@index([status])
 }
 
 model PurchaseOrderLine {
@@ -244,6 +267,9 @@ model PurchaseOrderLine {
   tax_rate            Float           @default(0.0)
   tax_amount          Float           @default(0.0)
   total               Float           @default(0.0)
+
+  @@index([po_id])
+  @@index([product_id])
 }
 
 model VendorBill {
@@ -260,6 +286,10 @@ model VendorBill {
   tax_amount     Float            @default(0.0)
   total          Float            @default(0.0)
   lines          VendorBillLine[]
+
+  @@index([po_id])
+  @@index([vendor_id])
+  @@index([status])
 }
 
 model VendorBillLine {
@@ -275,6 +305,9 @@ model VendorBillLine {
   tax_rate            Float           @default(0.0)
   tax_amount          Float           @default(0.0)
   total               Float           @default(0.0)
+
+  @@index([bill_id])
+  @@index([product_id])
 }
 
 model SalesOrder {
@@ -289,6 +322,9 @@ model SalesOrder {
   total            Float            @default(0.0)
   lines            SalesOrderLine[]
   customer_invoices CustomerInvoice[]
+
+  @@index([customer_id])
+  @@index([status])
 }
 
 model SalesOrderLine {
@@ -304,6 +340,9 @@ model SalesOrderLine {
   tax_rate            Float           @default(0.0)
   tax_amount          Float           @default(0.0)
   total               Float           @default(0.0)
+
+  @@index([so_id])
+  @@index([product_id])
 }
 
 model CustomerInvoice {
@@ -320,6 +359,10 @@ model CustomerInvoice {
   tax_amount     Float                 @default(0.0)
   total          Float                 @default(0.0)
   lines          CustomerInvoiceLine[]
+
+  @@index([so_id])
+  @@index([customer_id])
+  @@index([status])
 }
 
 model CustomerInvoiceLine {
@@ -335,6 +378,9 @@ model CustomerInvoiceLine {
   tax_rate            Float           @default(0.0)
   tax_amount          Float           @default(0.0)
   total               Float           @default(0.0)
+
+  @@index([invoice_id])
+  @@index([product_id])
 }
 
 model Payment {
@@ -347,4 +393,8 @@ model Payment {
   against_type AgainstType
   against_id   String
   status       DocumentStatus @default(DRAFT)
+
+  @@index([partner_id])
+  @@index([against_id])
+  @@index([status])
 }

@@ -1,5 +1,8 @@
 const express = require("express");
 const router = express.Router();
+const { authenticate } = require("../middleware/auth");
+
+router.use(authenticate);
 const controller = require("../controllers/invoices.controller");
 
 router.post("/", (req, res, next) => controller.create(req, res, next));

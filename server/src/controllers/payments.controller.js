@@ -9,6 +9,15 @@ class PaymentsController {
       next(err);
     }
   }
+
+  async create(req, res, next) {
+    try {
+      const payment = await paymentsService.createPayment(req.body);
+      return res.status(201).json(payment);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new PaymentsController();

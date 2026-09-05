@@ -15,6 +15,7 @@ const contactsRoutes = require("./routes/contacts.routes");
 const productsRoutes = require("./routes/products.routes");
 const accountsRoutes = require("./routes/accounts.routes");
 const authRoutes = require("./routes/auth");
+const purchaseOrdersRoutes = require("./routes/purchaseOrders.routes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -30,6 +31,7 @@ app.use("/analytic-accounts", analyticAccountsRoutes);
 app.use("/budgets", budgetsRoutes);
 app.use("/sales-orders", salesRoutes);
 app.use("/customer-invoices", invoicesRoutes);
+app.use("/purchase-orders", purchaseOrdersRoutes);
 app.use("/vendor-bills", vendorBillsRoutes);
 app.use("/payments", paymentsRoutes);
 app.use("/reports", reportsRoutes);
