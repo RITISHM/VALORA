@@ -8,6 +8,14 @@ const getAuthHeaders = () => {
   };
 };
 
+const fetchWithCache = async (key, url) => {
+  if (cache[key]) return cache[key];
+  const response = await fetch(url, { headers: getAuthHeaders() });
+  const data = await handleResponse(response);
+  cache[key] = data;
+  return data;
+};
+
 const handleResponse = async (response) => {
   if (response.status === 401) {
     console.error('Unauthorized access');
@@ -49,11 +57,8 @@ export const api = {
   },
 
   // Contacts
-  getContacts: async () => {
-    const response = await fetch(`${BACKEND_URL}/contacts`, { headers: getAuthHeaders() });
-    return handleResponse(response);
-  },
-  createContact: async (contact) => {
+  getContacts: async () => fetchWithCache("contacts", `${BACKEND_URL}/contacts`),
+  createContact: async (contact) => { clearCache("contacts");
     const response = await fetch(`${BACKEND_URL}/contacts`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -64,7 +69,7 @@ export const api = {
     });
     return handleResponse(response);
   },
-  updateContact: async (id, contact) => {
+  updateContact: async (id, contact) => { clearCache("contacts");
     const response = await fetch(`${BACKEND_URL}/contacts/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
@@ -75,7 +80,7 @@ export const api = {
     });
     return handleResponse(response);
   },
-  deleteContact: async (id) => {
+  deleteContact: async (id) => { clearCache("contacts");
     const response = await fetch(`${BACKEND_URL}/contacts/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders()
@@ -84,11 +89,8 @@ export const api = {
   },
 
   // Products
-  getProducts: async () => {
-    const response = await fetch(`${BACKEND_URL}/products`, { headers: getAuthHeaders() });
-    return handleResponse(response);
-  },
-  createProduct: async (product) => {
+  getProducts: async () => fetchWithCache("products", `${BACKEND_URL}/products`),
+  createProduct: async (product) => { clearCache("products");
     const response = await fetch(`${BACKEND_URL}/products`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -99,7 +101,7 @@ export const api = {
     });
     return handleResponse(response);
   },
-  updateProduct: async (id, product) => {
+  updateProduct: async (id, product) => { clearCache("products");
     const response = await fetch(`${BACKEND_URL}/products/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
@@ -110,7 +112,7 @@ export const api = {
     });
     return handleResponse(response);
   },
-  deleteProduct: async (id) => {
+  deleteProduct: async (id) => { clearCache("products");
     const response = await fetch(`${BACKEND_URL}/products/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders()
@@ -119,11 +121,8 @@ export const api = {
   },
 
   // Chart of Accounts
-  getChartOfAccounts: async () => {
-    const response = await fetch(`${BACKEND_URL}/accounts`, { headers: getAuthHeaders() });
-    return handleResponse(response);
-  },
-  createAccount: async (accountData) => {
+  getChartOfAccounts: async () => fetchWithCache("accounts", `${BACKEND_URL}/accounts`),
+  createAccount: async (accountData) => { clearCache("accounts");
     const response = await fetch(`${BACKEND_URL}/accounts`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -161,6 +160,7 @@ export const api = {
   },
 
   // Sales Orders
+  getSalesOrderById: async (id) => { const response = await fetch(`${BACKEND_URL}/sales-orders/${id}`, { headers: getAuthHeaders() }); return handleResponse(response); },
   getSalesOrders: async () => {
     const response = await fetch(`${BACKEND_URL}/sales-orders`, { headers: getAuthHeaders() });
     return handleResponse(response);
@@ -189,6 +189,7 @@ export const api = {
   },
 
   // Customer Invoices
+  getCustomerInvoiceById: async (id) => { const response = await fetch(`${BACKEND_URL}/customer-invoices/${id}`, { headers: getAuthHeaders() }); return handleResponse(response); },
   getCustomerInvoices: async () => {
     const response = await fetch(`${BACKEND_URL}/customer-invoices`, { headers: getAuthHeaders() });
     return handleResponse(response);
@@ -218,6 +219,7 @@ export const api = {
   },
 
   // Purchase Orders
+  getPurchaseOrderById: async (id) => { const response = await fetch(`${BACKEND_URL}/purchase-orders/${id}`, { headers: getAuthHeaders() }); return handleResponse(response); },
   getPurchaseOrders: async () => {
     const response = await fetch(`${BACKEND_URL}/purchase-orders`, { headers: getAuthHeaders() });
     return handleResponse(response);
@@ -239,6 +241,7 @@ export const api = {
   },
 
   // Vendor Bills
+  getVendorBillById: async (id) => { const response = await fetch(`${BACKEND_URL}/vendor-bills/${id}`, { headers: getAuthHeaders() }); return handleResponse(response); },
   getVendorBills: async () => {
     const response = await fetch(`${BACKEND_URL}/vendor-bills`, { headers: getAuthHeaders() });
     return handleResponse(response);
@@ -282,11 +285,8 @@ export const api = {
   },
 
   // Analytic Accounts & Budgets
-  getAnalyticAccounts: async () => {
-    const response = await fetch(`${BACKEND_URL}/analytic-accounts`, { headers: getAuthHeaders() });
-    return handleResponse(response);
-  },
-  createAnalyticAccount: async (data) => {
+  getAnalyticAccounts: async () => fetchWithCache("analyticAccounts", `${BACKEND_URL}/analytic-accounts`),
+  createAnalyticAccount: async (data) => { clearCache("analyticAccounts");
     const response = await fetch(`${BACKEND_URL}/analytic-accounts`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -294,11 +294,8 @@ export const api = {
     });
     return handleResponse(response);
   },
-  getBudgets: async () => {
-    const response = await fetch(`${BACKEND_URL}/budgets`, { headers: getAuthHeaders() });
-    return handleResponse(response);
-  },
-  createBudget: async (data) => {
+  getBudgets: async () => fetchWithCache("budgets", `${BACKEND_URL}/budgets`),
+  createBudget: async (data) => { clearCache("budgets");
     const response = await fetch(`${BACKEND_URL}/budgets`, {
       method: 'POST',
       headers: getAuthHeaders(),

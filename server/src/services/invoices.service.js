@@ -112,19 +112,8 @@ class InvoicesService {
 
   async getAll() {
     return await prisma.customerInvoice.findMany({
-      orderBy: {
-        invoice_date: "desc",
-      },
-      include: {
-        customer: true,
-        so: true,
-        lines: {
-          include: {
-            product: true,
-            analytic_account: true,
-          },
-        },
-      },
+      orderBy: { invoice_date: "desc" },
+      include: { customer: true, so: true }
     });
   }
 

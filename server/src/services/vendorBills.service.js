@@ -83,19 +83,8 @@ class VendorBillsService {
 
   async getAll() {
     return await prisma.vendorBill.findMany({
-      orderBy: {
-        bill_date: "desc",
-      },
-      include: {
-        vendor: true,
-        po: true,
-        lines: {
-          include: {
-            product: true,
-            analytic_account: true,
-          },
-        },
-      },
+      orderBy: { bill_date: "desc" },
+      include: { vendor: true, po: true }
     });
   }
 

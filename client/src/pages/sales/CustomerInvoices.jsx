@@ -161,23 +161,45 @@ export default function CustomerInvoices() {
     });
   };
 
-  const handleRowClick = (row) => {
-    setSelectedInvoice(row);
-    setFormData({
-      customerId: row.customer_id || row.contact_id || "",
-      invoiceNumber: row.invoice_number || "",
-      invoiceReference: row.invoice_reference || "",
-      invoiceDate: row.invoice_date ? new Date(row.invoice_date).toISOString().split("T")[0] : "",
-      dueDate: row.due_date ? new Date(row.due_date).toISOString().split("T")[0] : "",
-      lines: row.lines?.map((l) => ({
-        productId: l.product_id,
-        accountId: l.account_id || "",
-        analyticAccountId: l.analytic_account_id || "",
-        quantity: l.qty || l.quantity || 1,
-        unitPrice: l.unit_price || 0,
-      })) || [{ productId: "", accountId: "", analyticAccountId: "", quantity: 1, unitPrice: 0 }],
-    });
-    setIsFormOpen(true);
+  const handleRowClick = async (row) => {
+    setIsLoading(true);
+    try {
+      const fullDoc = await api.getCustomerInvoiceById(row.id);
+      setSelectedBill
+        ? setSelectedBill(fullDoc)
+        : setSelectedOrder
+          ? setSelectedOrder(fullDoc)
+          : setSelectedInvoice(fullDoc);
+      setFormData({
+        ...(row.vendor_id ? { vendorId: fullDoc.vendor_id } : {}),
+        ...(row.customer_id ? { customerId: fullDoc.customer_id } : {}),
+        billNumber: fullDoc.bill_number || "",
+        billReference: fullDoc.bill_reference || "",
+        orderNumber: fullDoc.order_number || "",
+        invoiceNumber: fullDoc.invoice_number || "",
+        billDate: fullDoc.bill_date ? new Date(fullDoc.bill_date).toISOString().split("T")[0] : "",
+        orderDate: fullDoc.order_date
+          ? new Date(fullDoc.order_date).toISOString().split("T")[0]
+          : "",
+        invoiceDate: fullDoc.invoice_date
+          ? new Date(fullDoc.invoice_date).toISOString().split("T")[0]
+          : "",
+        dueDate: fullDoc.due_date ? new Date(fullDoc.due_date).toISOString().split("T")[0] : "",
+        lines: fullDoc.lines?.map((l) => ({
+          productId: l.product_id,
+          accountId: l.account_id || "",
+          analyticAccountId: l.analytic_account_id || "",
+          quantity: l.qty || l.quantity || 1,
+          unitPrice: l.unit_price || 0,
+        })) || [{ productId: "", accountId: "", analyticAccountId: "", quantity: 1, unitPrice: 0 }],
+      });
+      setIsFormOpen(true);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load details");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const columns = [

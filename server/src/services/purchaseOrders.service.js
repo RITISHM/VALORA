@@ -79,19 +79,8 @@ class PurchaseOrdersService {
 
   async getAll() {
     return await prisma.purchaseOrder.findMany({
-      orderBy: {
-        po_date: "desc",
-      },
-      include: {
-        vendor: true,
-        vendor_bills: true,
-        lines: {
-          include: {
-            product: true,
-            analytic_account: true,
-          },
-        },
-      },
+      orderBy: { order_date: "desc" },
+      include: { vendor: true }
     });
   }
 
