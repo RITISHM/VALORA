@@ -52,7 +52,7 @@ router.post('/signup', async (req, res, next) => {
       { expiresIn: '1d' }
     );
 
-    res.status(201).json({ user: { id: user.id, name: user.name, role: user.role }, token });
+    res.status(201).json({ user: { id: user.id, name: user.name, email: user.email, role: user.role }, token });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors });
@@ -89,7 +89,7 @@ router.post('/login', async (req, res, next) => {
       { expiresIn: '1d' }
     );
 
-    res.json({ user: { id: user.id, name: user.name, role: user.role }, token });
+    res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role }, token });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors });
