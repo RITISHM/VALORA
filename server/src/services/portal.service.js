@@ -233,7 +233,7 @@ class PortalService {
       product_id: item.product_id,
       qty: item.quantity,
       unit_price: item.price,
-      tax_rate: 0 
+      tax_rate: 0
     }));
 
     // Create a new Customer Invoice as DRAFT (or CONFIRMED). We'll create as DRAFT so they can pay it.

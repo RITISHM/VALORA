@@ -312,7 +312,8 @@ function UserDashboard({ user }) {
             if (res.ok) {
               await fetchData();
             } else {
-              alert("Backend settlement failed after payment.");
+              const errorText = await res.text();
+              alert(`Backend settlement failed after payment: ${errorText}`);
             }
           } catch (err) {
             console.error(err);
