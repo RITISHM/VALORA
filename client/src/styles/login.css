@@ -13,7 +13,11 @@
   --valora-error: #DC3545;
   --valora-success: #198754;
   
-  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-family: 'Comfortaa', cursive, sans-serif;
+}
+
+*, *::before, *::after {
+  font-family: var(--font-family);
 }
 
 /* Base Layout */
@@ -131,10 +135,10 @@
 .form-container {
   width: 100%;
   max-width: 440px;
-  background: var(--valora-surface);
-  padding: 48px;
+  background: transparent;
+  padding: 48px 0;
   border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  box-shadow: none;
 }
 
 .form-header {
@@ -143,7 +147,7 @@
 }
 
 .welcome-text {
-  font-size: 1.75rem;
+  font-size: 3rem;
   color: var(--valora-text-main);
   margin: 0 0 8px 0;
   font-weight: 600;
@@ -319,8 +323,8 @@
   }
   
   .form-container {
-    padding: 32px 24px;
+    padding: 32px 0;
     box-shadow: none;
-    border: 1px solid var(--valora-border);
+    border: none;
   }
 }
