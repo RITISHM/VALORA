@@ -1,4 +1,4 @@
-const vendorBillsService = require('../services/vendorBills.service');
+const vendorBillsService = require("../services/vendorBills.service");
 
 class VendorBillsController {
   async create(req, res, next) {

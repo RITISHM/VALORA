@@ -1,4 +1,4 @@
-const prisma = require('../prisma');
+const prisma = require("../prisma");
 
 class ContactsService {
   async getAllContacts() {
@@ -8,7 +8,7 @@ class ContactsService {
   async getContactById(id) {
     const contact = await prisma.contact.findUnique({ where: { id } });
     if (!contact) {
-      const error = new Error('Contact not found');
+      const error = new Error("Contact not found");
       error.statusCode = 404;
       throw error;
     }
@@ -23,8 +23,8 @@ class ContactsService {
     try {
       return await prisma.contact.update({ where: { id }, data });
     } catch (error) {
-      if (error.code === 'P2025') {
-        const err = new Error('Contact not found');
+      if (error.code === "P2025") {
+        const err = new Error("Contact not found");
         err.statusCode = 404;
         throw err;
       }
@@ -36,8 +36,8 @@ class ContactsService {
     try {
       await prisma.contact.delete({ where: { id } });
     } catch (error) {
-      if (error.code === 'P2025') {
-        const err = new Error('Contact not found');
+      if (error.code === "P2025") {
+        const err = new Error("Contact not found");
         err.statusCode = 404;
         throw err;
       }

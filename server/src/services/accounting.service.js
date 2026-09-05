@@ -1,19 +1,25 @@
-const prisma = require('../prisma');
+const prisma = require("../prisma");
 
 class AccountingService {
   /**
    * Auto-posts a double-entry Journal Entry.
    * Ensures sum(debit) === sum(credit).
    */
-  async postJournalEntry({ journalId, reference, entryDate = new Date(), lines = [], status = 'POSTED' }) {
+  async postJournalEntry({
+    journalId,
+    reference,
+    entryDate = new Date(),
+    lines = [],
+    status = "POSTED",
+  }) {
     if (!journalId) {
-      const error = new Error('Journal ID is required');
+      const error = new Error("Journal ID is required");
       error.statusCode = 400;
       throw error;
     }
 
     if (!lines || !Array.isArray(lines) || lines.length === 0) {
-      const error = new Error('Journal entry must contain at least one line');
+      const error = new Error("Journal entry must contain at least one line");
       error.statusCode = 400;
       throw error;
     }
@@ -42,39 +48,42 @@ class AccountingService {
     // Hard Rule: sum(debit) must equal sum(credit)
     if (Math.abs(totalDebit - totalCredit) > 0.001) {
       const error = new Error(
-        `Double-entry imbalance: Total debit (${totalDebit}) must equal total credit (${totalCredit})`
+        `Double-entry imbalance: Total debit (${totalDebit}) must equal total credit (${totalCredit})`,
       );
       error.statusCode = 400;
       throw error;
     }
 
-    return await prisma.$transaction(async (tx) => {
-      const entry = await tx.journalEntry.create({
-        data: {
-          journal_id: journalId,
-          reference,
-          entry_date: new Date(entryDate),
-          status,
-          journal_items: {
-            create: formattedLines,
-          },
-        },
-        include: {
-          journal: true,
-          journal_items: {
-            include: {
-              account: true,
-              partner: true,
+    return await prisma.$transaction(
+      async (tx) => {
+        const entry = await tx.journalEntry.create({
+          data: {
+            journal_id: journalId,
+            reference,
+            entry_date: new Date(entryDate),
+            status,
+            journal_items: {
+              create: formattedLines,
             },
           },
-        },
-      });
+          include: {
+            journal: true,
+            journal_items: {
+              include: {
+                account: true,
+                partner: true,
+              },
+            },
+          },
+        });
 
-      return entry;
-    }, {
-      maxWait: 15000,
-      timeout: 30000,
-    });
+        return entry;
+      },
+      {
+        maxWait: 15000,
+        timeout: 30000,
+      },
+    );
   }
 
   async getJournals() {
@@ -91,7 +100,7 @@ class AccountingService {
       include: { default_account: true },
     });
     if (!journal) {
-      const error = new Error('Journal not found');
+      const error = new Error("Journal not found");
       error.statusCode = 404;
       throw error;
     }
@@ -106,8 +115,8 @@ class AccountingService {
     try {
       return await prisma.journal.update({ where: { id }, data });
     } catch (error) {
-      if (error.code === 'P2025') {
-        const err = new Error('Journal not found');
+      if (error.code === "P2025") {
+        const err = new Error("Journal not found");
         err.statusCode = 404;
         throw err;
       }
@@ -118,7 +127,7 @@ class AccountingService {
   async getJournalEntries() {
     return await prisma.journalEntry.findMany({
       orderBy: {
-        entry_date: 'desc',
+        entry_date: "desc",
       },
       include: {
         journal: true,
@@ -147,7 +156,7 @@ class AccountingService {
     });
 
     if (!entry) {
-      const error = new Error('Journal entry not found');
+      const error = new Error("Journal entry not found");
       error.statusCode = 404;
       throw error;
     }

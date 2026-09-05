@@ -1,4 +1,4 @@
-const prisma = require('../prisma');
+const prisma = require("../prisma");
 
 class AnalyticAccountsService {
   async create({ name, type }) {
@@ -16,7 +16,7 @@ class AnalyticAccountsService {
   async getAll() {
     return await prisma.analyticAccount.findMany({
       orderBy: {
-        name: 'asc',
+        name: "asc",
       },
     });
   }
@@ -33,7 +33,7 @@ class AnalyticAccountsService {
     });
 
     if (!existing) {
-      const error = new Error('Analytic account not found');
+      const error = new Error("Analytic account not found");
       error.statusCode = 404;
       throw error;
     }
@@ -67,7 +67,7 @@ class AnalyticAccountsService {
     });
 
     if (!existing) {
-      const error = new Error('Analytic account not found');
+      const error = new Error("Analytic account not found");
       error.statusCode = 404;
       throw error;
     }
@@ -82,7 +82,7 @@ class AnalyticAccountsService {
 
     if (totalReferences > 0) {
       const error = new Error(
-        'Cannot delete analytic account as it is referenced in transactions or budgets'
+        "Cannot delete analytic account as it is referenced in transactions or budgets",
       );
       error.statusCode = 400;
       throw error;

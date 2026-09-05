@@ -1,12 +1,12 @@
-const productsService = require('../services/products.service');
-const { z } = require('zod');
+const productsService = require("../services/products.service");
+const { z } = require("zod");
 
 const productSchema = z.object({
   name: z.string().min(1),
-  type: z.enum(['GOODS', 'SERVICE', 'COMBO']),
+  type: z.enum(["GOODS", "SERVICE", "COMBO"]),
   category: z.string().optional().nullable(),
   sales_price: z.number().min(0).default(0.0),
-  cost: z.number().min(0).default(0.0)
+  cost: z.number().min(0).default(0.0),
 });
 
 class ProductsController {

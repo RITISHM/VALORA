@@ -1,4 +1,4 @@
-const reportsService = require('../services/reports.service');
+const reportsService = require("../services/reports.service");
 
 class ReportsController {
   async getBalanceSheet(req, res, next) {

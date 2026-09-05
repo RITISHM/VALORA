@@ -1,4 +1,4 @@
-const inventoryService = require('../services/inventory.service');
+const inventoryService = require("../services/inventory.service");
 
 class InventoryController {
   async getStock(req, res, next) {

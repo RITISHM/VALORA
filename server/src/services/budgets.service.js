@@ -1,4 +1,4 @@
-const prisma = require('../prisma');
+const prisma = require("../prisma");
 
 class BudgetsService {
   formatBudget(budget) {
@@ -25,7 +25,9 @@ class BudgetsService {
 
   async create({ name, period_start, period_end, responsible_contact_id, lines = [] }) {
     if (!name || !period_start || !period_end || !responsible_contact_id) {
-      const error = new Error('Name, period_start, period_end, and responsible_contact_id are required');
+      const error = new Error(
+        "Name, period_start, period_end, and responsible_contact_id are required",
+      );
       error.statusCode = 400;
       throw error;
     }
@@ -36,11 +38,11 @@ class BudgetsService {
         period_start: new Date(period_start),
         period_end: new Date(period_end),
         responsible_contact_id,
-        status: 'DRAFT',
+        status: "DRAFT",
         budget_lines: {
           create: lines.map((line) => ({
             analytic_account_id: line.analytic_account_id,
-            type: line.type || 'EXPENSE',
+            type: line.type || "EXPENSE",
             committed_amount: parseFloat(line.committed_amount) || 0,
             allowed_amount: parseFloat(line.allowed_amount) || 0,
           })),
@@ -62,7 +64,7 @@ class BudgetsService {
   async getAll() {
     const budgets = await prisma.budget.findMany({
       orderBy: {
-        period_start: 'desc',
+        period_start: "desc",
       },
       include: {
         responsible_contact: true,
@@ -94,7 +96,7 @@ class BudgetsService {
     });
 
     if (!budget) {
-      const error = new Error('Budget not found');
+      const error = new Error("Budget not found");
       error.statusCode = 404;
       throw error;
     }
@@ -106,12 +108,12 @@ class BudgetsService {
     const existing = await prisma.budget.findUnique({ where: { id } });
 
     if (!existing) {
-      const error = new Error('Budget not found');
+      const error = new Error("Budget not found");
       error.statusCode = 404;
       throw error;
     }
 
-    if (existing.status === 'REVISED' || existing.status === 'CANCELLED') {
+    if (existing.status === "REVISED" || existing.status === "CANCELLED") {
       const error = new Error(`Cannot modify budget with status ${existing.status}`);
       error.statusCode = 400;
       throw error;
@@ -133,7 +135,7 @@ class BudgetsService {
             budget_lines: {
               create: lines.map((line) => ({
                 analytic_account_id: line.analytic_account_id,
-                type: line.type || 'EXPENSE',
+                type: line.type || "EXPENSE",
                 committed_amount: parseFloat(line.committed_amount) || 0,
                 allowed_amount: parseFloat(line.allowed_amount) || 0,
               })),
@@ -157,14 +159,14 @@ class BudgetsService {
   async confirm(id) {
     const existing = await prisma.budget.findUnique({ where: { id } });
     if (!existing) {
-      const error = new Error('Budget not found');
+      const error = new Error("Budget not found");
       error.statusCode = 404;
       throw error;
     }
 
     const updated = await prisma.budget.update({
       where: { id },
-      data: { status: 'CONFIRMED' },
+      data: { status: "CONFIRMED" },
       include: {
         responsible_contact: true,
         budget_lines: {
@@ -185,7 +187,7 @@ class BudgetsService {
     });
 
     if (!original) {
-      const error = new Error('Budget not found');
+      const error = new Error("Budget not found");
       error.statusCode = 404;
       throw error;
     }
@@ -194,16 +196,18 @@ class BudgetsService {
       // Mark original as REVISED
       await tx.budget.update({
         where: { id },
-        data: { status: 'REVISED' },
+        data: { status: "REVISED" },
       });
 
       // Create new revised budget record referencing original
-      const revisedLines = lines || original.budget_lines.map(l => ({
-        analytic_account_id: l.analytic_account_id,
-        type: l.type,
-        committed_amount: l.committed_amount,
-        allowed_amount: l.allowed_amount,
-      }));
+      const revisedLines =
+        lines ||
+        original.budget_lines.map((l) => ({
+          analytic_account_id: l.analytic_account_id,
+          type: l.type,
+          committed_amount: l.committed_amount,
+          allowed_amount: l.allowed_amount,
+        }));
 
       const newBudget = await tx.budget.create({
         data: {
@@ -211,12 +215,12 @@ class BudgetsService {
           period_start: original.period_start,
           period_end: original.period_end,
           responsible_contact_id: original.responsible_contact_id,
-          status: 'DRAFT',
+          status: "DRAFT",
           revised_from_id: original.id,
           budget_lines: {
             create: revisedLines.map((line) => ({
               analytic_account_id: line.analytic_account_id,
-              type: line.type || 'EXPENSE',
+              type: line.type || "EXPENSE",
               committed_amount: parseFloat(line.committed_amount) || 0,
               allowed_amount: parseFloat(line.allowed_amount) || 0,
             })),
@@ -240,14 +244,14 @@ class BudgetsService {
   async cancel(id) {
     const existing = await prisma.budget.findUnique({ where: { id } });
     if (!existing) {
-      const error = new Error('Budget not found');
+      const error = new Error("Budget not found");
       error.statusCode = 404;
       throw error;
     }
 
     const updated = await prisma.budget.update({
       where: { id },
-      data: { status: 'CANCELLED' },
+      data: { status: "CANCELLED" },
       include: {
         responsible_contact: true,
         budget_lines: {

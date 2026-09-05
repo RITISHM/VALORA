@@ -1,9 +1,9 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const controller = require('../controllers/journals.controller');
+const controller = require("../controllers/journals.controller");
 
-router.get('/', (req, res, next) => controller.getJournalEntries(req, res, next));
-router.get('/:id', (req, res, next) => controller.getJournalEntryById(req, res, next));
-router.post('/', (req, res, next) => controller.createJournalEntry(req, res, next));
+router.get("/", (req, res, next) => controller.getJournalEntries(req, res, next));
+router.get("/:id", (req, res, next) => controller.getJournalEntryById(req, res, next));
+router.post("/", (req, res, next) => controller.createJournalEntry(req, res, next));
 
 module.exports = router;

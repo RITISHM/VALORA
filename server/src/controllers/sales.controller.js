@@ -1,5 +1,5 @@
-const salesService = require('../services/sales.service');
-const invoicesService = require('../services/invoices.service');
+const salesService = require("../services/sales.service");
+const invoicesService = require("../services/invoices.service");
 
 class SalesController {
   async create(req, res, next) {

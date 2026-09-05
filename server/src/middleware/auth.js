@@ -1,33 +1,62 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
-const authenticate = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized: No token provided' });
+/**
+ * Middleware to authenticate requests using JWT.
+ * Validates the "Authorization: Bearer <token>" header.
+ */
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"] || req.headers.authorization;
+  const token =
+    authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : authHeader;
+
+  if (!token) {
+    return res.status(401).json({ error: "Access token required" });
   }
 
-  const token = authHeader.split(' ')[1];
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Contains id, role, contact_id
+  jwt.verify(token, process.env.JWT_SECRET || "your_jwt_secret_key", (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: "Invalid or expired token" });
+    }
+    req.user = user;
     next();
-  } catch (err) {
-    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
-  }
+  });
 };
 
-const authorize = (roles = []) => {
-  if (typeof roles === 'string') {
-    roles = [roles];
+/**
+ * Alias for backward compatibility.
+ */
+const authenticate = authenticateToken;
+
+/**
+ * Middleware to authorize specific roles.
+ * @param {string|string[]} roles - Allowed role(s).
+ */
+const requireRole = (...allowedRoles) => {
+  if (allowedRoles.length === 1 && Array.isArray(allowedRoles[0])) {
+    allowedRoles = allowedRoles[0];
   }
 
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
+    if (!req.user) {
+      return res.status(401).json({ error: "Authentication required" });
     }
+
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ error: "Access denied: insufficient permissions" });
+    }
+
     next();
   };
 };
 
-module.exports = { authenticate, authorize };
+/**
+ * Alias for backward compatibility.
+ */
+const authorize = (roles = []) => requireRole(typeof roles === "string" ? [roles] : roles);
+
+module.exports = {
+  authenticate,
+  authenticateToken,
+  authorize,
+  requireRole,
+};

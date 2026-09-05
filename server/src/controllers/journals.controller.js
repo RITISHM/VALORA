@@ -1,10 +1,10 @@
-const accountingService = require('../services/accounting.service');
-const { z } = require('zod');
+const accountingService = require("../services/accounting.service");
+const { z } = require("zod");
 
 const journalSchema = z.object({
   name: z.string().min(1),
-  type: z.enum(['SALES', 'PURCHASE', 'BANK', 'CASH']),
-  default_account_id: z.string().uuid()
+  type: z.enum(["SALES", "PURCHASE", "BANK", "CASH"]),
+  default_account_id: z.string().uuid(),
 });
 
 class JournalsController {

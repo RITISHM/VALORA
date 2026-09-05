@@ -1,4 +1,4 @@
-const budgetsService = require('../services/budgets.service');
+const budgetsService = require("../services/budgets.service");
 
 class BudgetsController {
   async create(req, res, next) {

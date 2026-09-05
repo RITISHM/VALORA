@@ -1,4 +1,4 @@
-const prisma = require('../prisma');
+const prisma = require("../prisma");
 
 class ProductsService {
   async getAllProducts() {
@@ -8,7 +8,7 @@ class ProductsService {
   async getProductById(id) {
     const product = await prisma.product.findUnique({ where: { id } });
     if (!product) {
-      const error = new Error('Product not found');
+      const error = new Error("Product not found");
       error.statusCode = 404;
       throw error;
     }
@@ -23,8 +23,8 @@ class ProductsService {
     try {
       return await prisma.product.update({ where: { id }, data });
     } catch (error) {
-      if (error.code === 'P2025') {
-        const err = new Error('Product not found');
+      if (error.code === "P2025") {
+        const err = new Error("Product not found");
         err.statusCode = 404;
         throw err;
       }
@@ -36,8 +36,8 @@ class ProductsService {
     try {
       await prisma.product.delete({ where: { id } });
     } catch (error) {
-      if (error.code === 'P2025') {
-        const err = new Error('Product not found');
+      if (error.code === "P2025") {
+        const err = new Error("Product not found");
         err.statusCode = 404;
         throw err;
       }

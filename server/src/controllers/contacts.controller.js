@@ -1,15 +1,15 @@
-const contactsService = require('../services/contacts.service');
-const { z } = require('zod');
+const contactsService = require("../services/contacts.service");
+const { z } = require("zod");
 
 const contactSchema = z.object({
   name: z.string().min(1),
-  type: z.enum(['CUSTOMER', 'VENDOR', 'BOTH']),
+  type: z.enum(["CUSTOMER", "VENDOR", "BOTH"]),
   email: z.string().email().optional().nullable(),
   mobile: z.string().optional().nullable(),
   city: z.string().optional().nullable(),
   state: z.string().optional().nullable(),
   pincode: z.string().optional().nullable(),
-  image_url: z.string().url().optional().nullable()
+  image_url: z.string().url().optional().nullable(),
 });
 
 class ContactsController {

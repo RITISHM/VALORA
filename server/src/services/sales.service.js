@@ -1,15 +1,15 @@
-const prisma = require('../prisma');
+const prisma = require("../prisma");
 
 class SalesService {
   async generateSONumber() {
     const count = await prisma.salesOrder.count();
-    const num = (count + 1).toString().padStart(5, '0');
+    const num = (count + 1).toString().padStart(5, "0");
     return `S${num}`;
   }
 
   async create({ customer_id, so_date = new Date(), lines = [] }) {
     if (!customer_id) {
-      const error = new Error('customer_id is required');
+      const error = new Error("customer_id is required");
       error.statusCode = 400;
       throw error;
     }
@@ -25,7 +25,7 @@ class SalesService {
       const tax_rate = parseFloat(line.tax_rate) || 0.0;
 
       if (tax_rate < 0) {
-        const error = new Error('Tax rate cannot be negative');
+        const error = new Error("Tax rate cannot be negative");
         error.statusCode = 400;
         throw error;
       }
@@ -57,7 +57,7 @@ class SalesService {
         so_number,
         customer_id,
         so_date: new Date(so_date),
-        status: 'DRAFT',
+        status: "DRAFT",
         subtotal: docSubtotal,
         tax_amount: docTaxAmount,
         total: docTotal,
@@ -80,7 +80,7 @@ class SalesService {
   async getAll() {
     return await prisma.salesOrder.findMany({
       orderBy: {
-        so_date: 'desc',
+        so_date: "desc",
       },
       include: {
         customer: true,
@@ -111,7 +111,7 @@ class SalesService {
     });
 
     if (!so) {
-      const error = new Error('Sales Order not found');
+      const error = new Error("Sales Order not found");
       error.statusCode = 404;
       throw error;
     }
@@ -122,14 +122,14 @@ class SalesService {
   async confirm(id) {
     const existing = await prisma.salesOrder.findUnique({ where: { id } });
     if (!existing) {
-      const error = new Error('Sales Order not found');
+      const error = new Error("Sales Order not found");
       error.statusCode = 404;
       throw error;
     }
 
     return await prisma.salesOrder.update({
       where: { id },
-      data: { status: 'CONFIRMED' },
+      data: { status: "CONFIRMED" },
       include: {
         customer: true,
         lines: {

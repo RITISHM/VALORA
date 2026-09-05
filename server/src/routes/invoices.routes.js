@@ -1,11 +1,11 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const controller = require('../controllers/invoices.controller');
+const controller = require("../controllers/invoices.controller");
 
-router.post('/', (req, res, next) => controller.create(req, res, next));
-router.get('/', (req, res, next) => controller.getAll(req, res, next));
-router.get('/:id', (req, res, next) => controller.getById(req, res, next));
-router.post('/:id/confirm', (req, res, next) => controller.confirm(req, res, next));
-router.post('/:id/pay', (req, res, next) => controller.pay(req, res, next));
+router.post("/", (req, res, next) => controller.create(req, res, next));
+router.get("/", (req, res, next) => controller.getAll(req, res, next));
+router.get("/:id", (req, res, next) => controller.getById(req, res, next));
+router.post("/:id/confirm", (req, res, next) => controller.confirm(req, res, next));
+router.post("/:id/pay", (req, res, next) => controller.pay(req, res, next));
 
 module.exports = router;

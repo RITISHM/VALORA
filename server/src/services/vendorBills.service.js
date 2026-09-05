@@ -1,16 +1,16 @@
-const prisma = require('../prisma');
-const accountingService = require('./accounting.service');
+const prisma = require("../prisma");
+const accountingService = require("./accounting.service");
 
 class VendorBillsService {
   async generateBillReference() {
     const count = await prisma.vendorBill.count();
-    const num = (count + 1).toString().padStart(5, '0');
+    const num = (count + 1).toString().padStart(5, "0");
     return `BILL${num}`;
   }
 
   async create({ vendor_id, po_id, bill_date = new Date(), due_date, lines = [] }) {
     if (!vendor_id) {
-      const error = new Error('vendor_id is required');
+      const error = new Error("vendor_id is required");
       error.statusCode = 400;
       throw error;
     }
@@ -26,7 +26,7 @@ class VendorBillsService {
       const tax_rate = parseFloat(line.tax_rate) || 0.0;
 
       if (tax_rate < 0) {
-        const error = new Error('Tax rate cannot be negative');
+        const error = new Error("Tax rate cannot be negative");
         error.statusCode = 400;
         throw error;
       }
@@ -60,7 +60,7 @@ class VendorBillsService {
         vendor_id,
         bill_date: new Date(bill_date),
         due_date: due_date ? new Date(due_date) : null,
-        status: 'DRAFT',
+        status: "DRAFT",
         subtotal: docSubtotal,
         tax_amount: docTaxAmount,
         total: docTotal,
@@ -84,7 +84,7 @@ class VendorBillsService {
   async getAll() {
     return await prisma.vendorBill.findMany({
       orderBy: {
-        bill_date: 'desc',
+        bill_date: "desc",
       },
       include: {
         vendor: true,
@@ -115,7 +115,7 @@ class VendorBillsService {
     });
 
     if (!bill) {
-      const error = new Error('Vendor Bill not found');
+      const error = new Error("Vendor Bill not found");
       error.statusCode = 404;
       throw error;
     }
@@ -135,12 +135,12 @@ class VendorBillsService {
     });
 
     if (!bill) {
-      const error = new Error('Vendor Bill not found');
+      const error = new Error("Vendor Bill not found");
       error.statusCode = 404;
       throw error;
     }
 
-    if (bill.status === 'CONFIRMED' || bill.status === 'PAID') {
+    if (bill.status === "CONFIRMED" || bill.status === "PAID") {
       const error = new Error(`Vendor Bill is already ${bill.status}`);
       error.statusCode = 400;
       throw error;
@@ -150,16 +150,16 @@ class VendorBillsService {
     await prisma.$transaction(async (tx) => {
       await tx.vendorBill.update({
         where: { id },
-        data: { status: 'CONFIRMED' },
+        data: { status: "CONFIRMED" },
       });
 
       for (const line of bill.lines) {
-        if (line.product && line.product.type === 'GOODS') {
+        if (line.product && line.product.type === "GOODS") {
           await tx.stockMovement.create({
             data: {
               product_id: line.product_id,
               quantity: line.qty,
-              type: 'PURCHASE',
+              type: "PURCHASE",
               reference: bill.bill_reference || bill.id,
             },
           });
@@ -168,12 +168,16 @@ class VendorBillsService {
     });
 
     // 2. Post double-entry Journal Entry: Dr Purchase Expense, Cr Creditors
-    const purchaseJournal = await prisma.journal.findFirst({ where: { type: 'PURCHASE' } });
-    const purchaseExpenseAccount = await prisma.account.findFirst({ where: { name: 'Purchase Expense' } });
-    const creditorsAccount = await prisma.account.findFirst({ where: { name: 'Creditors' } });
+    const purchaseJournal = await prisma.journal.findFirst({ where: { type: "PURCHASE" } });
+    const purchaseExpenseAccount = await prisma.account.findFirst({
+      where: { name: "Purchase Expense" },
+    });
+    const creditorsAccount = await prisma.account.findFirst({ where: { name: "Creditors" } });
 
     if (!purchaseJournal || !purchaseExpenseAccount || !creditorsAccount) {
-      const error = new Error('Required accounts (Purchase Expense, Creditors) or Purchase Journal missing');
+      const error = new Error(
+        "Required accounts (Purchase Expense, Creditors) or Purchase Journal missing",
+      );
       error.statusCode = 400;
       throw error;
     }
@@ -201,30 +205,30 @@ class VendorBillsService {
     return await this.getById(id);
   }
 
-  async pay(id, { method = 'BANK', amount }) {
+  async pay(id, { method = "BANK", amount }) {
     const bill = await prisma.vendorBill.findUnique({
       where: { id },
       include: { vendor: true },
     });
 
     if (!bill) {
-      const error = new Error('Vendor Bill not found');
+      const error = new Error("Vendor Bill not found");
       error.statusCode = 404;
       throw error;
     }
 
     const payAmount = parseFloat(amount) || bill.total;
-    const paymentMethod = method.toUpperCase() === 'CASH' ? 'CASH' : 'BANK';
+    const paymentMethod = method.toUpperCase() === "CASH" ? "CASH" : "BANK";
 
-    const journalType = paymentMethod === 'CASH' ? 'CASH' : 'BANK';
+    const journalType = paymentMethod === "CASH" ? "CASH" : "BANK";
     const journal = await prisma.journal.findFirst({ where: { type: journalType } });
     const cashOrBankAccount = await prisma.account.findFirst({
-      where: { name: paymentMethod === 'CASH' ? 'Cash' : 'Bank' },
+      where: { name: paymentMethod === "CASH" ? "Cash" : "Bank" },
     });
-    const creditorsAccount = await prisma.account.findFirst({ where: { name: 'Creditors' } });
+    const creditorsAccount = await prisma.account.findFirst({ where: { name: "Creditors" } });
 
     if (!journal || !cashOrBankAccount || !creditorsAccount) {
-      const error = new Error('Required payment accounts missing');
+      const error = new Error("Required payment accounts missing");
       error.statusCode = 400;
       throw error;
     }
@@ -232,20 +236,20 @@ class VendorBillsService {
     return await prisma.$transaction(async (tx) => {
       const payment = await tx.payment.create({
         data: {
-          type: 'SEND',
+          type: "SEND",
           partner_id: bill.vendor_id,
           amount: payAmount,
           method: paymentMethod,
-          against_type: 'BILL',
+          against_type: "BILL",
           against_id: bill.id,
-          status: 'CONFIRMED',
+          status: "CONFIRMED",
         },
         include: { partner: true },
       });
 
       await tx.vendorBill.update({
         where: { id },
-        data: { status: 'PAID' },
+        data: { status: "PAID" },
       });
 
       // Journal entry: Dr Creditors (amount), Cr Cash/Bank (amount)

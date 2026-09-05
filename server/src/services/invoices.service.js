@@ -1,17 +1,17 @@
-const prisma = require('../prisma');
-const accountingService = require('./accounting.service');
-const inventoryService = require('./inventory.service');
+const prisma = require("../prisma");
+const accountingService = require("./accounting.service");
+const inventoryService = require("./inventory.service");
 
 class InvoicesService {
   async generateInvoiceNumber() {
     const count = await prisma.customerInvoice.count();
-    const num = (count + 1).toString().padStart(5, '0');
+    const num = (count + 1).toString().padStart(5, "0");
     return `INV${num}`;
   }
 
   async create({ customer_id, so_id, invoice_date = new Date(), due_date, lines = [] }) {
     if (!customer_id) {
-      const error = new Error('customer_id is required');
+      const error = new Error("customer_id is required");
       error.statusCode = 400;
       throw error;
     }
@@ -27,7 +27,7 @@ class InvoicesService {
       const tax_rate = parseFloat(line.tax_rate) || 0.0;
 
       if (tax_rate < 0) {
-        const error = new Error('Tax rate cannot be negative');
+        const error = new Error("Tax rate cannot be negative");
         error.statusCode = 400;
         throw error;
       }
@@ -61,7 +61,7 @@ class InvoicesService {
         customer_id,
         invoice_date: new Date(invoice_date),
         due_date: due_date ? new Date(due_date) : null,
-        status: 'DRAFT',
+        status: "DRAFT",
         subtotal: docSubtotal,
         tax_amount: docTaxAmount,
         total: docTotal,
@@ -89,7 +89,7 @@ class InvoicesService {
     });
 
     if (!so) {
-      const error = new Error('Sales Order not found');
+      const error = new Error("Sales Order not found");
       error.statusCode = 404;
       throw error;
     }
@@ -113,7 +113,7 @@ class InvoicesService {
   async getAll() {
     return await prisma.customerInvoice.findMany({
       orderBy: {
-        invoice_date: 'desc',
+        invoice_date: "desc",
       },
       include: {
         customer: true,
@@ -144,7 +144,7 @@ class InvoicesService {
     });
 
     if (!invoice) {
-      const error = new Error('Customer Invoice not found');
+      const error = new Error("Customer Invoice not found");
       error.statusCode = 404;
       throw error;
     }
@@ -173,12 +173,12 @@ class InvoicesService {
     });
 
     if (!invoice) {
-      const error = new Error('Customer Invoice not found');
+      const error = new Error("Customer Invoice not found");
       error.statusCode = 404;
       throw error;
     }
 
-    if (invoice.status === 'CONFIRMED' || invoice.status === 'PAID') {
+    if (invoice.status === "CONFIRMED" || invoice.status === "PAID") {
       const error = new Error(`Invoice is already ${invoice.status}`);
       error.statusCode = 400;
       throw error;
@@ -188,53 +188,58 @@ class InvoicesService {
     await inventoryService.checkStockAvailability(invoice.lines);
 
     // 2. Perform DB transaction for Status update & Stock movements
-    await prisma.$transaction(async (tx) => {
-      await tx.customerInvoice.update({
-        where: { id },
-        data: { status: 'CONFIRMED' },
-      });
+    await prisma.$transaction(
+      async (tx) => {
+        await tx.customerInvoice.update({
+          where: { id },
+          data: { status: "CONFIRMED" },
+        });
 
-      // Deduct stock for GOODS products
-      for (const line of invoice.lines) {
-        if (line.product && line.product.type === 'GOODS') {
-          await tx.stockMovement.create({
-            data: {
-              product_id: line.product_id,
-              quantity: line.qty,
-              type: 'SALE',
-              reference: invoice.invoice_number,
-            },
-          });
+        // Deduct stock for GOODS products
+        for (const line of invoice.lines) {
+          if (line.product && line.product.type === "GOODS") {
+            await tx.stockMovement.create({
+              data: {
+                product_id: line.product_id,
+                quantity: line.qty,
+                type: "SALE",
+                reference: invoice.invoice_number,
+              },
+            });
+          }
         }
-      }
-    }, {
-      maxWait: 15000,
-      timeout: 30000,
-    });
+      },
+      {
+        maxWait: 15000,
+        timeout: 30000,
+      },
+    );
 
     // 3. Find or create Chart of Accounts & Sales Journal
     const salesJournal = await prisma.journal.findFirst({
-      where: { type: 'SALES' },
+      where: { type: "SALES" },
     });
     const debtorsAccount = await prisma.account.findFirst({
-      where: { name: 'Debtors' },
+      where: { name: "Debtors" },
     });
     const salesIncomeAccount = await prisma.account.findFirst({
-      where: { name: 'Sales Income' },
+      where: { name: "Sales Income" },
     });
 
     let taxPayableAccount = await prisma.account.findFirst({
-      where: { name: 'Tax Payable' },
+      where: { name: "Tax Payable" },
     });
 
     if (!taxPayableAccount && invoice.tax_amount > 0) {
       taxPayableAccount = await prisma.account.create({
-        data: { name: 'Tax Payable', type: 'LIABILITY' },
+        data: { name: "Tax Payable", type: "LIABILITY" },
       });
     }
 
     if (!salesJournal || !debtorsAccount || !salesIncomeAccount) {
-      const error = new Error('Required Chart of Accounts (Debtors, Sales Income) or Sales Journal missing');
+      const error = new Error(
+        "Required Chart of Accounts (Debtors, Sales Income) or Sales Journal missing",
+      );
       error.statusCode = 400;
       throw error;
     }
@@ -279,7 +284,7 @@ class InvoicesService {
           where: {
             analytic_account_id: line.analytic_account_id,
             budget: {
-              status: { in: ['DRAFT', 'CONFIRMED'] },
+              status: { in: ["DRAFT", "CONFIRMED"] },
             },
           },
           data: {
@@ -298,16 +303,16 @@ class InvoicesService {
    * Register Payment for Customer Invoice
    * Updates status to PAID and creates payment journal entry
    */
-  async pay(id, { method = 'BANK', amount }) {
+  async pay(id, { method = "BANK", amount }) {
     const invoice = await this.getById(id);
 
-    if (invoice.status === 'PAID') {
-      const error = new Error('Invoice is already paid');
+    if (invoice.status === "PAID") {
+      const error = new Error("Invoice is already paid");
       error.statusCode = 400;
       throw error;
     }
 
-    if (invoice.status === 'DRAFT') {
+    if (invoice.status === "DRAFT") {
       // Auto-confirm if it was draft
       await this.confirm(id);
     }
@@ -315,31 +320,34 @@ class InvoicesService {
     const payAmount = parseFloat(amount) || invoice.total;
 
     // Perform DB transaction for Status update
-    await prisma.$transaction(async (tx) => {
-      await tx.customerInvoice.update({
-        where: { id },
-        data: { status: 'PAID' },
-      });
-    }, {
-      maxWait: 15000,
-      timeout: 30000,
-    });
+    await prisma.$transaction(
+      async (tx) => {
+        await tx.customerInvoice.update({
+          where: { id },
+          data: { status: "PAID" },
+        });
+      },
+      {
+        maxWait: 15000,
+        timeout: 30000,
+      },
+    );
 
     // Auto-post Payment Journal Entry
     const bankJournal = await prisma.journal.findFirst({
-      where: { type: 'BANK' },
+      where: { type: "BANK" },
     });
     const cashJournal = await prisma.journal.findFirst({
-      where: { type: 'CASH' },
+      where: { type: "CASH" },
     });
-    
-    const journal = method === 'CASH' ? (cashJournal || bankJournal) : bankJournal;
+
+    const journal = method === "CASH" ? cashJournal || bankJournal : bankJournal;
 
     const debtorsAccount = await prisma.account.findFirst({
-      where: { name: 'Debtors' },
+      where: { name: "Debtors" },
     });
     const bankAccount = await prisma.account.findFirst({
-      where: { name: 'Bank/Cash' },
+      where: { name: "Bank/Cash" },
     });
 
     if (journal && debtorsAccount && bankAccount) {

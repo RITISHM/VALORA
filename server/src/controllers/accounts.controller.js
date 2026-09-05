@@ -1,4 +1,4 @@
-const accountsService = require('../services/accounts.service');
+const accountsService = require("../services/accounts.service");
 
 class AccountsController {
   async getAllAccounts(req, res, next) {

@@ -1,4 +1,4 @@
-const portalService = require('../services/portal.service');
+const portalService = require("../services/portal.service");
 
 class PortalController {
   async login(req, res, next) {

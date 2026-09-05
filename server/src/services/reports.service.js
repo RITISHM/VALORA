@@ -1,4 +1,4 @@
-const prisma = require('../prisma');
+const prisma = require("../prisma");
 
 class ReportsService {
   /**
@@ -10,36 +10,30 @@ class ReportsService {
     const startDate = new Date(`${yearNum}-01-01T00:00:00.000Z`);
     const endDate = new Date(`${yearNum}-12-31T23:59:59.999Z`);
 
-    const journalItems = await prisma.journalItem.findMany({
+    const groupedItems = await prisma.journalItem.groupBy({
+      by: ["account_id"],
+      _sum: {
+        debit: true,
+        credit: true,
+      },
       where: {
         journal_entry: {
-          status: 'POSTED',
+          status: "POSTED",
           entry_date: {
             gte: startDate,
             lte: endDate,
           },
         },
       },
-      include: {
-        account: true,
-      },
     });
 
     const accountTotals = {};
 
-    for (const item of journalItems) {
-      const acc = item.account;
-      if (!accountTotals[acc.id]) {
-        accountTotals[acc.id] = {
-          id: acc.id,
-          name: acc.name,
-          type: acc.type,
-          debit: 0,
-          credit: 0,
-        };
-      }
-      accountTotals[acc.id].debit += item.debit;
-      accountTotals[acc.id].credit += item.credit;
+    for (const item of groupedItems) {
+      accountTotals[item.account_id] = {
+        debit: item._sum.debit || 0,
+        credit: item._sum.credit || 0,
+      };
     }
 
     const assets = [];
@@ -55,15 +49,15 @@ class ReportsService {
 
     for (const acc of allAccounts) {
       const totals = accountTotals[acc.id] || { debit: 0, credit: 0 };
-      if (acc.type === 'ASSET') {
+      if (acc.type === "ASSET") {
         const balance = Math.round((totals.debit - totals.credit) * 100) / 100;
         assets.push({ id: acc.id, name: acc.name, balance });
         totalAssets += balance;
-      } else if (acc.type === 'LIABILITY') {
+      } else if (acc.type === "LIABILITY") {
         const balance = Math.round((totals.credit - totals.debit) * 100) / 100;
         liabilities.push({ id: acc.id, name: acc.name, balance });
         totalLiabilities += balance;
-      } else if (acc.type === 'CAPITAL') {
+      } else if (acc.type === "CAPITAL") {
         const balance = Math.round((totals.credit - totals.debit) * 100) / 100;
         capital.push({ id: acc.id, name: acc.name, balance });
         totalCapital += balance;
@@ -99,41 +93,36 @@ class ReportsService {
   /**
    * Profit & Loss Report:
    * Net Income = Income - Expenses
+   * Fetches the sum of all journal items for Income and Expense accounts.
    */
   async getProfitAndLoss(year) {
     const yearNum = parseInt(year) || new Date().getFullYear();
     const startDate = new Date(`${yearNum}-01-01T00:00:00.000Z`);
     const endDate = new Date(`${yearNum}-12-31T23:59:59.999Z`);
 
-    const journalItems = await prisma.journalItem.findMany({
+    const groupedItems = await prisma.journalItem.groupBy({
+      by: ["account_id"],
+      _sum: {
+        debit: true,
+        credit: true,
+      },
       where: {
         journal_entry: {
-          status: 'POSTED',
+          status: "POSTED",
           entry_date: {
             gte: startDate,
             lte: endDate,
           },
         },
       },
-      include: {
-        account: true,
-      },
     });
 
     const accountTotals = {};
-    for (const item of journalItems) {
-      const acc = item.account;
-      if (!accountTotals[acc.id]) {
-        accountTotals[acc.id] = {
-          id: acc.id,
-          name: acc.name,
-          type: acc.type,
-          debit: 0,
-          credit: 0,
-        };
-      }
-      accountTotals[acc.id].debit += item.debit;
-      accountTotals[acc.id].credit += item.credit;
+    for (const item of groupedItems) {
+      accountTotals[item.account_id] = {
+        debit: item._sum.debit || 0,
+        credit: item._sum.credit || 0,
+      };
     }
 
     const incomeItems = [];
@@ -146,11 +135,11 @@ class ReportsService {
 
     for (const acc of allAccounts) {
       const totals = accountTotals[acc.id] || { debit: 0, credit: 0 };
-      if (acc.type === 'INCOME') {
+      if (acc.type === "INCOME") {
         const balance = Math.round((totals.credit - totals.debit) * 100) / 100;
         incomeItems.push({ id: acc.id, name: acc.name, balance });
         totalIncome += balance;
-      } else if (acc.type === 'EXPENSE') {
+      } else if (acc.type === "EXPENSE") {
         const balance = Math.round((totals.debit - totals.credit) * 100) / 100;
         expenseItems.push({ id: acc.id, name: acc.name, balance });
         totalExpenses += balance;
@@ -204,9 +193,9 @@ class ReportsService {
           budget_id: budget.id,
           budget_name: budget.name,
           budget_status: budget.status,
-          responsible_person: budget.responsible_contact?.name || 'N/A',
+          responsible_person: budget.responsible_contact?.name || "N/A",
           analytic_account_id: line.analytic_account_id,
-          analytic_account_name: line.analytic_account?.name || 'Unassigned',
+          analytic_account_name: line.analytic_account?.name || "Unassigned",
           type: line.type,
           committed_amount: committed,
           allowed_amount: allowed,
