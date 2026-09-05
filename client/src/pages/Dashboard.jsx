@@ -1,5 +1,6 @@
-import React from 'react';
-import { Network, Activity, Sunrise, MoreHorizontal, FileText, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Network, Activity, Sunrise, MoreHorizontal, FileText, ArrowRight, Loader2 } from 'lucide-react';
+import { BACKEND_URL } from '../api';
 import '../styles/dashboard.css';
 
 function AdminDashboard() {
@@ -167,6 +168,83 @@ function AdminDashboard() {
 }
 
 function UserDashboard({ user }) {
+  const [activeTab, setActiveTab] = useState('Unpaid');
+  const [invoices, setInvoices] = useState([]);
+  const [outstanding, setOutstanding] = useState({ total_unpaid_invoices: 0, recently_paid: 0 }); // We will approximate recently paid
+  const [loading, setLoading] = useState(true);
+  const [payingId, setPayingId] = useState(null);
+
+  const token = localStorage.getItem('valora_token');
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      // Fetch outstanding
+      const outRes = await fetch(`${BACKEND_URL}/portal/outstanding`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (outRes.ok) {
+        const outData = await outRes.json();
+        setOutstanding(prev => ({ ...prev, total_unpaid_invoices: outData.total_unpaid_invoices || 0 }));
+      }
+
+      // Fetch invoices
+      const invRes = await fetch(`${BACKEND_URL}/portal/invoices`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (invRes.ok) {
+        const invData = await invRes.json();
+        setInvoices(invData);
+
+        // Calculate recently paid (sum of PAID invoices)
+        const paidInvoices = invData.filter(i => i.status === 'PAID');
+        const paidTotal = paidInvoices.reduce((sum, i) => sum + i.total, 0);
+        setOutstanding(prev => ({ ...prev, recently_paid: paidTotal }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch portal data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handlePay = async (invoiceId, total) => {
+    try {
+      setPayingId(invoiceId);
+      const res = await fetch(`${BACKEND_URL}/portal/invoices/${invoiceId}/pay`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ method: 'BANK', amount: total })
+      });
+      if (res.ok) {
+        // Refresh data
+        await fetchData();
+      } else {
+        alert("Payment failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error paying invoice");
+    } finally {
+      setPayingId(null);
+    }
+  };
+
+  const filteredInvoices = invoices.filter(inv => {
+    if (activeTab === 'Unpaid') {
+      return inv.status === 'DRAFT' || inv.status === 'CONFIRMED';
+    } else {
+      return inv.status === 'PAID';
+    }
+  });
+
   return (
     <div className="dashboard-container">
       <div className="dashboard-greeting">
@@ -174,62 +252,74 @@ function UserDashboard({ user }) {
       </div>
 
       <div className="dashboard-grid">
-        {/* Left Column (Main content) */}
         <div className="dashboard-main-col" style={{ flex: 1.5 }}>
           
           <div style={{ display: 'flex', gap: '24px', marginBottom: '40px' }}>
             <div style={{ flex: 1, backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '16px', border: '1px solid #F3F4F6' }}>
               <span style={{ color: '#6B7280', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Total Due</span>
-              <h2 style={{ fontSize: '2rem', color: '#111116', margin: '8px 0 0 0' }}>₹ 14,500</h2>
+              <h2 style={{ fontSize: '2rem', color: '#111116', margin: '8px 0 0 0' }}>₹ {outstanding.total_unpaid_invoices.toLocaleString('en-IN')}</h2>
             </div>
             <div style={{ flex: 1, backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '16px', border: '1px solid #F3F4F6' }}>
               <span style={{ color: '#6B7280', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Recently Paid</span>
-              <h2 style={{ fontSize: '2rem', color: '#111116', margin: '8px 0 0 0' }}>₹ 3,200</h2>
+              <h2 style={{ fontSize: '2rem', color: '#111116', margin: '8px 0 0 0' }}>₹ {outstanding.recently_paid.toLocaleString('en-IN')}</h2>
             </div>
           </div>
 
           <div className="section-header">
             <h2>My Invoices & Bills</h2>
             <div className="dashboard-tabs" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none' }}>
-              <span className="tab active">Unpaid</span>
-              <span className="tab">Paid</span>
+              <span className={`tab ${activeTab === 'Unpaid' ? 'active' : ''}`} onClick={() => setActiveTab('Unpaid')} style={{ cursor: 'pointer' }}>Unpaid</span>
+              <span className={`tab ${activeTab === 'Paid' ? 'active' : ''}`} onClick={() => setActiveTab('Paid')} style={{ cursor: 'pointer' }}>Paid</span>
             </div>
           </div>
 
           <div className="transaction-cards" style={{ marginTop: '24px' }}>
-            <div className="transaction-card">
-              <div className="card-graphic bg-mint" style={{ width: '80px', height: '80px', marginRight: '20px' }}>
-                <FileText size={32} strokeWidth={1} color="#017E84" />
+            {loading ? (
+              <div style={{ padding: '40px', display: 'flex', justifyContent: 'center' }}>
+                <Loader2 size={32} className="spinner" style={{ color: '#017E84', animation: 'spin 1s linear infinite' }} />
               </div>
-              <div className="card-content">
-                <h3>Invoice #INV-2026-001</h3>
-                <p style={{ margin: '0 0 8px 0' }}>Purchase of Office Chairs</p>
-                <div className="card-badges">
-                  <span className="badge" style={{ backgroundColor: '#FEE2E2', color: '#DC2626' }}>Unpaid</span>
+            ) : filteredInvoices.length === 0 ? (
+              <div style={{ padding: '40px', textAlign: 'center', color: '#6B7280' }}>
+                <p>No {activeTab.toLowerCase()} invoices found.</p>
+              </div>
+            ) : (
+              filteredInvoices.map(inv => (
+                <div className="transaction-card" key={inv.id}>
+                  <div className={`card-graphic ${inv.status === 'PAID' ? 'bg-purple' : 'bg-mint'}`} style={{ width: '80px', height: '80px', marginRight: '20px' }}>
+                    <FileText size={32} strokeWidth={1} color={inv.status === 'PAID' ? '#714B67' : '#017E84'} />
+                  </div>
+                  <div className="card-content">
+                    <h3>Invoice #{inv.invoice_number}</h3>
+                    <p style={{ margin: '0 0 8px 0' }}>{new Date(inv.invoice_date).toLocaleDateString('en-IN')}</p>
+                    <div className="card-badges">
+                      {inv.status === 'PAID' ? (
+                        <span className="badge" style={{ backgroundColor: '#D1FAE5', color: '#059669' }}>Paid</span>
+                      ) : (
+                        <span className="badge" style={{ backgroundColor: '#FEE2E2', color: '#DC2626' }}>Unpaid</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="card-meta" style={{ gap: '16px', alignItems: 'flex-end' }}>
+                    <span className="amount" style={{ color: inv.status === 'PAID' ? '#9CA3AF' : '#111116', fontWeight: '700', fontSize: '1.2rem' }}>
+                      ₹ {inv.total.toLocaleString('en-IN')}
+                    </span>
+                    {inv.status === 'PAID' ? (
+                      <button className="primary-btn" disabled style={{ padding: '8px 16px', fontSize: '0.85rem', backgroundColor: '#F3F4F6', color: '#6B7280', opacity: 1, cursor: 'not-allowed' }}>Paid</button>
+                    ) : (
+                      <button 
+                        className="primary-btn" 
+                        style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+                        onClick={() => handlePay(inv.id, inv.total)}
+                        disabled={payingId === inv.id}
+                      >
+                        {payingId === inv.id && <Loader2 size={14} className="spinner" style={{ animation: 'spin 1s linear infinite' }} />}
+                        {payingId === inv.id ? 'Processing' : 'Pay Now'}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="card-meta" style={{ gap: '16px', alignItems: 'flex-end' }}>
-                <span className="amount" style={{ color: '#111116', fontWeight: '700', fontSize: '1.2rem' }}>₹ 14,500</span>
-                <button className="primary-btn" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>Pay Now</button>
-              </div>
-            </div>
-
-            <div className="transaction-card">
-              <div className="card-graphic bg-purple" style={{ width: '80px', height: '80px', marginRight: '20px' }}>
-                <FileText size={32} strokeWidth={1} color="#714B67" />
-              </div>
-              <div className="card-content">
-                <h3>Invoice #INV-2026-000</h3>
-                <p style={{ margin: '0 0 8px 0' }}>Consulting Services</p>
-                <div className="card-badges">
-                  <span className="badge" style={{ backgroundColor: '#D1FAE5', color: '#059669' }}>Paid</span>
-                </div>
-              </div>
-              <div className="card-meta" style={{ gap: '16px', alignItems: 'flex-end' }}>
-                <span className="amount" style={{ color: '#9CA3AF', fontWeight: '700', fontSize: '1.2rem' }}>₹ 3,200</span>
-                <button className="primary-btn" style={{ padding: '8px 16px', fontSize: '0.85rem', backgroundColor: '#F3F4F6', color: '#6B7280', opacity: 1, cursor: 'not-allowed' }}>Paid</button>
-              </div>
-            </div>
+              ))
+            )}
           </div>
         </div>
       </div>
