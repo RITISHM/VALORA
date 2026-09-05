@@ -54,7 +54,7 @@ export default function Login() {
 
     // Basic frontend validation
     if (!formData.loginId.trim() || !formData.password.trim()) {
-      setError('Please enter both Login ID and Password.');
+      setError('Please enter both Email/Login ID and Password.');
       return;
     }
 
@@ -73,7 +73,7 @@ export default function Login() {
       const data = await response.json();
       
       if (!response.ok) {
-        setError(data.error || 'Invalid Login Id or Password');
+        setError(data.error || 'Invalid Email/Login ID or Password');
         setIsLoading(false);
         return;
       }
@@ -126,12 +126,12 @@ export default function Login() {
             
             {/* Login ID Input */}
             <div className="input-group">
-              <label htmlFor="loginId">Login ID</label>
+              <label htmlFor="loginId">Email Address or Login ID</label>
               <input
                 id="loginId"
                 name="loginId"
                 type="text"
-                placeholder="Enter your Login ID"
+                placeholder="Enter your Email or Login ID"
                 value={formData.loginId}
                 onChange={handleChange}
                 disabled={isLoading}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Store, Upload, CheckCircle } from 'lucide-react';
 import { BACKEND_URL } from '../../api';
 import '../../styles/dashboard.css';
@@ -15,6 +15,37 @@ export default function VendorProductForm() {
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem('valora_token');
+        const res = await fetch(`${BACKEND_URL}/auth/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          if (
+            data.role === 'ADMIN' || 
+            data.role === 'ACCOUNTANT' || 
+            data.contact?.type === 'VENDOR' || 
+            data.contact?.type === 'BOTH'
+          ) {
+            setIsAuthorized(true);
+          }
+        }
+      } catch (err) {
+        console.error("Auth check failed:", err);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -59,6 +90,25 @@ export default function VendorProductForm() {
       setLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="dashboard-container" style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center', padding: '60px' }}>
+        <p style={{ color: '#6B7280' }}>Verifying vendor access...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="dashboard-container" style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center', padding: '60px' }}>
+        <div style={{ backgroundColor: '#FEE2E2', padding: '24px', borderRadius: '12px', border: '1px solid #FCA5A5' }}>
+          <h2 style={{ color: '#991B1B', margin: '0 0 12px 0' }}>Access Denied</h2>
+          <p style={{ color: '#7F1D1D', margin: 0 }}>Only registered vendors have permission to list products on the marketplace.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-container" style={{ maxWidth: '800px', margin: '0 auto' }}>

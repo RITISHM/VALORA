@@ -122,9 +122,7 @@ export default function Signup() {
         }
     };
 
-    const isLoginIdLengthInvalid =
-        formData.loginId.length > 0 &&
-        (formData.loginId.length < 6 || formData.loginId.length > 12);
+
 
     return (
         <div className="login-layout">

@@ -32,6 +32,8 @@ export default function Layout() {
   const userStr = localStorage.getItem('valora_user');
   const user = userStr ? JSON.parse(userStr) : null;
   const userRole = user?.role?.toLowerCase() || '';
+  const contactType = user?.contact_type || '';
+  const isVendor = contactType === 'VENDOR' || contactType === 'BOTH';
 
   /**
    * Logs out user by redirecting to the login view.
@@ -130,10 +132,12 @@ export default function Layout() {
                   <span className="nav-label">Customer</span>
                 </NavLink>
 
-                <NavLink to="/portal/vendor" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Vendor">
-                  <Store size={20} className="nav-icon" />
-                  <span className="nav-label">Vendor</span>
-                </NavLink>
+                {isVendor && (
+                  <NavLink to="/portal/vendor" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Vendor">
+                    <Store size={20} className="nav-icon" />
+                    <span className="nav-label">Vendor</span>
+                  </NavLink>
+                )}
 
                 <NavLink to="/portal/cart" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Cart">
                   <div style={{ position: 'relative' }}>

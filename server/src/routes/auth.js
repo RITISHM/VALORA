@@ -27,6 +27,26 @@ router.post("/signup", async (req, res, next) => {
 
     const password_hash = await bcrypt.hash(validatedData.password, 10);
 
+    let contact_id = validatedData.contact_id || null;
+    let contact_type = null;
+
+    if (validatedData.role === 'CONTACT') {
+      if (!contact_id) {
+        const newContact = await prisma.contact.create({
+          data: {
+            name: validatedData.name,
+            email: validatedData.email,
+            type: 'CUSTOMER'
+          }
+        });
+        contact_id = newContact.id;
+        contact_type = 'CUSTOMER';
+      } else {
+        const existingContact = await prisma.contact.findUnique({ where: { id: contact_id } });
+        contact_type = existingContact?.type;
+      }
+    }
+
     const user = await prisma.user.create({
       data: {
         name: validatedData.name,
@@ -34,19 +54,19 @@ router.post("/signup", async (req, res, next) => {
         email: validatedData.email,
         password_hash,
         role: validatedData.role,
-        contact_id: validatedData.contact_id || null,
+        contact_id: contact_id,
       },
     });
 
     const token = jwt.sign(
-      { id: user.id, role: user.role, contact_id: user.contact_id },
+      { id: user.id, role: user.role, contact_id: user.contact_id, contact_type: contact_type },
       process.env.JWT_SECRET,
       { expiresIn: "1d" },
     );
 
     res
       .status(201)
-      .json({ user: { id: user.id, name: user.name, email: user.email, role: user.role }, token });
+      .json({ user: { id: user.id, name: user.name, email: user.email, role: user.role, contact_type: contact_type }, token });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.issues });
@@ -74,6 +94,7 @@ router.post("/login", async (req, res, next) => {
           { email: validatedData.login_id }
         ]
       },
+      include: { contact: true }
     });
 
     if (!user) {
@@ -86,12 +107,12 @@ router.post("/login", async (req, res, next) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role, contact_id: user.contact_id },
+      { id: user.id, role: user.role, contact_id: user.contact_id, contact_type: user.contact?.type },
       process.env.JWT_SECRET,
       { expiresIn: "1d" },
     );
 
-    res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role }, token });
+    res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role, contact_type: user.contact?.type }, token });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.issues });
@@ -101,6 +122,18 @@ router.post("/login", async (req, res, next) => {
 });
 
 const { authenticateToken } = require("../middleware/auth");
+
+router.get("/me", authenticateToken, async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      include: { contact: true }
+    });
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.put("/me", authenticateToken, async (req, res, next) => {
   try {
