@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Pencil } from 'lucide-react';
 import DataTable from '../../components/DataTable';
 import FormShell from '../../components/FormShell';
 import { api } from '../../api';
@@ -9,6 +9,7 @@ export default function ProductList() {
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const [formData, setFormData] = useState({
     name: '', type: 'Goods', category: '', salesPrice: '', cost: ''
@@ -29,19 +30,43 @@ export default function ProductList() {
     if (!formData.name) return alert('Name is required');
     setIsSaving(true);
     try {
-      const newProduct = await api.createProduct({
+      const payload = {
         ...formData,
         sales_price: Number(formData.salesPrice),
         cost: Number(formData.cost)
-      });
-      setProducts(prev => [...prev, newProduct]);
-      setIsFormOpen(false);
-      setFormData({ name: '', type: 'Goods', category: '', salesPrice: '', cost: '' });
+      };
+      
+      if (editingId) {
+        const updatedProduct = await api.updateProduct(editingId, payload);
+        setProducts(prev => prev.map(p => p.id === editingId ? updatedProduct : p));
+      } else {
+        const newProduct = await api.createProduct(payload);
+        setProducts(prev => [...prev, newProduct]);
+      }
+      handleCloseForm();
     } catch (err) {
       alert(err.message || 'Failed to save product');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleEdit = (row) => {
+    setFormData({
+      name: row.name || '',
+      type: row.type || 'Goods',
+      category: row.category || '',
+      salesPrice: row.sales_price || '',
+      cost: row.cost || ''
+    });
+    setEditingId(row.id);
+    setIsFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setEditingId(null);
+    setFormData({ name: '', type: 'Goods', category: '', salesPrice: '', cost: '' });
   };
 
   const handleDelete = async (id) => {
@@ -66,13 +91,22 @@ export default function ProductList() {
     { header: 'Sales Price', render: (row) => `₹ ${Number(row.sales_price || 0).toLocaleString()}` },
     { header: 'Cost', render: (row) => `₹ ${Number(row.cost || 0).toLocaleString()}` },
     { header: 'Actions', render: (row) => (
-      <button 
-        onClick={() => handleDelete(row.id)} 
-        style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
-        title="Delete Product"
-      >
-        <Trash2 size={16} />
-      </button>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button 
+          onClick={() => handleEdit(row)} 
+          style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
+          title="Edit Product"
+        >
+          <Pencil size={16} />
+        </button>
+        <button 
+          onClick={() => handleDelete(row.id)} 
+          style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
+          title="Delete Product"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
     )}
   ];
 
@@ -80,9 +114,9 @@ export default function ProductList() {
     return (
       <div className="page-content">
         <FormShell 
-          title="New Product" 
+          title={editingId ? "Edit Product" : "New Product"} 
           onSave={handleSave} 
-          onCancel={() => setIsFormOpen(false)}
+          onCancel={handleCloseForm}
           isSaving={isSaving}
         >
           <div className="form-row">

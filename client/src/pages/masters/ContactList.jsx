@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Pencil } from 'lucide-react';
 import DataTable from '../../components/DataTable';
 import FormShell from '../../components/FormShell';
 import { api } from '../../api';
@@ -9,6 +9,7 @@ export default function ContactList() {
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const [formData, setFormData] = useState({
     name: '', type: 'Customer', email: '', mobile: '', city: '', state: ''
@@ -29,15 +30,38 @@ export default function ContactList() {
     if (!formData.name) return alert('Name is required');
     setIsSaving(true);
     try {
-      const newContact = await api.createContact(formData);
-      setContacts(prev => [...prev, newContact]);
-      setIsFormOpen(false);
-      setFormData({ name: '', type: 'Customer', email: '', mobile: '', city: '', state: '' });
+      if (editingId) {
+        const updatedContact = await api.updateContact(editingId, formData);
+        setContacts(prev => prev.map(c => c.id === editingId ? updatedContact : c));
+      } else {
+        const newContact = await api.createContact(formData);
+        setContacts(prev => [...prev, newContact]);
+      }
+      handleCloseForm();
     } catch (err) {
       alert(err.message || 'Failed to save contact');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleEdit = (row) => {
+    setFormData({
+      name: row.name || '',
+      type: row.type || 'Customer',
+      email: row.email || '',
+      mobile: row.mobile || '',
+      city: row.city || '',
+      state: row.state || ''
+    });
+    setEditingId(row.id);
+    setIsFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setEditingId(null);
+    setFormData({ name: '', type: 'Customer', email: '', mobile: '', city: '', state: '' });
   };
 
   const handleDelete = async (id) => {
@@ -68,13 +92,22 @@ export default function ContactList() {
     { header: 'Mobile', accessor: 'mobile' },
     { header: 'Location', render: (row) => `${row.city || ''} ${row.state ? ', ' + row.state : ''}` },
     { header: 'Actions', render: (row) => (
-      <button 
-        onClick={() => handleDelete(row.id)} 
-        style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
-        title="Delete Contact"
-      >
-        <Trash2 size={16} />
-      </button>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button 
+          onClick={() => handleEdit(row)} 
+          style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
+          title="Edit Contact"
+        >
+          <Pencil size={16} />
+        </button>
+        <button 
+          onClick={() => handleDelete(row.id)} 
+          style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
+          title="Delete Contact"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
     )}
   ];
 
@@ -82,9 +115,9 @@ export default function ContactList() {
     return (
       <div className="page-content">
         <FormShell 
-          title="New Contact" 
+          title={editingId ? "Edit Contact" : "New Contact"} 
           onSave={handleSave} 
-          onCancel={() => setIsFormOpen(false)}
+          onCancel={handleCloseForm}
           isSaving={isSaving}
         >
           <div className="form-row">

@@ -45,6 +45,17 @@ export const api = {
     });
     return handleResponse(response);
   },
+  updateContact: async (id, contact) => {
+    const response = await fetch(`${BACKEND_URL}/contacts/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        ...contact,
+        type: contact.type.toUpperCase()
+      })
+    });
+    return handleResponse(response);
+  },
   deleteContact: async (id) => {
     const response = await fetch(`${BACKEND_URL}/contacts/${id}`, {
       method: 'DELETE',
@@ -61,6 +72,17 @@ export const api = {
   createProduct: async (product) => {
     const response = await fetch(`${BACKEND_URL}/products`, {
       method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        ...product,
+        type: product.type.toUpperCase()
+      })
+    });
+    return handleResponse(response);
+  },
+  updateProduct: async (id, product) => {
+    const response = await fetch(`${BACKEND_URL}/products/${id}`, {
+      method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({
         ...product,
@@ -86,6 +108,20 @@ export const api = {
   // Journals (Read only for now)
   getJournals: async () => {
     const response = await fetch(`${BACKEND_URL}/journals`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+  getJournalEntries: async () => {
+    const response = await fetch(`${BACKEND_URL}/journal-entries`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+
+  // Reports
+  getBalanceSheet: async (year = new Date().getFullYear()) => {
+    const response = await fetch(`${BACKEND_URL}/reports/balance-sheet?year=${year}`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+  getProfitAndLoss: async (year = new Date().getFullYear()) => {
+    const response = await fetch(`${BACKEND_URL}/reports/profit-and-loss?year=${year}`, { headers: getAuthHeaders() });
     return handleResponse(response);
   }
 };
