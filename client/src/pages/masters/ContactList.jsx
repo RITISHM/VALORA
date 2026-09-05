@@ -367,11 +367,13 @@ export default function ContactList() {
     <div className="page-content" style={{ padding: 0 }}>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', paddingBottom: '16px', marginBottom: '24px' }}>
         <h1 className="page-title">Contacts & Users</h1>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="submit-btn" onClick={() => setIsUserFormOpen(true)} style={{ width: 'auto', padding: '10px 16px', borderRadius: '8px', backgroundColor: 'var(--valora-text-main)' }}>
-            + Add User
-          </button>
-        </div>
+        {!isAccountant && (
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button className="submit-btn" onClick={() => setIsUserFormOpen(true)} style={{ width: 'auto', padding: '10px 16px', borderRadius: '8px', backgroundColor: 'var(--valora-text-main)' }}>
+              + Add User
+            </button>
+          </div>
+        )}
       </div>
       
       {isLoading ? (
