@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Trash2 } from 'lucide-react';
 import DataTable from '../../components/DataTable';
 import FormShell from '../../components/FormShell';
 import { api } from '../../api';
@@ -27,23 +28,52 @@ export default function ProductList() {
   const handleSave = async () => {
     if (!formData.name) return alert('Name is required');
     setIsSaving(true);
-    await api.createProduct({
-      ...formData,
-      salesPrice: Number(formData.salesPrice),
-      cost: Number(formData.cost)
-    });
-    setIsSaving(false);
-    setIsFormOpen(false);
-    setFormData({ name: '', type: 'Goods', category: '', salesPrice: '', cost: '' });
-    loadProducts();
+    try {
+      const newProduct = await api.createProduct({
+        ...formData,
+        sales_price: Number(formData.salesPrice),
+        cost: Number(formData.cost)
+      });
+      setProducts(prev => [...prev, newProduct]);
+      setIsFormOpen(false);
+      setFormData({ name: '', type: 'Goods', category: '', salesPrice: '', cost: '' });
+    } catch (err) {
+      alert(err.message || 'Failed to save product');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      const previousProducts = [...products];
+      // Optimistically remove from UI
+      setProducts(prev => prev.filter(p => p.id !== id));
+      try {
+        await api.deleteProduct(id);
+      } catch (err) {
+        // Rollback on error
+        setProducts(previousProducts);
+        alert(err.message || 'Failed to delete product');
+      }
+    }
   };
 
   const columns = [
     { header: 'Product Name', accessor: 'name' },
     { header: 'Type', accessor: 'type' },
     { header: 'Category', accessor: 'category' },
-    { header: 'Sales Price', render: (row) => `₹ ${Number(row.salesPrice).toLocaleString()}` },
-    { header: 'Cost', render: (row) => `₹ ${Number(row.cost).toLocaleString()}` }
+    { header: 'Sales Price', render: (row) => `₹ ${Number(row.sales_price || 0).toLocaleString()}` },
+    { header: 'Cost', render: (row) => `₹ ${Number(row.cost || 0).toLocaleString()}` },
+    { header: 'Actions', render: (row) => (
+      <button 
+        onClick={() => handleDelete(row.id)} 
+        style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
+        title="Delete Product"
+      >
+        <Trash2 size={16} />
+      </button>
+    )}
   ];
 
   if (isFormOpen) {

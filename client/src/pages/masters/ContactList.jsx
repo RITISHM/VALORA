@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Trash2 } from 'lucide-react';
 import DataTable from '../../components/DataTable';
 import FormShell from '../../components/FormShell';
 import { api } from '../../api';
@@ -27,11 +28,31 @@ export default function ContactList() {
   const handleSave = async () => {
     if (!formData.name) return alert('Name is required');
     setIsSaving(true);
-    await api.createContact(formData);
-    setIsSaving(false);
-    setIsFormOpen(false);
-    setFormData({ name: '', type: 'Customer', email: '', mobile: '', city: '', state: '' });
-    loadContacts();
+    try {
+      const newContact = await api.createContact(formData);
+      setContacts(prev => [...prev, newContact]);
+      setIsFormOpen(false);
+      setFormData({ name: '', type: 'Customer', email: '', mobile: '', city: '', state: '' });
+    } catch (err) {
+      alert(err.message || 'Failed to save contact');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this contact?')) {
+      const previousContacts = [...contacts];
+      // Optimistically remove from UI
+      setContacts(prev => prev.filter(c => c.id !== id));
+      try {
+        await api.deleteContact(id);
+      } catch (err) {
+        // Rollback on error
+        setContacts(previousContacts);
+        alert(err.message || 'Failed to delete contact');
+      }
+    }
   };
 
   const columns = [
@@ -45,7 +66,16 @@ export default function ContactList() {
     )},
     { header: 'Email', accessor: 'email' },
     { header: 'Mobile', accessor: 'mobile' },
-    { header: 'Location', render: (row) => `${row.city}, ${row.state}` }
+    { header: 'Location', render: (row) => `${row.city || ''} ${row.state ? ', ' + row.state : ''}` },
+    { header: 'Actions', render: (row) => (
+      <button 
+        onClick={() => handleDelete(row.id)} 
+        style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
+        title="Delete Contact"
+      >
+        <Trash2 size={16} />
+      </button>
+    )}
   ];
 
   if (isFormOpen) {
