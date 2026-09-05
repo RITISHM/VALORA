@@ -20,42 +20,50 @@ export default function Layout() {
         {/* Sidebar Navigation */}
         <aside className="sidebar">
           <div className="sidebar-header">
-            <Link to="/dashboard">
+            <Link to="/dashboard" className="sidebar-logo-link">
               <Hexagon size={28} className="sidebar-logo-icon" />
+              <span className="sidebar-brand-name">VALORA</span>
             </Link>
           </div>
-        <nav className="sidebar-nav">
+          <nav className="sidebar-nav">
             <NavLink to="/dashboard" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Dashboard">
-              <LayoutDashboard size={20} />
+              <LayoutDashboard size={20} className="nav-icon" />
+              <span className="nav-label">Dashboard</span>
             </NavLink>
             
             {userRole !== 'contact' && (
               <>
                 <NavLink to="/contacts" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Contacts">
-                  <Users size={20} />
+                  <Users size={20} className="nav-icon" />
+                  <span className="nav-label">Contacts</span>
                 </NavLink>
                 
                 <NavLink to="/products" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Products">
-                  <Package size={20} />
+                  <Package size={20} className="nav-icon" />
+                  <span className="nav-label">Products</span>
                 </NavLink>
                 
                 <NavLink to="/journals" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Journals">
-                  <FileText size={20} />
+                  <FileText size={20} className="nav-icon" />
+                  <span className="nav-label">Journals</span>
                 </NavLink>
                 
                 <NavLink to="/reports/balance-sheet" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Balance Sheet">
-                  <BarChart3 size={20} />
+                  <BarChart3 size={20} className="nav-icon" />
+                  <span className="nav-label">Balance Sheet</span>
                 </NavLink>
                 
                 <NavLink to="/reports/pnl" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Profit & Loss">
-                  <BarChart3 size={20} />
+                  <BarChart3 size={20} className="nav-icon" />
+                  <span className="nav-label">Profit & Loss</span>
                 </NavLink>
               </>
             )}
           </nav>
           <div className="sidebar-footer">
             <button className="logout-btn" onClick={handleLogout} title="Logout">
-              <LogOut size={20} />
+              <LogOut size={20} className="nav-icon" />
+              <span className="nav-label">Logout</span>
             </button>
           </div>
         </aside>
