@@ -6,11 +6,11 @@ import '../../styles/dashboard.css';
 export default function VendorProductForm() {
   const [formData, setFormData] = useState({
     name: '',
-    category_id: '1',
+    category: 'Furniture',
     description: '',
     sales_price: '',
     cost_price: '',
-    type: 'PRODUCT',
+    type: 'GOODS',
     image: ''
   });
   const [loading, setLoading] = useState(false);
@@ -26,10 +26,11 @@ export default function VendorProductForm() {
     try {
       const token = localStorage.getItem('valora_token');
       const payload = {
-        ...formData,
-        category_id: parseInt(formData.category_id),
+        name: formData.name,
+        category: formData.category,
         sales_price: parseFloat(formData.sales_price),
-        cost_price: formData.cost_price ? parseFloat(formData.cost_price) : 0,
+        cost: formData.cost_price ? parseFloat(formData.cost_price) : 0,
+        type: formData.type
       };
 
       const res = await fetch(`${BACKEND_URL}/products`, {
@@ -44,15 +45,16 @@ export default function VendorProductForm() {
       if (res.ok) {
         setSuccess(true);
         setFormData({
-          name: '', category_id: '1', description: '', sales_price: '', cost_price: '', type: 'PRODUCT', image: ''
+          name: '', category: 'Furniture', description: '', sales_price: '', cost_price: '', type: 'GOODS', image: ''
         });
         setTimeout(() => setSuccess(false), 3000);
       } else {
-        alert('Failed to upload product. Check permissions.');
+        const errText = await res.text();
+        alert(`Failed to upload product. Error: ${errText}`);
       }
     } catch (err) {
       console.error(err);
-      alert('Error uploading product');
+      alert(`Error uploading product: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -99,15 +101,18 @@ export default function VendorProductForm() {
 
           <div style={{ display: 'flex', gap: '20px' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Category ID</label>
-              <input 
-                type="number" 
-                name="category_id" 
-                value={formData.category_id} 
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Category</label>
+              <select 
+                name="category" 
+                value={formData.category} 
                 onChange={handleChange} 
                 required 
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none' }} 
-              />
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none', backgroundColor: 'white' }} 
+              >
+                <option value="Furniture">Furniture</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Accessories">Accessories</option>
+              </select>
             </div>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Selling Price (₹)</label>
