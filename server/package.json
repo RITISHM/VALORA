@@ -19,6 +19,7 @@
     "express": "^5.2.1",
     "joi": "^18.2.8",
     "jsonwebtoken": "^9.0.3",
+    "razorpay": "^2.9.8",
     "zod": "^4.5.4"
   },
   "devDependencies": {

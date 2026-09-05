@@ -93,6 +93,17 @@ class PortalController {
       next(err);
     }
   }
+
+  async createRazorpayOrder(req, res, next) {
+    try {
+      const contactId = req.user.contact_id;
+      const { id } = req.params;
+      const orderData = await portalService.createRazorpayOrder(contactId, id);
+      return res.status(200).json(orderData);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new PortalController();

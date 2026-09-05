@@ -245,6 +245,41 @@ class PortalService {
 
     return invoice;
   }
+  async createRazorpayOrder(contactId, invoiceId) {
+    const invoice = await this.getInvoiceByIdForContact(contactId, invoiceId);
+
+    if (invoice.status === 'PAID') {
+      const error = new Error('Invoice is already paid');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      const error = new Error('Razorpay keys not configured on server');
+      error.statusCode = 500;
+      throw error;
+    }
+
+    const Razorpay = require('razorpay');
+    const instance = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+
+    const amountInPaise = Math.round(invoice.total * 100);
+
+    const order = await instance.orders.create({
+      amount: amountInPaise,
+      currency: 'INR',
+      receipt: `rcpt_inv_${invoice.id}`,
+    });
+
+    return {
+      order_id: order.id,
+      key_id: process.env.RAZORPAY_KEY_ID,
+      amount: amountInPaise,
+    };
+  }
 }
 
 module.exports = new PortalService();

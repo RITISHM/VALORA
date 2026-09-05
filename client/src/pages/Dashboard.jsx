@@ -253,12 +253,12 @@ function UserDashboard({ user }) {
   };
 
   /**
-   * Initiates invoice payment via Razorpay demo UI, then calls backend portal settlement endpoint.
+   * Initiates invoice payment via real Razorpay API
    */
   const handlePay = async (invoiceId, total) => {
     try {
       setPayingId(invoiceId);
-      
+
       const resLoad = await loadRazorpayScript();
       if (!resLoad) {
         alert('Razorpay SDK failed to load. Are you online?');
@@ -266,17 +266,34 @@ function UserDashboard({ user }) {
         return;
       }
 
-      // We use a dummy test key for the demo presentation.
-      // In a real environment, you'd fetch an Order ID from the backend.
+      // 1. Fetch Order ID from backend
+      const orderRes = await fetch(`${BACKEND_URL}/portal/invoices/${invoiceId}/razorpay-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!orderRes.ok) {
+        const errText = await orderRes.text();
+        alert(`Failed to create Razorpay order: ${errText}`);
+        setPayingId(null);
+        return;
+      }
+
+      const orderData = await orderRes.json();
+
+      // 2. Open Razorpay Checkout
       const options = {
-        key: 'rzp_test_TYrv3gI5U5nKRs', // Demo / Test Key
-        amount: total * 100, // Razorpay works in subunits (paise)
+        key: orderData.key_id, 
+        amount: orderData.amount, 
         currency: 'INR',
         name: 'Valora ERP',
         description: `Payment for Invoice #${invoiceId}`,
         image: 'https://cdn-icons-png.flaticon.com/512/2953/2953363.png',
+        order_id: orderData.order_id,
         handler: async function (response) {
-          // Razorpay Success Callback!
           try {
             const res = await fetch(`${BACKEND_URL}/portal/invoices/${invoiceId}/pay`, {
               method: 'POST',
@@ -284,7 +301,13 @@ function UserDashboard({ user }) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
               },
-              body: JSON.stringify({ method: 'BANK', amount: total })
+              body: JSON.stringify({ 
+                method: 'BANK', 
+                amount: total, 
+                payment_id: response.razorpay_payment_id,
+                order_id: response.razorpay_order_id,
+                signature: response.razorpay_signature
+              })
             });
             if (res.ok) {
               await fetchData();
@@ -303,11 +326,8 @@ function UserDashboard({ user }) {
           email: user?.email || 'customer@valora.com',
           contact: '9999999999'
         },
-        notes: {
-          address: 'Valora Corporate Office'
-        },
         theme: {
-          color: '#017E84' // Valora's primary color
+          color: '#017E84'
         }
       };
 
