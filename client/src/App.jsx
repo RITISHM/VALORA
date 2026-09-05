@@ -7,6 +7,9 @@ import Dashboard from './pages/Dashboard.jsx';
 import Layout from './components/Layout.jsx';
 import ContactList from './pages/masters/ContactList.jsx';
 import ProductList from './pages/masters/ProductList.jsx';
+import CustomerMarketplace from './pages/portal/CustomerMarketplace.jsx';
+import VendorProductForm from './pages/portal/VendorProductForm.jsx';
+import CartCheckout from './pages/portal/CartCheckout.jsx';
 import ChartOfAccounts from './pages/masters/ChartOfAccounts.jsx';
 import JournalEntries from './pages/accounting/JournalEntries.jsx';
 import BalanceSheet from './pages/reports/BalanceSheet.jsx';
@@ -29,6 +32,9 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/contacts" element={<ContactList />} />
           <Route path="/products" element={<ProductList />} />
+          <Route path="/portal/customer" element={<CustomerMarketplace />} />
+          <Route path="/portal/vendor" element={<VendorProductForm />} />
+          <Route path="/portal/cart" element={<CartCheckout />} />
           <Route path="/accounts" element={<ChartOfAccounts />} />
           <Route path="/journals" element={<JournalEntries />} />
           <Route path="/reports/balance-sheet" element={<BalanceSheet />} />

@@ -248,7 +248,7 @@ function UserDashboard({ user }) {
   return (
     <div className="dashboard-container">
       <div className="dashboard-greeting">
-        <h1>Hi, {user?.name || 'User'} 👋</h1>
+        <h1>Heyy {user?.name || 'User'} Welcome to Valora 👋</h1>
       </div>
 
       <div className="dashboard-grid">

@@ -220,6 +220,31 @@ class PortalService {
 
     return await vendorBillsService.pay(billId, { method, amount: payAmount });
   }
+
+  async checkout(contactId, { items }) {
+    if (!items || items.length === 0) {
+      const error = new Error('Cart is empty');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Prepare lines for invoice
+    const lines = items.map(item => ({
+      product_id: item.product_id,
+      qty: item.quantity,
+      unit_price: item.price,
+      tax_rate: 0 
+    }));
+
+    // Create a new Customer Invoice as DRAFT (or CONFIRMED). We'll create as DRAFT so they can pay it.
+    const invoice = await invoicesService.create({
+      customer_id: contactId,
+      invoice_date: new Date(),
+      lines
+    });
+
+    return invoice;
+  }
 }
 
 module.exports = new PortalService();

@@ -83,6 +83,16 @@ class PortalController {
       next(err);
     }
   }
+
+  async checkout(req, res, next) {
+    try {
+      const contactId = req.user.contact_id;
+      const result = await portalService.checkout(contactId, req.body);
+      return res.status(201).json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new PortalController();

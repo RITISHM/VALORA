@@ -1,10 +1,12 @@
 import React from 'react';
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Package, FileText, BarChart3, LogOut, Hexagon, Search, Bell, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, Package, FileText, BarChart3, LogOut, Hexagon, Search, Bell, Settings, Store, ShoppingBag, ShoppingCart } from 'lucide-react';
 import '../styles/layout.css';
+import { useCartStore } from '../store/useCartStore';
 
 export default function Layout() {
   const navigate = useNavigate();
+  const cartItemCount = useCartStore((state) => state.getItemCount());
 
   const userStr = localStorage.getItem('valora_user');
   const user = userStr ? JSON.parse(userStr) : null;
@@ -59,6 +61,32 @@ export default function Layout() {
                 </NavLink>
               </>
             )}
+
+            {userRole === 'contact' && (
+              <>
+                <NavLink to="/portal/customer" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Customer">
+                  <ShoppingBag size={20} className="nav-icon" />
+                  <span className="nav-label">Customer</span>
+                </NavLink>
+
+                <NavLink to="/portal/vendor" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Vendor">
+                  <Store size={20} className="nav-icon" />
+                  <span className="nav-label">Vendor</span>
+                </NavLink>
+
+                <NavLink to="/portal/cart" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Cart">
+                  <div style={{ position: 'relative' }}>
+                    <ShoppingCart size={20} className="nav-icon" />
+                    {cartItemCount > 0 && (
+                      <span style={{ position: 'absolute', top: '-5px', right: '-10px', background: '#DC2626', color: 'white', borderRadius: '50%', padding: '2px 6px', fontSize: '10px', fontWeight: 'bold' }}>
+                        {cartItemCount}
+                      </span>
+                    )}
+                  </div>
+                  <span className="nav-label">Cart</span>
+                </NavLink>
+              </>
+            )}
           </nav>
           <div className="sidebar-footer">
             <button className="logout-btn" onClick={handleLogout} title="Logout">
@@ -80,6 +108,17 @@ export default function Layout() {
                 <Search size={16} color="#9CA3AF" />
                 <input type="text" placeholder="Search..." />
               </div>
+
+              {userRole === 'contact' && (
+                <Link to="/portal/cart" style={{ color: 'inherit', display: 'flex', position: 'relative', marginRight: '10px' }}>
+                  <ShoppingCart size={20} className="header-icon" />
+                  {cartItemCount > 0 && (
+                    <span style={{ position: 'absolute', top: '-8px', right: '-8px', background: '#DC2626', color: 'white', borderRadius: '50%', padding: '2px 6px', fontSize: '10px', fontWeight: 'bold' }}>
+                      {cartItemCount}
+                    </span>
+                  )}
+                </Link>
+              )}
               
               <Link to="/notifications" style={{ color: 'inherit', display: 'flex' }}>
                 <Bell size={20} className="header-icon" />
