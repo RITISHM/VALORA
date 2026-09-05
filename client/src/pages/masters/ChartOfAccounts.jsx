@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import DataTable from '../../components/DataTable';
 import { api } from '../../api';
 
@@ -24,6 +25,7 @@ export const inferReportCategory = (type = '') => {
 };
 
 export default function ChartOfAccounts() {
+  const location = useLocation();
   const [accounts, setAccounts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,7 +50,11 @@ export default function ChartOfAccounts() {
 
   useEffect(() => {
     loadAccounts();
-  }, []);
+    const queryParams = new URLSearchParams(location.search);
+    if (queryParams.get('new') === 'true' || location.pathname.endsWith('/new')) {
+      setIsModalOpen(true);
+    }
+  }, [location]);
 
   const handleSave = async (e) => {
     if (e) e.preventDefault();

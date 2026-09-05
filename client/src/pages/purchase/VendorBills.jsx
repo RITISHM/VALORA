@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, CheckCircle, DollarSign, PieChart, ShoppingCart, AlertTriangle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import DataTable from '../../components/DataTable';
 import { api } from '../../api';
 
 export default function VendorBills() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [bills, setBills] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [products, setProducts] = useState([]);
@@ -61,7 +62,11 @@ export default function VendorBills() {
 
   useEffect(() => {
     loadData();
-  }, []);
+    const queryParams = new URLSearchParams(location.search);
+    if (queryParams.get('new') === 'true' || location.pathname.endsWith('/new')) {
+      setIsFormOpen(true);
+    }
+  }, [location]);
 
   const calculateTotal = () => {
     return formData.lines.reduce((sum, line) => sum + (Number(line.quantity) * Number(line.unitPrice) || 0), 0);

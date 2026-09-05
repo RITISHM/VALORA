@@ -67,11 +67,15 @@ export default function App() {
 
           {/* Sales Tab */}
           <Route path="/sales-orders" element={<SalesOrders />} />
+          <Route path="/sales-orders/new" element={<SalesOrders />} />
           <Route path="/customer-invoices" element={<CustomerInvoices />} />
+          <Route path="/customer-invoices/new" element={<CustomerInvoices />} />
 
           {/* Purchase Tab */}
           <Route path="/purchase-orders" element={<PurchaseOrders />} />
+          <Route path="/purchase-orders/new" element={<PurchaseOrders />} />
           <Route path="/vendor-bills" element={<VendorBills />} />
+          <Route path="/vendor-bills/new" element={<VendorBills />} />
 
           {/* Payments & Receipts */}
           <Route path="/payments" element={<Payments />} />
@@ -87,8 +91,10 @@ export default function App() {
           <Route path="/analytic-accounts" element={<AnalyticAccounts />} />
           <Route path="/budgets" element={<Budgets />} />
           <Route path="/accounts" element={<ChartOfAccounts />} />
+          <Route path="/accounts/new" element={<ChartOfAccounts />} />
           <Route path="/journals" element={<Journals />} />
           <Route path="/journal-entries" element={<JournalEntries />} />
+          <Route path="/journal-entries/new" element={<JournalEntries />} />
 
           {/* Reports Tab */}
           <Route path="/reports/balance-sheet" element={<BalanceSheet />} />

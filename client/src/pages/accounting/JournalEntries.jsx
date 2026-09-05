@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import DataTable from '../../components/DataTable';
 import { api } from '../../api';
 
@@ -20,6 +21,8 @@ import { api } from '../../api';
  * @returns {JSX.Element} The rendered Journal Entries table interface.
  */
 export default function JournalEntries() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [entries, setEntries] = useState([]);
   const [journals, setJournals] = useState([]);
   const [accounts, setAccounts] = useState([]);
@@ -64,7 +67,11 @@ export default function JournalEntries() {
 
   useEffect(() => {
     loadData();
-  }, []);
+    const queryParams = new URLSearchParams(location.search);
+    if (queryParams.get('new') === 'true' || location.pathname.endsWith('/new')) {
+      setIsFormOpen(true);
+    }
+  }, [location]);
 
   const handleAddLine = () => {
     setFormData(prev => ({

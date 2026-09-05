@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, CheckCircle, DollarSign, PieChart, FileText } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import DataTable from '../../components/DataTable';
 import { api } from '../../api';
 
 export default function CustomerInvoices() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [invoices, setInvoices] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [products, setProducts] = useState([]);
@@ -15,7 +16,7 @@ export default function CustomerInvoices() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
-  
+
   // Payment Modal state
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [paymentData, setPaymentData] = useState({
@@ -60,7 +61,11 @@ export default function CustomerInvoices() {
 
   useEffect(() => {
     loadData();
-  }, []);
+    const queryParams = new URLSearchParams(location.search);
+    if (queryParams.get('new') === 'true' || location.pathname.endsWith('/new')) {
+      setIsFormOpen(true);
+    }
+  }, [location]);
 
   const calculateTotal = () => {
     return formData.lines.reduce((sum, line) => sum + (Number(line.quantity) * Number(line.unitPrice) || 0), 0);
