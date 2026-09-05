@@ -1,0 +1,175 @@
+/* client/src/styles/components.css */
+
+/* DataTable Styles */
+.data-table-container {
+  background-color: var(--valora-surface);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--valora-border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-toolbar {
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--valora-border);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background-color: var(--valora-bg);
+  border: 1px solid var(--valora-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  width: 300px;
+  gap: 8px;
+}
+
+.search-box input {
+  border: none;
+  background: none;
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--valora-text-main);
+}
+
+.search-box .search-icon {
+  color: var(--valora-text-muted);
+}
+
+.valora-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.valora-table th,
+.valora-table td {
+  padding: 16px 24px;
+  text-align: left;
+  border-bottom: 1px solid var(--valora-border);
+}
+
+.valora-table th {
+  font-weight: 600;
+  color: var(--valora-text-muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: #FAFAFA;
+}
+
+.valora-table tbody tr:hover {
+  background-color: rgba(113, 75, 103, 0.02);
+}
+
+.valora-table td {
+  font-size: 0.95rem;
+  color: var(--valora-text-main);
+}
+
+.no-data {
+  padding: 48px;
+  text-align: center;
+  color: var(--valora-text-muted);
+}
+
+/* FormShell Styles */
+.form-shell {
+  background-color: var(--valora-surface);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--valora-border);
+  overflow: hidden;
+  max-width: 800px;
+}
+
+.form-shell-header {
+  padding: 24px;
+  border-bottom: 1px solid var(--valora-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form-shell-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--valora-text-main);
+}
+
+.form-shell-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-shell-footer {
+  padding: 16px 24px;
+  background-color: #FAFAFA;
+  border-top: 1px solid var(--valora-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.secondary-btn {
+  background-color: var(--valora-surface);
+  color: var(--valora-text-main);
+  border: 1px solid var(--valora-border);
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.secondary-btn:hover {
+  background-color: var(--valora-bg);
+  border-color: #bbb;
+}
+
+/* Common form fields inside FormShell */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--valora-text-main);
+}
+
+.form-field input, .form-field select {
+  padding: 10px 12px;
+  border: 1px solid var(--valora-border);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-field input:focus, .form-field select:focus {
+  border-color: var(--valora-primary);
+  box-shadow: 0 0 0 2px var(--valora-primary-light);
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-row > .form-field {
+  flex: 1;
+}

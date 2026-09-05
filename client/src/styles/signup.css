@@ -1,0 +1,35 @@
+@import './login.css';
+
+.signup-container {
+  max-width: 500px;
+}
+
+.input-row {
+  display: flex;
+  gap: 16px;
+}
+
+.input-row > .input-group {
+  flex: 1;
+}
+
+.radio-group {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--valora-text-main);
+}
+
+.field-error {
+  font-size: 0.75rem;
+  color: var(--valora-error);
+  margin-top: 4px;
+}

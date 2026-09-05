@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Hexagon } from 'lucide-react';
 import '../styles/login.css';
 
@@ -10,6 +11,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -36,6 +38,7 @@ export default function Login() {
       // Mock validation logic: assume "admin" / "password" works, else throw exact spec error
       if (formData.loginId === 'admin' && formData.password === 'password') {
         alert('Login successful! (Routing to dashboard...)');
+        // navigate('/dashboard'); // Uncomment when dashboard is ready
       } else {
         setError('Invalid Login Id or Password');
       }
@@ -148,7 +151,7 @@ export default function Login() {
             <div className="form-footer">
               <a href="#forgot" className="footer-link">Forgot Password</a>
               <span className="divider">|</span>
-              <a href="#signup" className="footer-link">Sign Up</a>
+              <Link to="/signup" className="footer-link">Sign Up</Link>
             </div>
 
           </form>

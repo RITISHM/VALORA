@@ -30,6 +30,10 @@
 .login-brand-panel {
   flex: 1;
   background-color: var(--valora-primary);
+  background-image: linear-gradient(rgba(113, 75, 103, 0.75), rgba(90, 58, 82, 0.85)), url('../assets/login-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: multiply;
   color: #FFFFFF;
   display: flex;
   align-items: center;
