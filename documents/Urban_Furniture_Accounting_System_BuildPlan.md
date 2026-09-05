@@ -17,7 +17,7 @@ Build an accounting system for **Urban Furniture** that supports:
 |---|---|
 | **Admin** (Business Owner) | Create/Modify/Archive master data, record transactions, view all reports — full access |
 | **Invoicing User** (Accountant) | Create master data, record transactions, view reports, manage journal entries |
-| **Contact User** (Customer/Vendor portal login) | View **only their own** invoices/bills, and make payments against dues |
+| **Contact User** (Customer/Vendor portal login)  |
 | **System** | Validates data, computes taxes, updates ledgers, auto-generates journal entries & reports |
 
 > Note: the mockup's "Create User" screen has a **User / Administrator** radio toggle — treat "User" as the Accountant role and "Administrator" as Admin for the login system. Contact-portal login is a separate, lighter-weight auth path scoped to one contact record.
