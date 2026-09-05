@@ -11,7 +11,7 @@ export default function BudgetReport() {
       setIsLoading(true);
       try {
         const data = await api.getBudgetReport();
-        setReportData(Array.isArray(data) ? data : []);
+        setReportData(data && Array.isArray(data.lines) ? data.lines : []);
       } catch (err) {
         console.error('Failed to load budget report:', err);
       } finally {
@@ -53,10 +53,10 @@ export default function BudgetReport() {
             <tbody>
               {reportData.length > 0 ? (
                 reportData.map((item, idx) => {
-                  const planned = Number(item.planned_amount || item.budget || 25000);
-                  const committed = Number(item.committed_amount || item.committed || 8000);
-                  const achieved = Number(item.achieved_amount || item.achieved || 5000);
-                  const remaining = planned - committed - achieved;
+                  const planned = Number(item.allowed_amount || 0);
+                  const achieved = Number(item.committed_amount || 0);
+                  const committed = 0; // Purchase orders logic not fully implemented yet, use achieved for actuals
+                  const remaining = planned - achieved;
                   const isExceeded = remaining < 0;
 
                   return (

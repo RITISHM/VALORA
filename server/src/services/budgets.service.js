@@ -7,8 +7,8 @@ class BudgetsService {
     const formattedLines = (budget.budget_lines || []).map((line) => {
       const committed = line.committed_amount || 0;
       const allowed = line.allowed_amount || 0;
-      const allowed_pct = committed > 0 ? Math.round((allowed / committed) * 10000) / 100 : 0;
-      const amount_to_attain = Math.round((committed - allowed) * 100) / 100;
+      const allowed_pct = allowed > 0 ? Math.round((committed / allowed) * 10000) / 100 : 0;
+      const amount_to_attain = Math.round((allowed - committed) * 100) / 100;
 
       return {
         ...line,

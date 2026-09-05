@@ -6,28 +6,32 @@ import { api } from '../../api';
 export default function Budgets() {
   const [budgets, setBudgets] = useState([]);
   const [analyticAccounts, setAnalyticAccounts] = useState([]);
+  const [contacts, setContacts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
-    start_date: new Date().toISOString().split('T')[0],
-    end_date: new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0],
+    responsible_contact_id: '',
+    period_start: new Date().toISOString().split('T')[0],
+    period_end: new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0],
     lines: [
-      { analytic_account_id: '', planned_amount: 10000 }
+      { analytic_account_id: '', allowed_amount: 10000 }
     ]
   });
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [bData, aData] = await Promise.all([
+      const [bData, aData, cData] = await Promise.all([
         api.getBudgets(),
-        api.getAnalyticAccounts()
+        api.getAnalyticAccounts(),
+        api.getContacts()
       ]);
       setBudgets(bData);
       setAnalyticAccounts(aData);
+      setContacts(cData);
     } catch (err) {
       console.error('Failed to load budgets:', err);
     } finally {
@@ -41,13 +45,14 @@ export default function Budgets() {
 
   const handleSave = async () => {
     if (!formData.name) return alert('Budget Name is required');
+    if (!formData.responsible_contact_id) return alert('Responsible Contact is required');
     setIsSaving(true);
     try {
       await api.createBudget({
         ...formData,
         lines: formData.lines.map(l => ({
           analytic_account_id: l.analytic_account_id,
-          planned_amount: Number(l.planned_amount)
+          allowed_amount: Number(l.allowed_amount)
         }))
       });
       await loadData();
@@ -63,16 +68,17 @@ export default function Budgets() {
     setIsFormOpen(false);
     setFormData({
       name: '',
-      start_date: new Date().toISOString().split('T')[0],
-      end_date: new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0],
-      lines: [{ analytic_account_id: '', planned_amount: 10000 }]
+      responsible_contact_id: '',
+      period_start: new Date().toISOString().split('T')[0],
+      period_end: new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0],
+      lines: [{ analytic_account_id: '', allowed_amount: 10000 }]
     });
   };
 
   const columns = [
     { header: 'Budget Name', accessor: 'name', render: (row) => <strong>{row.name}</strong> },
-    { header: 'Start Date', render: (row) => new Date(row.start_date).toLocaleDateString() },
-    { header: 'End Date', render: (row) => new Date(row.end_date).toLocaleDateString() },
+    { header: 'Start Date', render: (row) => new Date(row.period_start).toLocaleDateString() },
+    { header: 'End Date', render: (row) => new Date(row.period_end).toLocaleDateString() },
     { header: 'Status', render: (row) => (
       <span style={{
         padding: '4px 10px',
@@ -101,15 +107,22 @@ export default function Budgets() {
               <label>Budget Name *</label>
               <input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="E.g. Q3 Furniture Procurement" required />
             </div>
+            <div className="form-field">
+              <label>Responsible Contact *</label>
+              <select value={formData.responsible_contact_id} onChange={e => setFormData({...formData, responsible_contact_id: e.target.value})} required>
+                <option value="">-- Select Contact --</option>
+                {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
           </div>
           <div className="form-row">
             <div className="form-field">
               <label>Start Date</label>
-              <input type="date" value={formData.start_date} onChange={e => setFormData({...formData, start_date: e.target.value})} />
+              <input type="date" value={formData.period_start} onChange={e => setFormData({...formData, period_start: e.target.value})} />
             </div>
             <div className="form-field">
               <label>End Date</label>
-              <input type="date" value={formData.end_date} onChange={e => setFormData({...formData, end_date: e.target.value})} />
+              <input type="date" value={formData.period_end} onChange={e => setFormData({...formData, period_end: e.target.value})} />
             </div>
           </div>
 
@@ -129,9 +142,9 @@ export default function Budgets() {
               </div>
               <div className="form-field">
                 <label>Planned Budget Amount (₹)</label>
-                <input type="number" value={line.planned_amount} onChange={e => {
+                <input type="number" value={line.allowed_amount} onChange={e => {
                   const newLines = [...formData.lines];
-                  newLines[idx].planned_amount = e.target.value;
+                  newLines[idx].allowed_amount = e.target.value;
                   setFormData({...formData, lines: newLines});
                 }} />
               </div>
