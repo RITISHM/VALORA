@@ -33,7 +33,7 @@ export default function ProductList() {
   const [editingId, setEditingId] = useState(null);
 
   const [formData, setFormData] = useState({
-    name: '', type: 'Goods', category: '', salesPrice: '', cost: ''
+    name: '', type: 'GOODS', category: '', salesPrice: '', cost: ''
   });
 
   /**
@@ -46,9 +46,15 @@ export default function ProductList() {
    */
   const loadProducts = async () => {
     setIsLoading(true);
-    const data = await api.getProducts();
-    setProducts(data);
-    setIsLoading(false);
+    try {
+      const data = await api.getProducts();
+      setProducts(data || []);
+    } catch (err) {
+      console.error('Failed to load products:', err);
+      setProducts([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -104,7 +110,7 @@ export default function ProductList() {
   const handleEdit = (row) => {
     setFormData({
       name: row.name || '',
-      type: row.type || 'Goods',
+      type: row.type || 'GOODS',
       category: row.category || '',
       salesPrice: row.sales_price || '',
       cost: row.cost || ''
@@ -193,9 +199,9 @@ export default function ProductList() {
             <div className="form-field">
               <label>Type</label>
               <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}>
-                <option>Goods</option>
-                <option>Service</option>
-                <option>Combo</option>
+                <option value="GOODS">Goods</option>
+                <option value="SERVICE">Service</option>
+                <option value="COMBO">Combo</option>
               </select>
             </div>
           </div>
