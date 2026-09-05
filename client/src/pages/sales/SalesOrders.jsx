@@ -202,7 +202,12 @@ export default function SalesOrders() {
   ];
 
   if (isFormOpen) {
+    const userStr = localStorage.getItem('valora_user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const isAccountant = user?.role?.toLowerCase() === 'accountant';
+
     const isConfirmed = selectedOrder?.status === 'CONFIRMED' || selectedOrder?.status === 'INVOICED';
+    const isReadOnly = isConfirmed || (isAccountant && Boolean(selectedOrder));
 
     return (
       <div className="page-content" style={{ maxWidth: '1000px', margin: '0 auto' }}>
@@ -254,7 +259,7 @@ export default function SalesOrders() {
                 type="text" 
                 value={formData.orderNumber} 
                 onChange={e => setFormData({...formData, orderNumber: e.target.value})} 
-                disabled={isConfirmed}
+                disabled={isReadOnly}
               />
             </div>
             <div className="form-field">
@@ -262,7 +267,7 @@ export default function SalesOrders() {
               <select 
                 value={formData.customerId} 
                 onChange={e => setFormData({...formData, customerId: e.target.value})}
-                disabled={isConfirmed}
+                disabled={isReadOnly}
                 required
               >
                 <option value="">-- Select Customer --</option>
@@ -277,7 +282,7 @@ export default function SalesOrders() {
                 type="date" 
                 value={formData.soDate} 
                 onChange={e => setFormData({...formData, soDate: e.target.value})}
-                disabled={isConfirmed}
+                disabled={isReadOnly}
               />
             </div>
           </div>
@@ -293,7 +298,7 @@ export default function SalesOrders() {
                 <th style={{ textAlign: 'right' }}>Qty</th>
                 <th style={{ textAlign: 'right' }}>Unit Price (₹)</th>
                 <th style={{ textAlign: 'right' }}>Total (₹)</th>
-                {!isConfirmed && <th style={{ width: '40px' }}></th>}
+                {!isReadOnly && <th style={{ width: '40px' }}></th>}
               </tr>
             </thead>
             <tbody>
@@ -306,7 +311,7 @@ export default function SalesOrders() {
                       <select 
                         value={line.productId} 
                         onChange={e => handleLineChange(idx, 'productId', e.target.value)}
-                        disabled={isConfirmed}
+                        disabled={isReadOnly}
                         style={{ width: '100%', padding: '6px', borderRadius: '6px', border: '1px solid #CBD5E1' }}
                       >
                         <option value="">-- Select Product --</option>
@@ -319,7 +324,7 @@ export default function SalesOrders() {
                       <select 
                         value={line.analyticAccountId} 
                         onChange={e => handleLineChange(idx, 'analyticAccountId', e.target.value)}
-                        disabled={isConfirmed}
+                        disabled={isReadOnly}
                         style={{ width: '100%', padding: '6px', borderRadius: '6px', border: '1px solid #CBD5E1' }}
                       >
                         <option value="">-- Select Analytics --</option>
@@ -334,7 +339,7 @@ export default function SalesOrders() {
                         min="1"
                         value={line.quantity} 
                         onChange={e => handleLineChange(idx, 'quantity', e.target.value)}
-                        disabled={isConfirmed}
+                        disabled={isReadOnly}
                         style={{ width: '70px', textAlign: 'right', padding: '6px', borderRadius: '6px', border: '1px solid #CBD5E1' }}
                       />
                     </td>
@@ -343,14 +348,14 @@ export default function SalesOrders() {
                         type="number" 
                         value={line.unitPrice} 
                         onChange={e => handleLineChange(idx, 'unitPrice', e.target.value)}
-                        disabled={isConfirmed}
+                        disabled={isReadOnly}
                         style={{ width: '100px', textAlign: 'right', padding: '6px', borderRadius: '6px', border: '1px solid #CBD5E1' }}
                       />
                     </td>
                     <td style={{ textAlign: 'right', fontWeight: '700' }}>
                       ₹ {lineTotal.toLocaleString()}
                     </td>
-                    {!isConfirmed && (
+                    {!isReadOnly && (
                       <td style={{ textAlign: 'center' }}>
                         <button 
                           type="button"
@@ -369,12 +374,12 @@ export default function SalesOrders() {
               <tr style={{ fontWeight: '800', fontSize: '1.1rem', background: '#F8FAFC' }}>
                 <td colSpan={5} style={{ textAlign: 'right' }}>Grand Total:</td>
                 <td style={{ textAlign: 'right', color: '#2563EB' }}>₹ {calculateTotal().toLocaleString()}</td>
-                {!isConfirmed && <td></td>}
+                {!isReadOnly && <td></td>}
               </tr>
             </tfoot>
           </table>
 
-          {!isConfirmed && (
+          {!isReadOnly && (
             <button 
               type="button" 
               className="secondary-btn" 

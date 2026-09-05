@@ -96,6 +96,9 @@ class AnalyticAccountsController {
       const updated = await analyticAccountsService.update(id, parseResult.data);
       return res.status(200).json(updated);
     } catch (err) {
+      if (err.statusCode) {
+        return res.status(err.statusCode).json({ error: err.message });
+      }
       next(err);
     }
   }
@@ -110,6 +113,12 @@ class AnalyticAccountsController {
       await analyticAccountsService.delete(id);
       return res.status(200).json({ message: "Analytic account deleted successfully" });
     } catch (err) {
+      if (err.statusCode) {
+        return res.status(err.statusCode).json({ error: err.message });
+      }
+      if (err.message && err.message.includes("referenced")) {
+        return res.status(400).json({ error: err.message });
+      }
       next(err);
     }
   }

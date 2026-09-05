@@ -234,7 +234,12 @@ export default function PurchaseOrders() {
   ];
 
   if (isFormOpen) {
+    const userStr = localStorage.getItem('valora_user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const isAccountant = user?.role?.toLowerCase() === 'accountant';
+
     const isConfirmed = selectedOrder?.status === 'CONFIRMED' || selectedOrder?.status === 'BILLED';
+    const isReadOnly = isConfirmed || (isAccountant && Boolean(selectedOrder));
 
     return (
       <div className="page-content" style={{ maxWidth: '1000px', margin: '0 auto' }}>
@@ -305,18 +310,18 @@ export default function PurchaseOrders() {
           <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '24px' }}>
             <div className="form-field">
               <label style={{ fontWeight: '600', fontSize: '0.85rem' }}>PO No.</label>
-              <input type="text" value={formData.orderNumber} onChange={e => setFormData({...formData, orderNumber: e.target.value})} disabled={isConfirmed} />
+              <input type="text" value={formData.orderNumber} onChange={e => setFormData({...formData, orderNumber: e.target.value})} disabled={isReadOnly} />
             </div>
             <div className="form-field">
               <label style={{ fontWeight: '600', fontSize: '0.85rem' }}>Vendor Name (Contact Master) *</label>
-              <select value={formData.vendorId} onChange={e => setFormData({...formData, vendorId: e.target.value})} disabled={isConfirmed} required>
+              <select value={formData.vendorId} onChange={e => setFormData({...formData, vendorId: e.target.value})} disabled={isReadOnly} required>
                 <option value="">-- Select Vendor --</option>
                 {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div className="form-field">
               <label style={{ fontWeight: '600', fontSize: '0.85rem' }}>PO Date</label>
-              <input type="date" value={formData.poDate} onChange={e => setFormData({...formData, poDate: e.target.value})} disabled={isConfirmed} />
+              <input type="date" value={formData.poDate} onChange={e => setFormData({...formData, poDate: e.target.value})} disabled={isReadOnly} />
             </div>
           </div>
 
@@ -331,7 +336,7 @@ export default function PurchaseOrders() {
                 <th style={{ textAlign: 'right' }}>Qty</th>
                 <th style={{ textAlign: 'right' }}>Unit Price (₹)</th>
                 <th style={{ textAlign: 'right' }}>Total (₹)</th>
-                {!isConfirmed && <th style={{ width: '40px' }}></th>}
+                {!isReadOnly && <th style={{ width: '40px' }}></th>}
               </tr>
             </thead>
             <tbody>
@@ -341,25 +346,25 @@ export default function PurchaseOrders() {
                   <tr key={idx}>
                     <td>{idx + 1}</td>
                     <td>
-                      <select value={line.productId} onChange={e => handleLineChange(idx, 'productId', e.target.value)} disabled={isConfirmed} style={{ width: '100%', padding: '6px', borderRadius: '6px', border: '1px solid #CBD5E1' }}>
+                      <select value={line.productId} onChange={e => handleLineChange(idx, 'productId', e.target.value)} disabled={isReadOnly} style={{ width: '100%', padding: '6px', borderRadius: '6px', border: '1px solid #CBD5E1' }}>
                         <option value="">-- Select Product --</option>
                         {products.map(p => <option key={p.id} value={p.id}>{p.name} (Cost: ₹ {p.cost})</option>)}
                       </select>
                     </td>
                     <td>
-                      <select value={line.analyticAccountId} onChange={e => handleLineChange(idx, 'analyticAccountId', e.target.value)} disabled={isConfirmed} style={{ width: '100%', padding: '6px', borderRadius: '6px', border: '1px solid #CBD5E1' }}>
+                      <select value={line.analyticAccountId} onChange={e => handleLineChange(idx, 'analyticAccountId', e.target.value)} disabled={isReadOnly} style={{ width: '100%', padding: '6px', borderRadius: '6px', border: '1px solid #CBD5E1' }}>
                         <option value="">-- Select Analytics --</option>
                         {analyticAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                       </select>
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <input type="number" min="1" value={line.quantity} onChange={e => handleLineChange(idx, 'quantity', e.target.value)} disabled={isConfirmed} style={{ width: '70px', textAlign: 'right', padding: '6px', borderRadius: '6px', border: '1px solid #CBD5E1' }} />
+                      <input type="number" min="1" value={line.quantity} onChange={e => handleLineChange(idx, 'quantity', e.target.value)} disabled={isReadOnly} style={{ width: '70px', textAlign: 'right', padding: '6px', borderRadius: '6px', border: '1px solid #CBD5E1' }} />
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <input type="number" value={line.unitPrice} onChange={e => handleLineChange(idx, 'unitPrice', e.target.value)} disabled={isConfirmed} style={{ width: '100px', textAlign: 'right', padding: '6px', borderRadius: '6px', border: '1px solid #CBD5E1' }} />
+                      <input type="number" value={line.unitPrice} onChange={e => handleLineChange(idx, 'unitPrice', e.target.value)} disabled={isReadOnly} style={{ width: '100px', textAlign: 'right', padding: '6px', borderRadius: '6px', border: '1px solid #CBD5E1' }} />
                     </td>
                     <td style={{ textAlign: 'right', fontWeight: '700' }}>₹ {lineTotal.toLocaleString()}</td>
-                    {!isConfirmed && (
+                    {!isReadOnly && (
                       <td style={{ textAlign: 'center' }}>
                         <button type="button" onClick={() => handleRemoveLine(idx)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
                       </td>
@@ -372,12 +377,12 @@ export default function PurchaseOrders() {
               <tr style={{ fontWeight: '800', fontSize: '1.1rem', background: '#F8FAFC' }}>
                 <td colSpan={5} style={{ textAlign: 'right' }}>Grand Total:</td>
                 <td style={{ textAlign: 'right', color: '#2563EB' }}>₹ {calculateTotal().toLocaleString()}</td>
-                {!isConfirmed && <td></td>}
+                {!isReadOnly && <td></td>}
               </tr>
             </tfoot>
           </table>
 
-          {!isConfirmed && (
+          {!isReadOnly && (
             <button type="button" className="secondary-btn" onClick={handleAddLine} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Plus size={16} /> Add Product Line</button>
           )}
         </div>

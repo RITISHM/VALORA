@@ -218,8 +218,13 @@ export default function VendorBills() {
   ];
 
   if (isFormOpen) {
+    const userStr = localStorage.getItem('valora_user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const isAccountant = user?.role?.toLowerCase() === 'accountant';
+
     const isPosted = selectedBill?.status === 'CONFIRMED' || selectedBill?.status === 'POSTED';
     const isPaid = selectedBill?.status === 'PAID';
+    const isReadOnly = isPosted || isPaid || (isAccountant && Boolean(selectedBill));
     const paidAmount = isPaid ? (selectedBill?.total || calculateTotal()) : 0;
     const amountDue = (selectedBill?.total || calculateTotal()) - paidAmount;
 
@@ -314,18 +319,18 @@ export default function VendorBills() {
             </div>
             <div className="form-field">
               <label style={{ fontWeight: '600', fontSize: '0.85rem' }}>Vendor Name *</label>
-              <select value={formData.vendorId} disabled={isPosted || isPaid} onChange={e => setFormData({...formData, vendorId: e.target.value})}>
+              <select value={formData.vendorId} disabled={isReadOnly} onChange={e => setFormData({...formData, vendorId: e.target.value})}>
                 <option value="">-- Select Vendor --</option>
                 {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div className="form-field">
               <label style={{ fontWeight: '600', fontSize: '0.85rem' }}>Bill Reference</label>
-              <input type="text" value={formData.billReference} disabled={isPosted || isPaid} onChange={e => setFormData({...formData, billReference: e.target.value})} placeholder="Alpha-numeric (Text)" />
+              <input type="text" value={formData.billReference} disabled={isReadOnly} onChange={e => setFormData({...formData, billReference: e.target.value})} placeholder="Alpha-numeric (Text)" />
             </div>
             <div className="form-field">
               <label style={{ fontWeight: '600', fontSize: '0.85rem' }}>Bill Date</label>
-              <input type="date" value={formData.billDate} disabled={isPosted || isPaid} onChange={e => setFormData({...formData, billDate: e.target.value})} />
+              <input type="date" value={formData.billDate} disabled={isReadOnly} onChange={e => setFormData({...formData, billDate: e.target.value})} />
             </div>
           </div>
 
@@ -345,7 +350,7 @@ export default function VendorBills() {
               {formData.lines.map((line, idx) => (
                 <tr key={idx}>
                   <td>
-                    <select value={line.productId} disabled={isPosted || isPaid} onChange={e => {
+                    <select value={line.productId} disabled={isReadOnly} onChange={e => {
                       const newLines = [...formData.lines];
                       newLines[idx].productId = e.target.value;
                       const prod = products.find(p => p.id === e.target.value);
@@ -357,7 +362,7 @@ export default function VendorBills() {
                     </select>
                   </td>
                   <td>
-                    <select value={line.accountId} disabled={isPosted || isPaid} onChange={e => {
+                    <select value={line.accountId} disabled={isReadOnly} onChange={e => {
                       const newLines = [...formData.lines];
                       newLines[idx].accountId = e.target.value;
                       setFormData({...formData, lines: newLines});
@@ -367,7 +372,7 @@ export default function VendorBills() {
                     </select>
                   </td>
                   <td>
-                    <select value={line.analyticAccountId} disabled={isPosted || isPaid} onChange={e => {
+                    <select value={line.analyticAccountId} disabled={isReadOnly} onChange={e => {
                       const newLines = [...formData.lines];
                       newLines[idx].analyticAccountId = e.target.value;
                       setFormData({...formData, lines: newLines});

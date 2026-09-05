@@ -1,3 +1,11 @@
+/**
+ * @file ContactList.jsx
+ * @description Master data view for managing business contacts (Vendors and Customers) and system users.
+ * Provides full CRUD capabilities: list view with filtering via DataTable,
+ * inline modal/shell creation, record editing, and optimistic deletion.
+ * @module pages/masters/ContactList
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Trash2, Pencil, Users, Building2 } from 'lucide-react';
 import DataTable from '../../components/DataTable';
@@ -5,6 +13,10 @@ import FormShell from '../../components/FormShell';
 import { api, BACKEND_URL } from '../../api';
 
 export default function ContactList() {
+  const userStr = localStorage.getItem('valora_user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isAccountant = user?.role?.toLowerCase() === 'accountant';
+
   const [contacts, setContacts] = useState([]);
   const [users, setUsers] = useState([]);
   
@@ -180,24 +192,26 @@ export default function ContactList() {
     { header: 'Email', accessor: 'email' },
     { header: 'Mobile', accessor: 'mobile' },
     { header: 'Location', render: (row) => `${row.city || ''} ${row.state ? ', ' + row.state : ''}` },
-    { header: 'Actions', render: (row) => (
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <button 
-          onClick={() => handleEditContact(row)} 
-          style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
-          title="Edit Contact"
-        >
-          <Pencil size={16} />
-        </button>
-        <button 
-          onClick={() => handleDeleteContact(row.id)} 
-          style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
-          title="Delete Contact"
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
-    )}
+    ...(!isAccountant ? [{
+      header: 'Actions', render: (row) => (
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            onClick={() => handleEditContact(row)} 
+            style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
+            title="Edit Contact"
+          >
+            <Pencil size={16} />
+          </button>
+          <button 
+            onClick={() => handleDeleteContact(row.id)} 
+            style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
+            title="Delete Contact"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      )
+    }] : [])
   ];
 
   const userColumns = [
@@ -352,7 +366,7 @@ export default function ContactList() {
   return (
     <div className="page-content" style={{ padding: 0 }}>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', paddingBottom: '16px', marginBottom: '24px' }}>
-        <h1 className="page-title">Users</h1>
+        <h1 className="page-title">Contacts & Users</h1>
         <div style={{ display: 'flex', gap: '12px' }}>
           <button className="submit-btn" onClick={() => setIsUserFormOpen(true)} style={{ width: 'auto', padding: '10px 16px', borderRadius: '8px', backgroundColor: 'var(--valora-text-main)' }}>
             + Add User
@@ -363,12 +377,46 @@ export default function ContactList() {
       {isLoading ? (
         <div style={{ padding: '40px', textAlign: 'center', color: '#6B7280' }}>Loading data...</div>
       ) : (
-        <DataTable 
-          title="User" 
-          columns={userColumns} 
-          data={users} 
-          searchPlaceholder="Search users..."
-        />
+        <>
+          <DataTable 
+            title="Contact" 
+            columns={contactColumns} 
+            data={contacts} 
+            onNewClick={() => setIsFormOpen(true)} 
+            searchPlaceholder="Search contacts..."
+            enableKanban={true}
+            renderKanbanCard={(item) => (
+              <div style={{ padding: '16px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <div style={{ width: '64px', height: '64px', borderRadius: '8px', backgroundColor: 'var(--valora-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--valora-primary)', fontSize: '1.5rem', fontWeight: 'bold' }}>
+                  {item.name ? item.name.charAt(0).toUpperCase() : '?'}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: 'var(--valora-text-main)' }}>{item.name}</h4>
+                    {!isAccountant && (
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <button onClick={() => handleEditContact(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-primary)' }}><Pencil size={14}/></button>
+                        <button onClick={() => handleDeleteContact(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-error)' }}><Trash2 size={14}/></button>
+                      </div>
+                    )}
+                  </div>
+                  <p style={{ margin: '0 0 2px 0', fontSize: '0.85rem', color: 'var(--valora-text-muted)' }}>{item.email || 'No email'}</p>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--valora-text-muted)' }}>{item.mobile || 'No mobile'}</p>
+                </div>
+              </div>
+            )}
+          />
+
+          <div style={{ marginTop: '40px' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '16px' }}>System Users</h3>
+            <DataTable 
+              title="User" 
+              columns={userColumns} 
+              data={users} 
+              searchPlaceholder="Search users..."
+            />
+          </div>
+        </>
       )}
     </div>
   );

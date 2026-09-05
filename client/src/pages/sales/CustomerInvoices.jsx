@@ -207,8 +207,13 @@ export default function CustomerInvoices() {
   ];
 
   if (isFormOpen) {
+    const userStr = localStorage.getItem('valora_user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const isAccountant = user?.role?.toLowerCase() === 'accountant';
+
     const isPosted = selectedInvoice?.status === 'CONFIRMED' || selectedInvoice?.status === 'POSTED';
     const isPaid = selectedInvoice?.status === 'PAID';
+    const isReadOnly = isPosted || isPaid || (isAccountant && Boolean(selectedInvoice));
     const paidAmount = isPaid ? (selectedInvoice?.total || calculateTotal()) : 0;
     const amountDue = (selectedInvoice?.total || calculateTotal()) - paidAmount;
 
@@ -280,18 +285,18 @@ export default function CustomerInvoices() {
             </div>
             <div className="form-field">
               <label style={{ fontWeight: '600', fontSize: '0.85rem' }}>Customer Name *</label>
-              <select value={formData.customerId} disabled={isPosted || isPaid} onChange={e => setFormData({...formData, customerId: e.target.value})}>
+              <select value={formData.customerId} disabled={isReadOnly} onChange={e => setFormData({...formData, customerId: e.target.value})}>
                 <option value="">-- Select Customer --</option>
                 {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div className="form-field">
               <label style={{ fontWeight: '600', fontSize: '0.85rem' }}>Invoice Reference</label>
-              <input type="text" value={formData.invoiceReference} disabled={isPosted || isPaid} onChange={e => setFormData({...formData, invoiceReference: e.target.value})} placeholder="Alpha-numeric Text" />
+              <input type="text" value={formData.invoiceReference} disabled={isReadOnly} onChange={e => setFormData({...formData, invoiceReference: e.target.value})} placeholder="Alpha-numeric Text" />
             </div>
             <div className="form-field">
               <label style={{ fontWeight: '600', fontSize: '0.85rem' }}>Invoice Date</label>
-              <input type="date" value={formData.invoiceDate} disabled={isPosted || isPaid} onChange={e => setFormData({...formData, invoiceDate: e.target.value})} />
+              <input type="date" value={formData.invoiceDate} disabled={isReadOnly} onChange={e => setFormData({...formData, invoiceDate: e.target.value})} />
             </div>
           </div>
 
@@ -311,7 +316,7 @@ export default function CustomerInvoices() {
               {formData.lines.map((line, idx) => (
                 <tr key={idx}>
                   <td>
-                    <select value={line.productId} disabled={isPosted || isPaid} onChange={e => {
+                    <select value={line.productId} disabled={isReadOnly} onChange={e => {
                       const newLines = [...formData.lines];
                       newLines[idx].productId = e.target.value;
                       const prod = products.find(p => p.id === e.target.value);
@@ -323,7 +328,7 @@ export default function CustomerInvoices() {
                     </select>
                   </td>
                   <td>
-                    <select value={line.accountId} disabled={isPosted || isPaid} onChange={e => {
+                    <select value={line.accountId} disabled={isReadOnly} onChange={e => {
                       const newLines = [...formData.lines];
                       newLines[idx].accountId = e.target.value;
                       setFormData({...formData, lines: newLines});
@@ -333,7 +338,7 @@ export default function CustomerInvoices() {
                     </select>
                   </td>
                   <td>
-                    <select value={line.analyticAccountId} disabled={isPosted || isPaid} onChange={e => {
+                    <select value={line.analyticAccountId} disabled={isReadOnly} onChange={e => {
                       const newLines = [...formData.lines];
                       newLines[idx].analyticAccountId = e.target.value;
                       setFormData({...formData, lines: newLines});

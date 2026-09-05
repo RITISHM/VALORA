@@ -22,6 +22,10 @@ import { api } from '../../api';
  * @returns {JSX.Element} The rendered ProductList master interface.
  */
 export default function ProductList() {
+  const userStr = localStorage.getItem('valora_user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isAccountant = user?.role?.toLowerCase() === 'accountant';
+
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -150,24 +154,26 @@ export default function ProductList() {
     { header: 'Category', accessor: 'category' },
     { header: 'Sales Price', render: (row) => `₹ ${Number(row.sales_price || 0).toLocaleString()}` },
     { header: 'Cost', render: (row) => `₹ ${Number(row.cost || 0).toLocaleString()}` },
-    { header: 'Actions', render: (row) => (
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <button 
-          onClick={() => handleEdit(row)} 
-          style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
-          title="Edit Product"
-        >
-          <Pencil size={16} />
-        </button>
-        <button 
-          onClick={() => handleDelete(row.id)} 
-          style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
-          title="Delete Product"
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
-    )}
+    ...(!isAccountant ? [{
+      header: 'Actions', render: (row) => (
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            onClick={() => handleEdit(row)} 
+            style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
+            title="Edit Product"
+          >
+            <Pencil size={16} />
+          </button>
+          <button 
+            onClick={() => handleDelete(row.id)} 
+            style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
+            title="Delete Product"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      )
+    }] : [])
   ];
 
   if (isFormOpen) {
@@ -237,10 +243,12 @@ export default function ProductList() {
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: 'var(--valora-text-main)' }}>{item.name}</h4>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    <button onClick={() => handleEdit(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-primary)' }}><Pencil size={14}/></button>
-                    <button onClick={() => handleDelete(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-error)' }}><Trash2 size={14}/></button>
-                  </div>
+                  {!isAccountant && (
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button onClick={() => handleEdit(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-primary)' }}><Pencil size={14}/></button>
+                      <button onClick={() => handleDelete(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-error)' }}><Trash2 size={14}/></button>
+                    </div>
+                  )}
                 </div>
                 <p style={{ margin: '0 0 2px 0', fontSize: '0.85rem', color: 'var(--valora-text-muted)' }}>
                   Sales Price ₹{Number(item.sales_price || 0).toLocaleString()}

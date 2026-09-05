@@ -28,6 +28,16 @@ class AnalyticAccountsService {
   }
 
   async update(id, { name, type }) {
+    const existing = await prisma.analyticAccount.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      const err = new Error("Analytic account not found");
+      err.statusCode = 404;
+      throw err;
+    }
+
     const trimmedName = name.trim();
     const upperType = type.toUpperCase();
 
