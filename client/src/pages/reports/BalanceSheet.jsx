@@ -6,15 +6,15 @@
  * @module pages/reports/BalanceSheet
  */
 
-import React, { useState, useEffect } from 'react';
-import { api } from '../../api';
+import React, { useState, useEffect } from "react";
+import { api } from "../../api";
 
 /**
  * BalanceSheet Component
- * 
+ *
  * Renders the Balance Sheet financial report for a selected fiscal year.
  * Displays Assets, Liabilities, and Capital sections, calculating totals and verifying balance equilibrium.
- * 
+ *
  * @component
  * @returns {JSX.Element} The rendered Balance Sheet report page.
  */
@@ -29,7 +29,7 @@ export default function BalanceSheet() {
 
   /**
    * Fetches the balance sheet report data for the currently selected fiscal year.
-   * 
+   *
    * @async
    * @function loadReport
    * @returns {Promise<void>} Resolves when the report state is populated.
@@ -40,7 +40,7 @@ export default function BalanceSheet() {
       const data = await api.getBalanceSheet(year);
       setReport(data);
     } catch (error) {
-      console.error('Failed to load balance sheet:', error);
+      console.error("Failed to load balance sheet:", error);
     } finally {
       setIsLoading(false);
     }
@@ -48,7 +48,7 @@ export default function BalanceSheet() {
 
   /**
    * Triggers the native browser print dialog to print or export the statement as PDF.
-   * 
+   *
    * @function handlePrint
    * @returns {void}
    */
@@ -56,93 +56,189 @@ export default function BalanceSheet() {
     window.print();
   };
 
-  const years = Array.from({length: 5}, (_, i) => new Date().getFullYear() - i);
+  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
   if (isLoading && !report) return <div className="page-content">Loading...</div>;
   if (!report) return <div className="page-content">No data available.</div>;
 
+  const liabilityItems = [...report.capital.items, ...report.liabilities.items];
+  const maxRows = Math.max(report.assets.items.length, liabilityItems.length);
+  const rows = [];
+
+  for (let i = 0; i < maxRows; i++) {
+    rows.push({
+      asset: report.assets.items[i] || null,
+      liability: liabilityItems[i] || null,
+    });
+  }
+
   return (
     <div className="page-content">
-      <div className="page-header">
-        <h1 className="page-title">Balance Sheet</h1>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <select 
-            value={year} 
+      <div
+        className="page-header"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "24px",
+        }}
+      >
+        <button className="secondary-btn" onClick={() => window.history.back()}>
+          Back
+        </button>
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <select
+            value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--valora-border)' }}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "6px",
+              border: "1px solid var(--valora-border)",
+              backgroundColor: "var(--valora-surface)",
+              fontSize: "1rem",
+            }}
           >
-            {years.map(y => <option key={y} value={y}>{y}</option>)}
+            {years.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
           </select>
-          <button className="primary-btn" onClick={handlePrint}>Print</button>
         </div>
-      </div>
-      
-      <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-        {/* Assets Column */}
-        <div style={{ flex: 1, minWidth: '300px', backgroundColor: 'var(--valora-surface)', padding: '24px', borderRadius: '8px', border: '1px solid var(--valora-border)' }}>
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '16px', borderBottom: '1px solid var(--valora-border)', paddingBottom: '8px' }}>Assets</h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <tbody>
-              {report.assets.items.map(item => (
-                <tr key={item.id}>
-                  <td style={{ padding: '8px 0' }}>{item.name}</td>
-                  <td style={{ padding: '8px 0', textAlign: 'right' }}>₹ {item.balance.toLocaleString()}</td>
-                </tr>
-              ))}
-              {report.assets.items.length === 0 && <tr><td colSpan="2" style={{ color: 'var(--valora-text-muted)' }}>No asset accounts with balance.</td></tr>}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td style={{ fontWeight: 'bold', paddingTop: '16px', borderTop: '2px solid var(--valora-border)' }}>Total Assets</td>
-                <td style={{ fontWeight: 'bold', paddingTop: '16px', borderTop: '2px solid var(--valora-border)', textAlign: 'right' }}>
-                  ₹ {report.total_assets.toLocaleString()}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-
-        {/* Liabilities & Capital Column */}
-        <div style={{ flex: 1, minWidth: '300px', backgroundColor: 'var(--valora-surface)', padding: '24px', borderRadius: '8px', border: '1px solid var(--valora-border)' }}>
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '16px', borderBottom: '1px solid var(--valora-border)', paddingBottom: '8px' }}>Liabilities</h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px' }}>
-            <tbody>
-              {report.liabilities.items.map(item => (
-                <tr key={item.id}>
-                  <td style={{ padding: '8px 0' }}>{item.name}</td>
-                  <td style={{ padding: '8px 0', textAlign: 'right' }}>₹ {item.balance.toLocaleString()}</td>
-                </tr>
-              ))}
-              {report.liabilities.items.length === 0 && <tr><td colSpan="2" style={{ color: 'var(--valora-text-muted)' }}>No liability accounts with balance.</td></tr>}
-            </tbody>
-          </table>
-
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '16px', borderBottom: '1px solid var(--valora-border)', paddingBottom: '8px' }}>Capital</h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <tbody>
-              {report.capital.items.map(item => (
-                <tr key={item.id}>
-                  <td style={{ padding: '8px 0' }}>{item.name}</td>
-                  <td style={{ padding: '8px 0', textAlign: 'right' }}>₹ {item.balance.toLocaleString()}</td>
-                </tr>
-              ))}
-              {report.capital.items.length === 0 && <tr><td colSpan="2" style={{ color: 'var(--valora-text-muted)' }}>No capital accounts with balance.</td></tr>}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td style={{ fontWeight: 'bold', paddingTop: '16px', borderTop: '2px solid var(--valora-border)' }}>Total Liabilities & Capital</td>
-                <td style={{ fontWeight: 'bold', paddingTop: '16px', borderTop: '2px solid var(--valora-border)', textAlign: 'right' }}>
-                  ₹ {report.total_liabilities_and_capital.toLocaleString()}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+        <button
+          className="primary-btn"
+          onClick={handlePrint}
+          style={{ backgroundColor: "var(--valora-primary)", color: "#fff" }}
+        >
+          Print
+        </button>
       </div>
 
-      <div style={{ marginTop: '24px', padding: '16px', backgroundColor: report.is_balanced ? 'rgba(25, 135, 84, 0.1)' : 'rgba(220, 53, 69, 0.1)', color: report.is_balanced ? 'var(--valora-success)' : 'var(--valora-error)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 'bold' }}>
-        <span>{report.is_balanced ? 'Balance Sheet is balanced' : 'Balance Sheet is not balanced'}</span>
-        <span>Difference: ₹ {Math.abs(report.total_assets - report.total_liabilities_and_capital).toLocaleString()}</span>
+      <div
+        style={{
+          backgroundColor: "var(--valora-surface)",
+          padding: "24px",
+          borderRadius: "12px",
+          border: "1px solid var(--valora-border)",
+        }}
+      >
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            border: "1px solid var(--valora-border)",
+          }}
+        >
+          <thead>
+            <tr style={{ backgroundColor: "rgba(0,0,0,0.02)" }}>
+              <th
+                style={{
+                  borderBottom: "1px solid var(--valora-border)",
+                  borderRight: "1px solid var(--valora-border)",
+                  padding: "12px",
+                  textAlign: "center",
+                  width: "50%",
+                }}
+              >
+                Assets
+              </th>
+              <th
+                style={{
+                  borderBottom: "1px solid var(--valora-border)",
+                  padding: "12px",
+                  textAlign: "center",
+                  width: "50%",
+                }}
+              >
+                Liabilities
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, idx) => (
+              <tr key={idx} style={{ borderBottom: "1px solid var(--valora-border)" }}>
+                {/* Asset Cell */}
+                <td style={{ borderRight: "1px solid var(--valora-border)", padding: "12px" }}>
+                  {row.asset ? (
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>{row.asset.name}</span>
+                      <span>Rs. {row.asset.balance.toLocaleString()}</span>
+                    </div>
+                  ) : null}
+                </td>
+                {/* Liability Cell */}
+                <td style={{ padding: "12px" }}>
+                  {row.liability ? (
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>{row.liability.name}</span>
+                      <span>Rs. {row.liability.balance.toLocaleString()}</span>
+                    </div>
+                  ) : null}
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 && (
+              <tr>
+                <td
+                  colSpan="2"
+                  style={{
+                    padding: "12px",
+                    textAlign: "center",
+                    color: "var(--valora-text-muted)",
+                  }}
+                >
+                  No data available
+                </td>
+              </tr>
+            )}
+          </tbody>
+          <tfoot>
+            <tr style={{ backgroundColor: "rgba(0,0,0,0.02)" }}>
+              <td
+                style={{
+                  borderRight: "1px solid var(--valora-border)",
+                  padding: "12px",
+                  fontWeight: "bold",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>Total Asset</span>
+                  <span>Rs. {report.total_assets.toLocaleString()}</span>
+                </div>
+              </td>
+              <td style={{ padding: "12px", fontWeight: "bold" }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>Total Liability</span>
+                  <span>Rs. {report.total_liabilities_and_capital.toLocaleString()}</span>
+                </div>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div
+          style={{
+            marginTop: "24px",
+            padding: "16px",
+            backgroundColor: report.is_balanced
+              ? "rgba(25, 135, 84, 0.1)"
+              : "rgba(220, 53, 69, 0.1)",
+            color: report.is_balanced ? "var(--valora-success)" : "var(--valora-error)",
+            borderRadius: "8px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontWeight: "bold",
+          }}
+        >
+          <span>
+            {report.is_balanced ? "Balance Sheet is balanced" : "Balance Sheet is not balanced"}
+          </span>
+          <span>
+            Difference: Rs.{" "}
+            {Math.abs(report.total_assets - report.total_liabilities_and_capital).toLocaleString()}
+          </span>
+        </div>
       </div>
     </div>
   );
