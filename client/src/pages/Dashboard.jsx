@@ -2,11 +2,11 @@ import React from 'react';
 import { Network, Activity, Sunrise, MoreHorizontal, FileText, ArrowRight } from 'lucide-react';
 import '../styles/dashboard.css';
 
-export default function Dashboard() {
+function AdminDashboard() {
   return (
     <div className="dashboard-container">
       <div className="dashboard-greeting">
-        <h1>Hi, Admin User 👋</h1>
+        <h1>Hi, Admin 👋</h1>
       </div>
 
       <div className="dashboard-grid">
@@ -25,7 +25,6 @@ export default function Dashboard() {
           </div>
 
           <div className="transaction-cards">
-            {/* Card 1 */}
             <div className="transaction-card">
               <div className="card-graphic bg-mint">
                 <Network size={40} strokeWidth={1} color="#017E84" />
@@ -44,7 +43,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Card 2 */}
             <div className="transaction-card">
               <div className="card-graphic bg-purple">
                 <Activity size={40} strokeWidth={1} color="#714B67" />
@@ -62,7 +60,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Card 3 */}
             <div className="transaction-card">
               <div className="card-graphic bg-peach">
                 <Sunrise size={40} strokeWidth={1} color="#D46243" />
@@ -162,9 +159,91 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-          
         </div>
       </div>
     </div>
   );
+}
+
+function UserDashboard({ user }) {
+  return (
+    <div className="dashboard-container">
+      <div className="dashboard-greeting">
+        <h1>Hi, {user?.name || 'User'} 👋</h1>
+      </div>
+
+      <div className="dashboard-grid">
+        {/* Left Column (Main content) */}
+        <div className="dashboard-main-col" style={{ flex: 1.5 }}>
+          
+          <div style={{ display: 'flex', gap: '24px', marginBottom: '40px' }}>
+            <div style={{ flex: 1, backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '16px', border: '1px solid #F3F4F6' }}>
+              <span style={{ color: '#6B7280', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Total Due</span>
+              <h2 style={{ fontSize: '2rem', color: '#111116', margin: '8px 0 0 0' }}>₹ 14,500</h2>
+            </div>
+            <div style={{ flex: 1, backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '16px', border: '1px solid #F3F4F6' }}>
+              <span style={{ color: '#6B7280', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Recently Paid</span>
+              <h2 style={{ fontSize: '2rem', color: '#111116', margin: '8px 0 0 0' }}>₹ 3,200</h2>
+            </div>
+          </div>
+
+          <div className="section-header">
+            <h2>My Invoices & Bills</h2>
+            <div className="dashboard-tabs" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none' }}>
+              <span className="tab active">Unpaid</span>
+              <span className="tab">Paid</span>
+            </div>
+          </div>
+
+          <div className="transaction-cards" style={{ marginTop: '24px' }}>
+            <div className="transaction-card">
+              <div className="card-graphic bg-mint" style={{ width: '80px', height: '80px', marginRight: '20px' }}>
+                <FileText size={32} strokeWidth={1} color="#017E84" />
+              </div>
+              <div className="card-content">
+                <h3>Invoice #INV-2026-001</h3>
+                <p style={{ margin: '0 0 8px 0' }}>Purchase of Office Chairs</p>
+                <div className="card-badges">
+                  <span className="badge" style={{ backgroundColor: '#FEE2E2', color: '#DC2626' }}>Unpaid</span>
+                </div>
+              </div>
+              <div className="card-meta" style={{ gap: '16px', alignItems: 'flex-end' }}>
+                <span className="amount" style={{ color: '#111116', fontWeight: '700', fontSize: '1.2rem' }}>₹ 14,500</span>
+                <button className="primary-btn" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>Pay Now</button>
+              </div>
+            </div>
+
+            <div className="transaction-card">
+              <div className="card-graphic bg-purple" style={{ width: '80px', height: '80px', marginRight: '20px' }}>
+                <FileText size={32} strokeWidth={1} color="#714B67" />
+              </div>
+              <div className="card-content">
+                <h3>Invoice #INV-2026-000</h3>
+                <p style={{ margin: '0 0 8px 0' }}>Consulting Services</p>
+                <div className="card-badges">
+                  <span className="badge" style={{ backgroundColor: '#D1FAE5', color: '#059669' }}>Paid</span>
+                </div>
+              </div>
+              <div className="card-meta" style={{ gap: '16px', alignItems: 'flex-end' }}>
+                <span className="amount" style={{ color: '#9CA3AF', fontWeight: '700', fontSize: '1.2rem' }}>₹ 3,200</span>
+                <button className="primary-btn" style={{ padding: '8px 16px', fontSize: '0.85rem', backgroundColor: '#F3F4F6', color: '#6B7280', opacity: 1, cursor: 'not-allowed' }}>Paid</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  const userStr = localStorage.getItem('valora_user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const userRole = user?.role?.toLowerCase() || '';
+
+  if (userRole === 'contact') {
+    return <UserDashboard user={user} />;
+  }
+
+  return <AdminDashboard />;
 }

@@ -67,7 +67,9 @@ export default function Signup() {
         setIsLoading(true);
 
         try {
-            const mappedRole = formData.role === 'Administrator' ? 'ADMIN' : 'ACCOUNTANT';
+            let mappedRole = 'CONTACT'; // Default to User
+            if (formData.role === 'Administrator') mappedRole = 'ADMIN';
+            if (formData.role === 'Accountant') mappedRole = 'ACCOUNTANT';
             
             const response = await fetch(`${BACKEND_URL}/auth/signup`, {
                 method: 'POST',
@@ -209,6 +211,17 @@ export default function Signup() {
                                         disabled={isLoading}
                                     />
                                     <span>User</span>
+                                </label>
+                                <label className="radio-label">
+                                    <input
+                                        type="radio"
+                                        name="role"
+                                        value="Accountant"
+                                        checked={formData.role === 'Accountant'}
+                                        onChange={handleChange}
+                                        disabled={isLoading}
+                                    />
+                                    <span>Accountant</span>
                                 </label>
                                 <label className="radio-label">
                                     <input

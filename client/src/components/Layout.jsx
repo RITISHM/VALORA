@@ -6,6 +6,10 @@ import '../styles/layout.css';
 export default function Layout() {
   const navigate = useNavigate();
 
+  const userStr = localStorage.getItem('valora_user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const userRole = user?.role?.toLowerCase() || '';
+
   const handleLogout = () => {
     navigate('/login');
   };
@@ -21,30 +25,34 @@ export default function Layout() {
             </Link>
           </div>
           
-          <nav className="sidebar-nav">
+        <nav className="sidebar-nav">
             <NavLink to="/dashboard" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Dashboard">
               <LayoutDashboard size={20} />
             </NavLink>
             
-            <NavLink to="/contacts" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Contacts">
-              <Users size={20} />
-            </NavLink>
-            
-            <NavLink to="/products" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Products">
-              <Package size={20} />
-            </NavLink>
-            
-            <NavLink to="/journals" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Journals">
-              <FileText size={20} />
-            </NavLink>
-            
-            <NavLink to="/reports/balance-sheet" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Balance Sheet">
-              <BarChart3 size={20} />
-            </NavLink>
-            
-            <NavLink to="/reports/pnl" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Profit & Loss">
-              <BarChart3 size={20} />
-            </NavLink>
+            {userRole !== 'contact' && (
+              <>
+                <NavLink to="/contacts" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Contacts">
+                  <Users size={20} />
+                </NavLink>
+                
+                <NavLink to="/products" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Products">
+                  <Package size={20} />
+                </NavLink>
+                
+                <NavLink to="/journals" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Journals">
+                  <FileText size={20} />
+                </NavLink>
+                
+                <NavLink to="/reports/balance-sheet" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Balance Sheet">
+                  <BarChart3 size={20} />
+                </NavLink>
+                
+                <NavLink to="/reports/pnl" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Profit & Loss">
+                  <BarChart3 size={20} />
+                </NavLink>
+              </>
+            )}
           </nav>
           
           <div className="sidebar-footer">
