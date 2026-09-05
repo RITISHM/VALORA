@@ -11,7 +11,7 @@ import React, { useState, useEffect } from 'react';
 import {
   ChevronDown, ShoppingBag, ShoppingCart, BookOpen, PieChart, Layers, Tag, DollarSign, ListFilter, Users, Package, FileText, BarChart3, ArrowRight, Network, Activity, Sunrise, Loader2, Eye
 } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useOutletContext } from 'react-router-dom';
 import { BACKEND_URL } from '../api';
 import '../styles/dashboard.css';
 
@@ -303,6 +303,9 @@ function AdminDashboard() {
  */
 function UserDashboard({ user }) {
   const navigate = useNavigate();
+  const context = useOutletContext() || {};
+  const searchQuery = (context.searchQuery || '').toLowerCase();
+  
   const [activeTab, setActiveTab] = useState('Unpaid');
   const [invoices, setInvoices] = useState([]);
   const [outstanding, setOutstanding] = useState({ total_unpaid_invoices: 0, recently_paid: 0 });
@@ -320,7 +323,7 @@ function UserDashboard({ user }) {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       let newOutstanding = { ...outstanding };
       let newInvoices = [...invoices];
       let outSuccess = false;
@@ -369,7 +372,7 @@ function UserDashboard({ user }) {
       // Force offline paid invoices to show as PAID
       const offlinePaid = JSON.parse(localStorage.getItem('offlinePaidInvoices') || '[]');
       let offlinePaidAmount = 0;
-      
+
       newInvoices = newInvoices.map(inv => {
         if (offlinePaid.includes(inv.id) && inv.status !== 'PAID') {
           offlinePaidAmount += inv.total;
@@ -379,13 +382,13 @@ function UserDashboard({ user }) {
       });
 
       setInvoices(newInvoices);
-      
+
       const paidInvoices = newInvoices.filter(i => i.status === 'PAID');
       const paidTotal = paidInvoices.reduce((sum, i) => sum + i.total, 0);
-      
-      setOutstanding({ 
-        total_unpaid_invoices: Math.max(0, newOutstanding.total_unpaid_invoices - offlinePaidAmount), 
-        recently_paid: paidTotal 
+
+      setOutstanding({
+        total_unpaid_invoices: Math.max(0, newOutstanding.total_unpaid_invoices - offlinePaidAmount),
+        recently_paid: paidTotal
       });
 
     } catch (err) {
@@ -418,8 +421,8 @@ function UserDashboard({ user }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ 
-          method: 'CASH', 
+        body: JSON.stringify({
+          method: 'CASH',
           amount: total,
         })
       }).catch(err => {
@@ -427,17 +430,17 @@ function UserDashboard({ user }) {
       });
 
       // Optimistically update the dashboard UI and local storage
-      setInvoices(prev => prev.map(inv => 
+      setInvoices(prev => prev.map(inv =>
         inv.id === invoiceId ? { ...inv, status: 'PAID' } : inv
       ));
-      
+
       // Save to localStorage so InvoiceDetail page knows it was paid even if DB fails
       const offlinePaid = JSON.parse(localStorage.getItem('offlinePaidInvoices') || '[]');
       if (!offlinePaid.includes(invoiceId)) {
         offlinePaid.push(invoiceId);
         localStorage.setItem('offlinePaidInvoices', JSON.stringify(offlinePaid));
       }
-      
+
       // Instantly update the outstanding amounts in the UI
       setOutstanding(prev => ({
         total_unpaid_invoices: Math.max(0, prev.total_unpaid_invoices - total),
@@ -453,11 +456,21 @@ function UserDashboard({ user }) {
     }, 1000);
   };
   const filteredInvoices = invoices.filter(inv => {
+    let matchesTab = false;
     if (activeTab === 'Unpaid') {
-      return inv.status === 'DRAFT' || inv.status === 'CONFIRMED';
+      matchesTab = inv.status === 'DRAFT' || inv.status === 'CONFIRMED';
     } else {
-      return inv.status === 'PAID';
+      matchesTab = inv.status === 'PAID';
     }
+    
+    if (!matchesTab) return false;
+    
+    if (searchQuery) {
+      const invNumber = (inv.invoice_number || '').toLowerCase();
+      return invNumber.includes(searchQuery);
+    }
+    
+    return true;
   });
 
   return (
@@ -470,16 +483,24 @@ function UserDashboard({ user }) {
         <div className="dashboard-main-col" style={{ flex: 1.5 }}>
 
           <div style={{ display: 'flex', gap: '24px', marginBottom: '40px' }}>
-            <div style={{ flex: 1, backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '16px', border: '1px solid #F3F4F6' }}>
-              <span style={{ color: '#6B7280', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Total Due</span>
-              <h2 style={{ fontSize: '2rem', color: '#111116', margin: '8px 0 0 0', display: 'flex', alignItems: 'center', height: '38px' }}>
-                {loading ? <Loader2 size={24} className="spinner" style={{ color: '#017E84', animation: 'spin 1s linear infinite' }} /> : `₹ ${outstanding.total_unpaid_invoices.toLocaleString('en-IN')}`}
+            <div 
+              style={{ flex: 1, backgroundColor: '#FFFFFF', padding: '32px', borderRadius: '24px', border: '1px solid #F3F4F6', boxShadow: '0 20px 25px -5px rgba(113, 75, 103, 0.1), 0 8px 10px -6px rgba(113, 75, 103, 0.05)', transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 25px 30px -5px rgba(113, 75, 103, 0.15), 0 10px 10px -5px rgba(113, 75, 103, 0.1)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(113, 75, 103, 0.1), 0 8px 10px -6px rgba(113, 75, 103, 0.05)'; }}
+            >
+              <span style={{ color: '#714B67', fontSize: '0.9rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Due</span>
+              <h2 style={{ fontSize: '2.5rem', color: '#111116', margin: '8px 0 0 0', display: 'flex', alignItems: 'center', height: '48px', fontWeight: '800' }}>
+                {loading ? <Loader2 size={28} className="spinner" style={{ color: '#714B67', animation: 'spin 1s linear infinite' }} /> : `₹ ${outstanding.total_unpaid_invoices.toLocaleString('en-IN')}`}
               </h2>
             </div>
-            <div style={{ flex: 1, backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '16px', border: '1px solid #F3F4F6' }}>
-              <span style={{ color: '#6B7280', fontSize: '0.9rem', fontWeight: '600', textTransform: 'uppercase' }}>Recently Paid</span>
-              <h2 style={{ fontSize: '2rem', color: '#111116', margin: '8px 0 0 0', display: 'flex', alignItems: 'center', height: '38px' }}>
-                {loading ? <Loader2 size={24} className="spinner" style={{ color: '#017E84', animation: 'spin 1s linear infinite' }} /> : `₹ ${outstanding.recently_paid.toLocaleString('en-IN')}`}
+            <div 
+              style={{ flex: 1, backgroundColor: '#FFFFFF', padding: '32px', borderRadius: '24px', border: '1px solid #F3F4F6', boxShadow: '0 20px 25px -5px rgba(113, 75, 103, 0.1), 0 8px 10px -6px rgba(113, 75, 103, 0.05)', transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 25px 30px -5px rgba(113, 75, 103, 0.15), 0 10px 10px -5px rgba(113, 75, 103, 0.1)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(113, 75, 103, 0.1), 0 8px 10px -6px rgba(113, 75, 103, 0.05)'; }}
+            >
+              <span style={{ color: '#714B67', fontSize: '0.9rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recently Paid</span>
+              <h2 style={{ fontSize: '2.5rem', color: '#111116', margin: '8px 0 0 0', display: 'flex', alignItems: 'center', height: '48px', fontWeight: '800' }}>
+                {loading ? <Loader2 size={28} className="spinner" style={{ color: '#714B67', animation: 'spin 1s linear infinite' }} /> : `₹ ${outstanding.recently_paid.toLocaleString('en-IN')}`}
               </h2>
             </div>
           </div>
@@ -495,7 +516,7 @@ function UserDashboard({ user }) {
           <div className="transaction-cards" style={{ marginTop: '24px' }}>
             {loading ? (
               <div style={{ padding: '40px', display: 'flex', justifyContent: 'center' }}>
-                <Loader2 size={32} className="spinner" style={{ color: '#017E84', animation: 'spin 1s linear infinite' }} />
+                <Loader2 size={32} className="spinner" style={{ color: '#714B67', animation: 'spin 1s linear infinite' }} />
               </div>
             ) : filteredInvoices.length === 0 ? (
               <div style={{ padding: '40px', textAlign: 'center', color: '#6B7280' }}>
@@ -504,8 +525,8 @@ function UserDashboard({ user }) {
             ) : (
               filteredInvoices.map(inv => (
                 <div className="transaction-card" key={inv.id}>
-                  <div className={`card-graphic ${inv.status === 'PAID' ? 'bg-purple' : 'bg-mint'}`} style={{ width: '80px', height: '80px', marginRight: '20px' }}>
-                    <FileText size={32} strokeWidth={1} color={inv.status === 'PAID' ? '#714B67' : '#017E84'} />
+                  <div className={`card-graphic ${inv.status === 'PAID' ? 'bg-mint' : 'bg-purple'}`} style={{ width: '80px', height: '80px', marginRight: '20px' }}>
+                    <FileText size={32} strokeWidth={1} color={inv.status === 'PAID' ? '#059669' : '#714B67'} />
                   </div>
                   <div className="card-content">
                     <h3>Invoice #{inv.invoice_number}</h3>
@@ -523,7 +544,7 @@ function UserDashboard({ user }) {
                       ₹ {inv.total.toLocaleString('en-IN')}
                     </span>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button 
+                      <button
                         onClick={() => navigate(`/portal/invoices/${inv.id}`)}
                         style={{
                           backgroundColor: '#F3F4F6',
@@ -542,23 +563,26 @@ function UserDashboard({ user }) {
                         <Eye size={16} /> View
                       </button>
                       {inv.status !== 'PAID' && (
-                        <button 
+                        <button
                           onClick={() => handlePay(inv.id, inv.total)}
                           disabled={payingId === inv.id}
                           style={{
-                            backgroundColor: '#017E84',
+                            backgroundColor: '#714B67',
                             color: 'white',
                             border: 'none',
-                            padding: '8px 16px',
+                            padding: '8px 20px',
                             borderRadius: '8px',
                             cursor: 'pointer',
                             fontWeight: '600',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            transition: 'opacity 0.2s',
-                            opacity: payingId === inv.id ? 0.7 : 1
+                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            opacity: payingId === inv.id ? 0.7 : 1,
+                            boxShadow: '0 4px 6px -1px rgba(113, 75, 103, 0.3)'
                           }}
+                          onMouseEnter={e => { if(payingId !== inv.id) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(113, 75, 103, 0.4)'; } }}
+                          onMouseLeave={e => { if(payingId !== inv.id) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(113, 75, 103, 0.3)'; } }}
                         >
                           {payingId === inv.id ? <Loader2 size={16} className="spinner" style={{ animation: 'spin 1s linear infinite' }} /> : null}
                           {payingId === inv.id ? 'Processing...' : 'Pay Now'}
@@ -590,15 +614,16 @@ function UserDashboard({ user }) {
             borderRadius: '24px',
             width: '400px',
             textAlign: 'center',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            boxShadow: '0 25px 50px -12px rgba(113, 75, 103, 0.5)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '24px'
+            gap: '24px',
+            border: '2px solid rgba(113, 75, 103, 0.1)'
           }}>
             {mockPaymentStatus === 'processing' ? (
               <>
-                <Loader2 size={64} color="#017E84" style={{ animation: 'spin 1.5s linear infinite' }} />
+                <Loader2 size={64} color="#714B67" style={{ animation: 'spin 1.5s linear infinite' }} />
                 <h2 style={{ margin: 0, color: '#111116' }}>Processing Payment...</h2>
                 <p style={{ margin: 0, color: '#6B7280' }}>Please wait while we securely process your cash transaction.</p>
               </>

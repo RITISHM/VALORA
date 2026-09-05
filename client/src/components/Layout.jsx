@@ -27,6 +27,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const cartItemCount = useCartStore((state) => state.getItemCount ? state.getItemCount() : 0);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const userStr = localStorage.getItem('valora_user');
   const user = userStr ? JSON.parse(userStr) : null;
@@ -164,7 +165,12 @@ export default function Layout() {
             <div className="header-actions">
               <div className="header-search">
                 <Search size={16} color="#9CA3AF" />
-                <input type="text" placeholder="Search..." />
+                <input 
+                  type="text" 
+                  placeholder="Search..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
 
               {userRole === 'contact' && (
@@ -197,7 +203,7 @@ export default function Layout() {
           </header>
 
           <main className="page-content">
-            <Outlet />
+            <Outlet context={{ searchQuery }} />
           </main>
         </div>
       </div>

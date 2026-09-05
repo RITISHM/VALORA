@@ -204,6 +204,8 @@ export default function CustomerInvoices() {
   if (isFormOpen) {
     const isPosted = selectedInvoice?.status === 'CONFIRMED' || selectedInvoice?.status === 'POSTED';
     const isPaid = selectedInvoice?.status === 'PAID';
+    const paidAmount = isPaid ? (selectedInvoice?.total || calculateTotal()) : 0;
+    const amountDue = (selectedInvoice?.total || calculateTotal()) - paidAmount;
 
     return (
       <div className="page-content" style={{ maxWidth: '1000px', margin: '0 auto' }}>
@@ -239,6 +241,16 @@ export default function CustomerInvoices() {
                 style={{ backgroundColor: '#7C3AED', display: 'flex', alignItems: 'center', gap: '6px' }}
               >
                 <DollarSign size={16} /> Pay
+              </button>
+            )}
+            {selectedInvoice && isPaid && (
+              <button 
+                className="primary-btn" 
+                onClick={handleOpenPayModal} 
+                disabled={isSaving}
+                style={{ backgroundColor: '#059669', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <DollarSign size={16} /> View Payment
               </button>
             )}
             {selectedInvoice?.sales_order_id && (
@@ -332,50 +344,155 @@ export default function CustomerInvoices() {
               ))}
             </tbody>
           </table>
+
+          {/* Dynamic Payment Breakdown Box */}
+          <div style={{
+            background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '12px', padding: '16px 24px',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px'
+          }}>
+            <div>
+              <span style={{ fontSize: '0.85rem', color: '#64748B', display: 'block' }}>Paid Via Bank / Cash</span>
+              <strong style={{ fontSize: '1.1rem', color: '#059669' }}>₹ {paidAmount.toLocaleString()}</strong>
+            </div>
+            <div>
+              <span style={{ fontSize: '0.85rem', color: '#64748B', display: 'block' }}>Amount Due (Total - Amount Paid)</span>
+              <strong style={{ fontSize: '1.2rem', color: amountDue > 0 ? '#DC2626' : '#059669' }}>₹ {amountDue.toLocaleString()}</strong>
+            </div>
+          </div>
         </div>
 
         {/* Invoice Payment Modal */}
         {isPayModalOpen && (
           <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+            background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+            backdropFilter: 'blur(4px)'
           }}>
-            <div style={{ background: '#FFFFFF', border: '2px solid #1E293B', borderRadius: '16px', padding: '32px', width: '480px' }}>
-              <h3 style={{ margin: '0 0 20px 0', fontSize: '1.3rem', fontWeight: '800' }}>Invoice Payment (Receive)</h3>
+            <div style={{ background: '#FFFFFF', borderRadius: '16px', width: '800px', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
               
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontWeight: '600', display: 'block', marginBottom: '6px' }}>Payment Type</label>
-                <div style={{ display: 'flex', gap: '16px' }}>
-                  <label><input type="radio" checked readOnly /> Receive</label>
+              {/* Modal Header */}
+              <div style={{ padding: '24px 32px 0 32px' }}>
+                <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '800', color: '#111116' }}>Register Payment</h2>
+              </div>
+
+              {/* Action Bar (Buttons + Status) */}
+              <div style={{ 
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+                padding: '24px 32px', borderBottom: '1px solid #E5E7EB'
+              }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  {!isPaid && (
+                    <button className="primary-btn" onClick={handleConfirmPayment} style={{ backgroundColor: '#714B67', padding: '10px 24px', fontSize: '1rem' }}>
+                      Confirm
+                    </button>
+                  )}
+                  <button className="secondary-btn" onClick={() => setIsPayModalOpen(false)} style={{ padding: '10px 24px', fontSize: '1rem' }}>
+                    {isPaid ? 'Close' : 'Cancel'}
+                  </button>
+                  <button className="secondary-btn" title="Options" style={{ padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex' }}>
+                  {!isPaid ? (
+                    <>
+                      <div style={{ padding: '8px 24px', background: '#F3F4F6', color: '#6B7280', fontWeight: '600', clipPath: 'polygon(0 0, 90% 0, 100% 50%, 90% 100%, 0 100%, 10% 50%)', paddingLeft: '32px' }}>Draft</div>
+                      <div style={{ padding: '8px 24px', background: '#017E84', color: '#FFFFFF', fontWeight: '600', clipPath: 'polygon(0 0, 90% 0, 100% 50%, 90% 100%, 0 100%, 10% 50%)', marginLeft: '-16px', paddingLeft: '32px' }}>Confirm</div>
+                      <div style={{ padding: '8px 24px', background: '#F3F4F6', color: '#6B7280', fontWeight: '600', clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 10% 50%)', marginLeft: '-16px', paddingLeft: '32px' }}>Cancelled</div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ padding: '8px 24px', background: '#059669', color: '#FFFFFF', fontWeight: '600', clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 50%)', paddingLeft: '32px' }}>Confirmed</div>
+                    </>
+                  )}
                 </div>
               </div>
 
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontWeight: '600', display: 'block', marginBottom: '6px' }}>Payment Via</label>
-                <select value={paymentData.payment_via} onChange={e => setPaymentData({...paymentData, payment_via: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px' }}>
-                  <option value="BANK">Bank Account</option>
-                  <option value="CASH">Cash Account</option>
-                </select>
-              </div>
+              {/* Form Content */}
+              <div style={{ padding: '32px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+                
+                {/* Left Column */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <label style={{ width: '140px', fontWeight: '700', color: '#4B5563' }}>Payment Type</label>
+                    <div style={{ display: 'flex', gap: '16px', flex: 1 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'not-allowed', opacity: 0.5 }}>
+                        <input type="radio" disabled /> Send
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', color: '#017E84' }}>
+                        <input type="radio" checked readOnly /> Receive
+                      </label>
+                    </div>
+                  </div>
 
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontWeight: '600', display: 'block', marginBottom: '6px' }}>Payment Date</label>
-                <input type="date" value={paymentData.date} onChange={e => setPaymentData({...paymentData, date: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px' }} />
-              </div>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <label style={{ width: '140px', fontWeight: '700', color: '#4B5563' }}>Partner</label>
+                    <div style={{ flex: 1, borderBottom: '1px solid #D1D5DB', paddingBottom: '4px', fontWeight: '600' }}>
+                      {contacts.find(c => c.id === formData.customerId)?.name || 'Unknown Partner'}
+                    </div>
+                  </div>
 
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontWeight: '600', display: 'block', marginBottom: '6px' }}>Amount (₹)</label>
-                <input type="number" value={paymentData.amount} onChange={e => setPaymentData({...paymentData, amount: Number(e.target.value)})} style={{ width: '100%', padding: '8px', borderRadius: '6px' }} />
-              </div>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <label style={{ width: '140px', fontWeight: '700', color: '#4B5563' }}>Amount</label>
+                    <div style={{ flex: 1, borderBottom: '1px solid #D1D5DB', paddingBottom: '4px', fontWeight: '800', color: '#111116', fontSize: '1.1rem' }}>
+                      <input 
+                        type="number" 
+                        value={paymentData.amount} 
+                        onChange={e => setPaymentData({...paymentData, amount: Number(e.target.value)})}
+                        disabled={isPaid}
+                        style={{ border: 'none', background: 'transparent', width: '100%', fontWeight: 'inherit', fontSize: 'inherit', outline: 'none' }}
+                      />
+                    </div>
+                  </div>
+                </div>
 
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ fontWeight: '600', display: 'block', marginBottom: '6px' }}>Memo / Note</label>
-                <input type="text" value={paymentData.note} onChange={e => setPaymentData({...paymentData, note: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px' }} />
-              </div>
+                {/* Right Column */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <label style={{ width: '140px', fontWeight: '700', color: '#4B5563' }}>Payment Date</label>
+                    <div style={{ flex: 1, borderBottom: '1px solid #D1D5DB', paddingBottom: '4px' }}>
+                      <input 
+                        type="date" 
+                        value={paymentData.date} 
+                        onChange={e => setPaymentData({...paymentData, date: e.target.value})}
+                        disabled={isPaid}
+                        style={{ border: 'none', background: 'transparent', width: '100%', outline: 'none', fontWeight: '600' }}
+                      />
+                    </div>
+                  </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                <button className="secondary-btn" onClick={() => setIsPayModalOpen(false)}>Cancel</button>
-                <button className="primary-btn" onClick={handleConfirmPayment} style={{ backgroundColor: '#059669' }}>Confirm Payment</button>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <label style={{ width: '140px', fontWeight: '700', color: '#4B5563' }}>Payment Via</label>
+                    <div style={{ flex: 1, borderBottom: '1px solid #D1D5DB', paddingBottom: '4px' }}>
+                      <select 
+                        value={paymentData.payment_via} 
+                        onChange={e => setPaymentData({...paymentData, payment_via: e.target.value})}
+                        disabled={isPaid}
+                        style={{ border: 'none', background: 'transparent', width: '100%', outline: 'none', fontWeight: '600', cursor: 'pointer' }}
+                      >
+                        <option value="BANK">Bank</option>
+                        <option value="CASH">Cash</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Note Row - Full Width */}
+                <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'flex-start', marginTop: '8px' }}>
+                  <label style={{ width: '140px', fontWeight: '700', color: '#4B5563', paddingTop: '4px' }}>Memo / Note</label>
+                  <div style={{ flex: 1, borderBottom: '1px solid #D1D5DB', paddingBottom: '4px' }}>
+                    <input 
+                      type="text" 
+                      value={paymentData.note} 
+                      onChange={e => setPaymentData({...paymentData, note: e.target.value})}
+                      disabled={isPaid}
+                      placeholder="Alpha Numeric (Text)"
+                      style={{ border: 'none', background: 'transparent', width: '100%', outline: 'none', fontWeight: '500' }}
+                    />
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
