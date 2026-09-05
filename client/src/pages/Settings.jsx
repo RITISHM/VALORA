@@ -38,6 +38,33 @@ export default function Settings() {
 
         <button className="primary-btn" style={{ marginTop: '32px' }}>Save Changes</button>
       </div>
+
+      {/* User Provisioning & Administration */}
+      <div style={{ backgroundColor: '#FFFFFF', padding: '32px', borderRadius: '16px', border: '1px solid #F3F4F6', maxWidth: '800px', marginTop: '24px' }}>
+        <h2 style={{ marginBottom: '8px', fontSize: '1.2rem', color: '#111116' }}>User Provisioning & Roles</h2>
+        <p style={{ margin: '0 0 20px 0', color: '#6B7280', fontSize: '0.9rem' }}>
+          Create system users and assign operational privileges (Administrator, Accountant, Standard User).
+        </p>
+        
+        <a
+          href="/admin/create-user"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: 'var(--valora-primary, #714B67)',
+            color: '#FFFFFF',
+            padding: '12px 20px',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            fontWeight: '600',
+            fontSize: '0.9rem',
+            transition: 'opacity 0.2s',
+          }}
+        >
+          + Create New User (Admin Form)
+        </a>
+      </div>
     </div>
   );
 }

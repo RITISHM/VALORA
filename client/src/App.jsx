@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/login.jsx';
 import Signup from './pages/signup.jsx';
+import AdminCreateUser from './pages/AdminCreateUser.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Layout from './components/Layout.jsx';
 import ContactList from './pages/masters/ContactList.jsx';
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/admin/create-user" element={<AdminCreateUser />} />
         
         {/* Authenticated Routes inside Layout */}
         <Route element={<Layout />}>

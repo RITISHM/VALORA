@@ -1,7 +1,9 @@
+/* client/src/styles/signup.css */
 @import './login.css';
 
 .signup-container {
-  max-width: 500px;
+  max-width: 520px;
+  padding: 32px 40px;
 }
 
 .input-row {
@@ -13,10 +15,46 @@
   flex: 1;
 }
 
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.suggest-btn {
+  background: none;
+  border: none;
+  color: var(--valora-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.suggest-btn:hover {
+  color: var(--valora-primary-dark);
+}
+
+.char-counter {
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.char-counter.valid {
+  color: var(--valora-success);
+}
+
+.char-counter.invalid {
+  color: var(--valora-error);
+}
+
 .radio-group {
   display: flex;
   gap: 16px;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .radio-label {
@@ -28,8 +66,100 @@
   color: var(--valora-text-main);
 }
 
+.radio-label input[type="radio"] {
+  accent-color: var(--valora-primary);
+  cursor: pointer;
+}
+
 .field-error {
-  font-size: 0.75rem;
+  font-size: 0.775rem;
   color: var(--valora-error);
   margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Password Criteria Real-time Checklist */
+.password-criteria-box {
+  background: #FDFBFD;
+  border: 1px solid #EBE4EA;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.criteria-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--valora-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.criteria-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+}
+
+.criteria-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--valora-text-muted);
+  transition: color 0.2s ease;
+}
+
+.criteria-item.met {
+  color: var(--valora-success);
+  font-weight: 600;
+}
+
+.criteria-item.missing {
+  color: #9CA3AF;
+}
+
+.criteria-item.missing.active-error {
+  color: var(--valora-error);
+}
+
+.criteria-icon {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.criteria-item.met .criteria-icon {
+  transform: scale(1.1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .signup-container {
+    padding: 24px 16px;
+  }
+  .input-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .criteria-list {
+    grid-template-columns: 1fr;
+  }
 }
