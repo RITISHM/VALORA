@@ -23,9 +23,9 @@ app.use('/customer-invoices', invoicesRoutes);
 app.use('/payments', paymentsRoutes);
 app.use('/reports', reportsRoutes);
 app.use('/journals', journalsRoutes);
-app.use('/contacts', require('./routes/contacts'));
-app.use('/products', require('./routes/products'));
-app.use('/accounts', require('./routes/accounts'));
+app.use('/contacts', require('./routes/contacts.routes'));
+app.use('/products', require('./routes/products.routes'));
+app.use('/accounts', require('./routes/accounts.routes'));
 if (authRoutes) {
   app.use('/auth', authRoutes);
 }

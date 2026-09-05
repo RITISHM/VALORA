@@ -82,6 +82,36 @@ class AccountingService {
     });
   }
 
+  async getJournalById(id) {
+    const journal = await prisma.journal.findUnique({
+      where: { id },
+      include: { default_account: true },
+    });
+    if (!journal) {
+      const error = new Error('Journal not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    return journal;
+  }
+
+  async createJournal(data) {
+    return await prisma.journal.create({ data });
+  }
+
+  async updateJournal(id, data) {
+    try {
+      return await prisma.journal.update({ where: { id }, data });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        const err = new Error('Journal not found');
+        err.statusCode = 404;
+        throw err;
+      }
+      throw error;
+    }
+  }
+
   async getJournalEntries() {
     return await prisma.journalEntry.findMany({
       orderBy: {
