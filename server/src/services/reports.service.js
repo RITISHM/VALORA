@@ -211,9 +211,6 @@ class ReportsService {
       lines: reportItems,
     };
   }
-}
-
-
   async getDashboardAnalytics() {
     // Basic implementation for dashboard metrics
     const [
@@ -222,34 +219,75 @@ class ReportsService {
       totalPaidInvoices,
       totalUnpaidInvoices,
       totalUnpaidBills,
-      pendingJournals
+      pendingJournals,
     ] = await Promise.all([
-      prisma.customerInvoice.findMany({ take: 5, orderBy: { created_at: 'desc' }, include: { customer: true } }),
-      prisma.vendorBill.findMany({ take: 5, orderBy: { created_at: 'desc' }, include: { vendor: true } }),
-      prisma.customerInvoice.aggregate({ _sum: { total: true }, where: { status: 'PAID' } }),
-      prisma.customerInvoice.aggregate({ _sum: { total: true }, where: { status: { in: ['DRAFT', 'CONFIRMED'] } } }),
-      prisma.vendorBill.aggregate({ _sum: { total: true }, where: { status: { in: ['DRAFT', 'CONFIRMED'] } } }),
-      prisma.journalEntry.count({ where: { status: 'DRAFT' } })
+      prisma.customerInvoice.findMany({
+        take: 5,
+        orderBy: { created_at: "desc" },
+        include: { customer: true },
+      }),
+      prisma.vendorBill.findMany({
+        take: 5,
+        orderBy: { created_at: "desc" },
+        include: { vendor: true },
+      }),
+      prisma.customerInvoice.aggregate({ _sum: { total: true }, where: { status: "PAID" } }),
+      prisma.customerInvoice.aggregate({
+        _sum: { total: true },
+        where: { status: { in: ["DRAFT", "CONFIRMED"] } },
+      }),
+      prisma.vendorBill.aggregate({
+        _sum: { total: true },
+        where: { status: { in: ["DRAFT", "CONFIRMED"] } },
+      }),
+      prisma.journalEntry.count({ where: { status: "DRAFT" } }),
     ]);
 
     const admin = {
       totalDue: totalUnpaidInvoices._sum.total || 0,
       recentlyPaid: totalPaidInvoices._sum.total || 0,
       cashFlow: [
-        { month: 'Jan', inflow: 10000, outflow: 5000 },
-        { month: 'Feb', inflow: 15000, outflow: 8000 },
-        { month: 'Mar', inflow: 12000, outflow: 9000 },
-        { month: 'Apr', inflow: 18000, outflow: 7000 },
-        { month: 'May', inflow: 22000, outflow: 11000 },
-        { month: 'Jun', inflow: (totalPaidInvoices._sum.total || 0), outflow: (totalUnpaidBills._sum.total || 0) }
+        { month: "Jan", inflow: 10000, outflow: 5000 },
+        { month: "Feb", inflow: 15000, outflow: 8000 },
+        { month: "Mar", inflow: 12000, outflow: 9000 },
+        { month: "Apr", inflow: 18000, outflow: 7000 },
+        { month: "May", inflow: 22000, outflow: 11000 },
+        {
+          month: "Jun",
+          inflow: totalPaidInvoices._sum.total || 0,
+          outflow: totalUnpaidBills._sum.total || 0,
+        },
       ],
       recentTransactions: [
-        ...recentInvoices.map(i => ({ id: i.id, type: 'Invoice', ref: i.invoice_number, date: i.invoice_date, amount: i.total, status: i.status })),
-        ...recentBills.map(b => ({ id: b.id, type: 'Bill', ref: b.bill_number, date: b.bill_date, amount: b.total, status: b.status }))
-      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5),
+        ...recentInvoices.map((i) => ({
+          id: i.id,
+          type: "Invoice",
+          ref: i.invoice_number,
+          date: i.invoice_date,
+          amount: i.total,
+          status: i.status,
+        })),
+        ...recentBills.map((b) => ({
+          id: b.id,
+          type: "Bill",
+          ref: b.bill_number,
+          date: b.bill_date,
+          amount: b.total,
+          status: b.status,
+        })),
+      ]
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 5),
       upcomingPayments: [
-        ...recentBills.filter(b => b.status !== 'PAID').map(b => ({ id: b.id, vendor: b.vendor.name, date: b.due_date || b.bill_date, amount: b.total }))
-      ].slice(0, 3)
+        ...recentBills
+          .filter((b) => b.status !== "PAID")
+          .map((b) => ({
+            id: b.id,
+            vendor: b.vendor.name,
+            date: b.due_date || b.bill_date,
+            amount: b.total,
+          })),
+      ].slice(0, 3),
     };
 
     const accountant = {
@@ -259,11 +297,12 @@ class ReportsService {
       recentActivity: [
         { id: 1, action: "Journal Entry #J-1002 Created", time: "2 hours ago" },
         { id: 2, action: "Vendor Bill #Bill/2026/492 Paid", time: "4 hours ago" },
-        { id: 3, action: "Customer Invoice #INV/2026/831 Confirmed", time: "1 day ago" }
-      ]
+        { id: 3, action: "Customer Invoice #INV/2026/831 Confirmed", time: "1 day ago" },
+      ],
     };
 
     return { admin, accountant };
   }
+}
 
 module.exports = new ReportsService();
