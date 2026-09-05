@@ -8,6 +8,9 @@ const getAuthHeaders = () => {
   };
 };
 
+const cache = {};
+const clearCache = (key) => { if (key) { delete cache[key]; } else { Object.keys(cache).forEach(k => delete cache[k]); } };
+
 const fetchWithCache = async (key, url) => {
   if (cache[key]) return cache[key];
   const response = await fetch(url, { headers: getAuthHeaders() });

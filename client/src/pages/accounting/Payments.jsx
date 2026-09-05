@@ -111,7 +111,7 @@ export default function Payments() {
               <label>Partner *</label>
               <select value={formData.partner_id} onChange={e => setFormData({...formData, partner_id: e.target.value})} required>
                 <option value="">-- Select Contact --</option>
-                {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {contacts.map(c => <option key={c.id} value={c.id}>{c.name} ({c.type ? (c.type.toUpperCase() === 'BOTH' ? 'Customer & Vendor' : c.type.charAt(0).toUpperCase() + c.type.slice(1).toLowerCase()) : 'Contact'})</option>)}
               </select>
             </div>
           </div>

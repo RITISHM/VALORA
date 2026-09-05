@@ -350,7 +350,7 @@ export default function SalesOrders() {
                 <option value="">-- Select Customer --</option>
                 {contacts.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name}
+                    {c.name} ({c.type ? (c.type.toUpperCase() === 'BOTH' ? 'Customer & Vendor' : c.type.charAt(0).toUpperCase() + c.type.slice(1).toLowerCase()) : 'Contact'})
                   </option>
                 ))}
               </select>

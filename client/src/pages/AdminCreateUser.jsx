@@ -30,6 +30,7 @@ export default function AdminCreateUser({ isEmbedded = false }) {
     loginId: '',
     email: '',
     role: 'ACCOUNTANT', // Default to Accountant for admin user creation
+    contactType: 'CUSTOMER',
     password: '',
     confirmPassword: '',
   });
@@ -197,6 +198,7 @@ export default function AdminCreateUser({ isEmbedded = false }) {
           email: formData.email.trim(),
           password: formData.password,
           role: formData.role, // ADMIN, ACCOUNTANT, or CONTACT
+          contact_type: formData.role === 'CONTACT' ? formData.contactType : undefined,
         }),
       });
 
@@ -212,7 +214,7 @@ export default function AdminCreateUser({ isEmbedded = false }) {
         return;
       }
 
-      setSuccessMessage(`User "${fullName}" (${formData.role}) created successfully!`);
+      setSuccessMessage(`User "${fullName}" (${formData.role}${formData.role === 'CONTACT' ? ` - ${formData.contactType}` : ''}) created successfully!`);
       setIsLoading(false);
 
       // Reset fields for the next creation
@@ -222,6 +224,7 @@ export default function AdminCreateUser({ isEmbedded = false }) {
         loginId: '',
         email: '',
         role: 'ACCOUNTANT',
+        contactType: 'CUSTOMER',
         password: '',
         confirmPassword: '',
       });
@@ -550,6 +553,48 @@ export default function AdminCreateUser({ isEmbedded = false }) {
                   </span>
                 </label>
               </div>
+
+              {formData.role === 'CONTACT' && (
+                <div style={{ marginTop: '12px' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--valora-text-muted)', marginBottom: '6px', display: 'block' }}>
+                    Contact Classification (Customer / Vendor / Both)
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                    {[
+                      { key: 'CUSTOMER', label: 'Customer' },
+                      { key: 'VENDOR', label: 'Vendor' },
+                      { key: 'BOTH', label: 'Customer & Vendor' }
+                    ].map(({ key, label }) => (
+                      <label
+                        key={key}
+                        style={{
+                          border: `1.5px solid ${formData.contactType === key ? 'var(--valora-primary)' : 'var(--valora-border)'}`,
+                          backgroundColor: formData.contactType === key ? 'var(--valora-primary-light)' : '#FFFFFF',
+                          borderRadius: '6px',
+                          padding: '6px 8px',
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          fontSize: '0.78rem',
+                          fontWeight: '600',
+                          color: 'var(--valora-text-main)',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name="contactType"
+                          value={key}
+                          checked={formData.contactType === key}
+                          onChange={handleChange}
+                          disabled={isLoading}
+                          style={{ display: 'none' }}
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Password & Confirm Password */}

@@ -19,6 +19,7 @@ const signupSchema = z.object({
     ),
   role: z.enum(["ADMIN", "ACCOUNTANT", "CONTACT"]),
   contact_id: z.string().optional(),
+  contact_type: z.enum(["CUSTOMER", "VENDOR", "BOTH"]).optional(),
 });
 
 router.post("/signup", async (req, res, next) => {
@@ -28,19 +29,20 @@ router.post("/signup", async (req, res, next) => {
     const password_hash = await bcrypt.hash(validatedData.password, 10);
 
     let contact_id = validatedData.contact_id || null;
-    let contact_type = null;
+    let contact_type = validatedData.contact_type || null;
 
     if (validatedData.role === 'CONTACT') {
       if (!contact_id) {
+        const typeToUse = validatedData.contact_type || 'BOTH';
         const newContact = await prisma.contact.create({
           data: {
             name: validatedData.name,
             email: validatedData.email,
-            type: 'CUSTOMER'
+            type: typeToUse
           }
         });
         contact_id = newContact.id;
-        contact_type = 'CUSTOMER';
+        contact_type = newContact.type;
       } else {
         const existingContact = await prisma.contact.findUnique({ where: { id: contact_id } });
         contact_type = existingContact?.type;

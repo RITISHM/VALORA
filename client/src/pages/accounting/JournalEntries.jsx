@@ -291,7 +291,7 @@ export default function JournalEntries() {
                     >
                       <option value="">-- Select Contact --</option>
                       {contacts.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
+                        <option key={c.id} value={c.id}>{c.name} ({c.type ? (c.type.toUpperCase() === 'BOTH' ? 'Customer & Vendor' : c.type.charAt(0).toUpperCase() + c.type.slice(1).toLowerCase()) : 'Contact'})</option>
                       ))}
                     </select>
                   </td>
