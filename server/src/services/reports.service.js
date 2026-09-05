@@ -7,7 +7,6 @@ class ReportsService {
    */
   async getBalanceSheet(year) {
     const yearNum = parseInt(year) || new Date().getFullYear();
-    const startDate = new Date(`${yearNum}-01-01T00:00:00.000Z`);
     const endDate = new Date(`${yearNum}-12-31T23:59:59.999Z`);
 
     const groupedItems = await prisma.journalItem.groupBy({
@@ -20,7 +19,6 @@ class ReportsService {
         journal_entry: {
           status: "POSTED",
           entry_date: {
-            gte: startDate,
             lte: endDate,
           },
         },
@@ -36,6 +34,10 @@ class ReportsService {
       };
     }
 
+    // Calculate Net Profit for Capital injection
+    const pnl = await this.getProfitAndLoss(year);
+    const netProfit = pnl.net_profit;
+
     const assets = [];
     const liabilities = [];
     const capital = [];
@@ -44,24 +46,35 @@ class ReportsService {
     let totalLiabilities = 0;
     let totalCapital = 0;
 
-    // Fetch all accounts in CoA to ensure complete view
     const allAccounts = await prisma.account.findMany();
 
     for (const acc of allAccounts) {
       const totals = accountTotals[acc.id] || { debit: 0, credit: 0 };
       if (acc.type === "ASSET") {
         const balance = Math.round((totals.debit - totals.credit) * 100) / 100;
-        assets.push({ id: acc.id, name: acc.name, balance });
-        totalAssets += balance;
+        if (balance !== 0) {
+          assets.push({ id: acc.id, name: acc.name, balance });
+          totalAssets += balance;
+        }
       } else if (acc.type === "LIABILITY") {
         const balance = Math.round((totals.credit - totals.debit) * 100) / 100;
-        liabilities.push({ id: acc.id, name: acc.name, balance });
-        totalLiabilities += balance;
+        if (balance !== 0) {
+          liabilities.push({ id: acc.id, name: acc.name, balance });
+          totalLiabilities += balance;
+        }
       } else if (acc.type === "CAPITAL") {
         const balance = Math.round((totals.credit - totals.debit) * 100) / 100;
-        capital.push({ id: acc.id, name: acc.name, balance });
-        totalCapital += balance;
+        if (balance !== 0) {
+          capital.push({ id: acc.id, name: acc.name, balance });
+          totalCapital += balance;
+        }
       }
+    }
+
+    // Inject Net Profit into Capital (only when non-zero)
+    if (netProfit !== 0) {
+      capital.push({ id: "net-profit", name: "Current Year Net Profit", balance: netProfit });
+      totalCapital += netProfit;
     }
 
     totalAssets = Math.round(totalAssets * 100) / 100;

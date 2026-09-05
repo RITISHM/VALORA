@@ -306,6 +306,10 @@ export const api = {
     return handleResponse(response);
   },
   getBudgets: async () => fetchWithCache("budgets", `${BACKEND_URL}/budgets`),
+  getBudgetById: async (id) => {
+    const response = await fetch(`${BACKEND_URL}/budgets/${id}`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
   createBudget: async (data) => {
     clearCache("budgets");
     const response = await fetch(`${BACKEND_URL}/budgets`, {
@@ -313,6 +317,23 @@ export const api = {
       headers: getAuthHeaders(),
       body: JSON.stringify(data)
     });
+    return handleResponse(response);
+  },
+  confirmBudget: async (id) => {
+    clearCache("budgets");
+    const response = await fetch(`${BACKEND_URL}/budgets/${id}/confirm`, { method: 'POST', headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+  reviseBudget: async (id, data = {}) => {
+    clearCache("budgets");
+    const response = await fetch(`${BACKEND_URL}/budgets/${id}/revise`, {
+      method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(data)
+    });
+    return handleResponse(response);
+  },
+  cancelBudget: async (id) => {
+    clearCache("budgets");
+    const response = await fetch(`${BACKEND_URL}/budgets/${id}/cancel`, { method: 'POST', headers: getAuthHeaders() });
     return handleResponse(response);
   },
 
