@@ -217,6 +217,25 @@ export default function ContactList() {
           data={contacts} 
           onNewClick={() => setIsFormOpen(true)} 
           searchPlaceholder="Search contacts..."
+          enableKanban={true}
+          renderKanbanCard={(item) => (
+            <div style={{ padding: '16px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '8px', backgroundColor: 'var(--valora-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--valora-primary)', fontSize: '1.5rem', fontWeight: 'bold' }}>
+                {item.name ? item.name.charAt(0).toUpperCase() : '?'}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: 'var(--valora-text-main)' }}>{item.name}</h4>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button onClick={() => handleEdit(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-primary)' }}><Pencil size={14}/></button>
+                    <button onClick={() => handleDelete(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-error)' }}><Trash2 size={14}/></button>
+                  </div>
+                </div>
+                <p style={{ margin: '0 0 2px 0', fontSize: '0.85rem', color: 'var(--valora-text-muted)' }}>{item.email || 'No email'}</p>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--valora-text-muted)' }}>{item.mobile || 'No mobile'}</p>
+              </div>
+            </div>
+          )}
         />
       )}
     </div>
