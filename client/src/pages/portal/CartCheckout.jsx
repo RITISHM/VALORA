@@ -38,7 +38,7 @@ export default function CartCheckout() {
         setSuccess(true);
         clearCart();
         setTimeout(() => {
-          navigate('/dashboard'); // Go back to dashboard to pay the new invoice
+          navigate('/portal/invoices'); // Go to user portal invoices to complete payment
         }, 2000);
       } else {
         const errText = await res.text();
@@ -57,7 +57,7 @@ export default function CartCheckout() {
       <div className="dashboard-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
         <CheckCircle size={64} color="#10B981" style={{ marginBottom: '24px' }} />
         <h1 style={{ marginBottom: '8px' }}>Order Placed!</h1>
-        <p style={{ color: '#6B7280' }}>Your invoice has been generated. Redirecting to your dashboard to complete payment...</p>
+        <p style={{ color: '#6B7280' }}>Your invoice has been generated. Redirecting to your User Portal Invoices...</p>
       </div>
     );
   }

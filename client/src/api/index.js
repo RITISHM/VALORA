@@ -298,5 +298,43 @@ export const api = {
   getBudgetReport: async () => {
     const response = await fetch(`${BACKEND_URL}/reports/budget`, { headers: getAuthHeaders() });
     return handleResponse(response);
+  },
+
+  // Portal (User / Customer / Vendor)
+  getPortalInvoices: async () => {
+    const response = await fetch(`${BACKEND_URL}/portal/invoices`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+  getPortalBills: async () => {
+    const response = await fetch(`${BACKEND_URL}/portal/bills`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+  payPortalInvoice: async (id, paymentData) => {
+    const response = await fetch(`${BACKEND_URL}/portal/invoices/${id}/pay`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(paymentData)
+    });
+    return handleResponse(response);
+  },
+  payPortalBill: async (id, paymentData) => {
+    const response = await fetch(`${BACKEND_URL}/portal/bills/${id}/pay`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(paymentData)
+    });
+    return handleResponse(response);
+  },
+  checkoutPortal: async (items) => {
+    const response = await fetch(`${BACKEND_URL}/portal/checkout`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ items })
+    });
+    return handleResponse(response);
+  },
+  getPortalOutstanding: async () => {
+    const response = await fetch(`${BACKEND_URL}/portal/outstanding`, { headers: getAuthHeaders() });
+    return handleResponse(response);
   }
 };

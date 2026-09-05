@@ -124,9 +124,14 @@ export default function Layout() {
 
             {userRole === 'contact' && (
               <>
-                <NavLink to="/portal/customer" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Customer">
+                <NavLink to="/portal/customer" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Customer Marketplace">
                   <ShoppingBag size={20} className="nav-icon" />
-                  <span className="nav-label">Customer</span>
+                  <span className="nav-label">Marketplace</span>
+                </NavLink>
+
+                <NavLink to="/portal/invoices" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="My Invoices">
+                  <FileText size={20} className="nav-icon" />
+                  <span className="nav-label">My Invoices</span>
                 </NavLink>
 
                 <NavLink to="/portal/vendor" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Vendor">

@@ -68,7 +68,8 @@ function AdminDashboard() {
               {activeDropdown === 'sales' && (
                 <div className="mega-dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, marginTop: '8px' }}>
                   <Link to="/sales-orders" onClick={closeDropdowns}><ShoppingBag size={15} /> Sales order</Link>
-                  <Link to="/customer-invoices" onClick={closeDropdowns}><FileText size={15} /> Sale Invoice</Link>
+                  <Link to="/customer-invoices" onClick={closeDropdowns}><FileText size={15} /> Sale Invoice (Admin)</Link>
+                  <Link to="/portal/invoices" onClick={closeDropdowns}><FileText size={15} /> User Portal Invoices</Link>
                   <Link to="/payments" onClick={closeDropdowns}><DollarSign size={15} /> Receipt</Link>
                 </div>
               )}
