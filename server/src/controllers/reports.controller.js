@@ -30,6 +30,15 @@ class ReportsController {
       next(err);
     }
   }
+
+  async getDashboardAnalytics(req, res, next) {
+    try {
+      const data = await reportsService.getDashboardAnalytics();
+      return res.status(200).json(data);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new ReportsController();

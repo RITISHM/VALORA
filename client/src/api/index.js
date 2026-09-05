@@ -316,6 +316,10 @@ export const api = {
     const response = await fetch(`${BACKEND_URL}/reports/profit-and-loss?year=${year}`, { headers: getAuthHeaders() });
     return handleResponse(response);
   },
+  getDashboardAnalytics: async () => {
+    const response = await fetch(`${BACKEND_URL}/reports/dashboard`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
   getBudgetReport: async () => {
     const response = await fetch(`${BACKEND_URL}/reports/budget`, { headers: getAuthHeaders() });
     return handleResponse(response);

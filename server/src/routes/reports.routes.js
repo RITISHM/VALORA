@@ -5,6 +5,7 @@ const { authenticate } = require("../middleware/auth");
 
 router.use(authenticate);
 
+router.get("/dashboard", (req, res, next) => controller.getDashboardAnalytics(req, res, next));
 router.get("/balance-sheet", (req, res, next) => controller.getBalanceSheet(req, res, next));
 router.get("/profit-and-loss", (req, res, next) => controller.getProfitAndLoss(req, res, next));
 router.get("/budget", (req, res, next) => controller.getBudgetReport(req, res, next));
