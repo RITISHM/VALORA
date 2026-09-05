@@ -1,5 +1,8 @@
 const express = require("express");
 const router = express.Router();
+const { authenticate } = require("../middleware/auth");
+
+router.use(authenticate);
 const controller = require("../controllers/journals.controller");
 
 router.get("/", (req, res, next) => controller.getJournalEntries(req, res, next));
