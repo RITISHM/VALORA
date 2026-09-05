@@ -516,10 +516,33 @@ function UserDashboard({ user }) {
                       )}
                     </div>
                   </div>
-                  <div className="card-meta" style={{ gap: '16px', alignItems: 'flex-end' }}>
+                  <div className="card-meta" style={{ gap: '8px', alignItems: 'flex-end', display: 'flex', flexDirection: 'column' }}>
                     <span className="amount" style={{ color: inv.status === 'PAID' ? '#9CA3AF' : '#111116', fontWeight: '700', fontSize: '1.2rem' }}>
                       ₹ {inv.total.toLocaleString('en-IN')}
                     </span>
+                    {inv.status !== 'PAID' && (
+                      <button 
+                        onClick={() => handlePay(inv.id, inv.total)}
+                        disabled={payingId === inv.id}
+                        style={{
+                          backgroundColor: '#017E84',
+                          color: 'white',
+                          border: 'none',
+                          padding: '8px 16px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontWeight: '600',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          transition: 'opacity 0.2s',
+                          opacity: payingId === inv.id ? 0.7 : 1
+                        }}
+                      >
+                        {payingId === inv.id ? <Loader2 size={16} className="spinner" style={{ animation: 'spin 1s linear infinite' }} /> : null}
+                        {payingId === inv.id ? 'Processing...' : 'Pay Now'}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))
