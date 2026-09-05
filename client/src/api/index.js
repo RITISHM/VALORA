@@ -329,6 +329,10 @@ export const api = {
     const response = await fetch(`${BACKEND_URL}/reports/dashboard`, { headers: getAuthHeaders() });
     return handleResponse(response);
   },
+  getAIInsights: async (year = new Date().getFullYear()) => {
+    const response = await fetch(`${BACKEND_URL}/reports/ai-insights?year=${year}`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
   getBudgetReport: async () => {
     const response = await fetch(`${BACKEND_URL}/reports/budget`, { headers: getAuthHeaders() });
     return handleResponse(response);

@@ -46,6 +46,21 @@ function AdminDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [insights, setInsights] = useState(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+
+  const fetchInsights = async () => {
+    setLoadingInsights(true);
+    try {
+      const res = await api.getAIInsights();
+      setInsights(res);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
+
   useEffect(() => {
     api
       .getDashboardAnalytics()
@@ -355,6 +370,42 @@ function AdminDashboard() {
                 <span className="date">Start May 8</span>
                 <span className="amount">₹ 5,000</span>
               </div>
+            </div>
+
+            {/* AI Insights Card */}
+            <div style={{ marginTop: "32px", padding: "24px", background: "linear-gradient(135deg, #f0ebff 0%, #e0d4ff 100%)", borderRadius: "12px", border: "1px solid #d4c4f9", position: "relative", overflow: "hidden" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: "8px", color: "#4F46E5", fontSize: "1.1rem" }}>
+                  <Activity size={20} /> AI Financial Insights
+                </h3>
+                {!insights && !loadingInsights && (
+                  <button 
+                    onClick={fetchInsights}
+                    style={{ background: "#4F46E5", color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer", fontWeight: "600", fontSize: "0.9rem" }}
+                  >
+                    Generate Insights
+                  </button>
+                )}
+              </div>
+              
+              {loadingInsights && (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#6B7280" }}>
+                  <Loader2 size={18} style={{ animation: "spin 2s linear infinite" }} /> Analyzing ledger data...
+                </div>
+              )}
+              
+              {insights && (
+                <ul style={{ margin: 0, paddingLeft: "20px", color: "#1F2937", display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {insights.map((insight, idx) => (
+                    <li key={idx} style={{ lineHeight: "1.5" }}>{insight}</li>
+                  ))}
+                </ul>
+              )}
+              <style>
+                {`
+                  @keyframes spin { 100% { transform: rotate(360deg); } }
+                `}
+              </style>
             </div>
           </div>
         </div>
