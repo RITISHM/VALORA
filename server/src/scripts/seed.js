@@ -8,6 +8,7 @@ async function main() {
     { name: 'Bank', type: 'ASSET' },
     { name: 'Debtors', type: 'ASSET' },
     { name: 'Creditors', type: 'LIABILITY' },
+    { name: 'Tax Payable', type: 'LIABILITY' },
     { name: 'Capital', type: 'CAPITAL' },
     { name: 'Sales Income', type: 'INCOME' },
     { name: 'Purchase Expense', type: 'EXPENSE' },

@@ -81,6 +81,12 @@ enum AgainstType {
   INVOICE
 }
 
+enum MovementType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+}
+
 model User {
   id            String   @id @default(uuid())
   name          String
@@ -123,6 +129,17 @@ model Product {
   vendor_bill_lines      VendorBillLine[]
   sales_order_lines      SalesOrderLine[]
   customer_invoice_lines CustomerInvoiceLine[]
+  stock_movements        StockMovement[]
+}
+
+model StockMovement {
+  id           String       @id @default(uuid())
+  product_id   String
+  product      Product      @relation(fields: [product_id], references: [id])
+  quantity     Float
+  type         MovementType
+  reference    String?
+  created_at   DateTime     @default(now())
 }
 
 model Account {
@@ -207,6 +224,9 @@ model PurchaseOrder {
   vendor        Contact             @relation(fields: [vendor_id], references: [id])
   po_date       DateTime            @default(now())
   status        DocumentStatus      @default(DRAFT)
+  subtotal      Float               @default(0.0)
+  tax_amount    Float               @default(0.0)
+  total         Float               @default(0.0)
   lines         PurchaseOrderLine[]
   vendor_bills  VendorBill[]
 }
@@ -221,6 +241,8 @@ model PurchaseOrderLine {
   analytic_account    AnalyticAccount? @relation(fields: [analytic_account_id], references: [id])
   qty                 Float           @default(1.0)
   unit_price          Float           @default(0.0)
+  tax_rate            Float           @default(0.0)
+  tax_amount          Float           @default(0.0)
   total               Float           @default(0.0)
 }
 
@@ -234,6 +256,8 @@ model VendorBill {
   bill_date      DateTime         @default(now())
   due_date       DateTime?
   status         DocumentStatus   @default(DRAFT)
+  subtotal       Float            @default(0.0)
+  tax_amount     Float            @default(0.0)
   total          Float            @default(0.0)
   lines          VendorBillLine[]
 }
@@ -248,6 +272,8 @@ model VendorBillLine {
   analytic_account    AnalyticAccount? @relation(fields: [analytic_account_id], references: [id])
   qty                 Float           @default(1.0)
   unit_price          Float           @default(0.0)
+  tax_rate            Float           @default(0.0)
+  tax_amount          Float           @default(0.0)
   total               Float           @default(0.0)
 }
 
@@ -258,6 +284,9 @@ model SalesOrder {
   customer         Contact          @relation(fields: [customer_id], references: [id])
   so_date          DateTime         @default(now())
   status           DocumentStatus   @default(DRAFT)
+  subtotal         Float            @default(0.0)
+  tax_amount       Float            @default(0.0)
+  total            Float            @default(0.0)
   lines            SalesOrderLine[]
   customer_invoices CustomerInvoice[]
 }
@@ -272,6 +301,8 @@ model SalesOrderLine {
   analytic_account    AnalyticAccount? @relation(fields: [analytic_account_id], references: [id])
   qty                 Float           @default(1.0)
   unit_price          Float           @default(0.0)
+  tax_rate            Float           @default(0.0)
+  tax_amount          Float           @default(0.0)
   total               Float           @default(0.0)
 }
 
@@ -285,6 +316,8 @@ model CustomerInvoice {
   invoice_date   DateTime              @default(now())
   due_date       DateTime?
   status         DocumentStatus        @default(DRAFT)
+  subtotal       Float                 @default(0.0)
+  tax_amount     Float                 @default(0.0)
   total          Float                 @default(0.0)
   lines          CustomerInvoiceLine[]
 }
@@ -299,6 +332,8 @@ model CustomerInvoiceLine {
   analytic_account    AnalyticAccount? @relation(fields: [analytic_account_id], references: [id])
   qty                 Float           @default(1.0)
   unit_price          Float           @default(0.0)
+  tax_rate            Float           @default(0.0)
+  tax_amount          Float           @default(0.0)
   total               Float           @default(0.0)
 }
 
