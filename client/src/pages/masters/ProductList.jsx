@@ -228,6 +228,29 @@ export default function ProductList() {
           data={products} 
           onNewClick={() => setIsFormOpen(true)} 
           searchPlaceholder="Search products..."
+          enableKanban={true}
+          renderKanbanCard={(item) => (
+            <div style={{ padding: '16px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '8px', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontSize: '0.8rem', flexShrink: 0 }}>
+                Image
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: 'var(--valora-text-main)' }}>{item.name}</h4>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button onClick={() => handleEdit(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-primary)' }}><Pencil size={14}/></button>
+                    <button onClick={() => handleDelete(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-error)' }}><Trash2 size={14}/></button>
+                  </div>
+                </div>
+                <p style={{ margin: '0 0 2px 0', fontSize: '0.85rem', color: 'var(--valora-text-muted)' }}>
+                  Sales Price ₹{Number(item.sales_price || 0).toLocaleString()}
+                </p>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--valora-text-muted)' }}>
+                  Cost ₹{Number(item.cost || 0).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          )}
         />
       )}
     </div>

@@ -7,9 +7,12 @@
  * @module components/Layout
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Package, FileText, BarChart3, LogOut, Hexagon, Search, Bell, Settings, Store, ShoppingBag, ShoppingCart } from 'lucide-react';
+import { 
+  LayoutDashboard, Users, Package, FileText, BarChart3, LogOut, Hexagon, Search, Bell, Settings,
+  Store, ShoppingBag, ShoppingCart, BookOpen, PieChart, Layers, Tag, DollarSign, ListFilter
+} from 'lucide-react';
 import '../styles/layout.css';
 import { useCartStore } from '../store/useCartStore';
 
@@ -22,7 +25,8 @@ import { useCartStore } from '../store/useCartStore';
  */
 export default function Layout() {
   const navigate = useNavigate();
-  const cartItemCount = useCartStore((state) => state.getItemCount());
+  const cartItemCount = useCartStore((state) => state.getItemCount ? state.getItemCount() : 0);
+  const [activeDropdown, setActiveDropdown] = useState(null);
 
   const userStr = localStorage.getItem('valora_user');
   const user = userStr ? JSON.parse(userStr) : null;
@@ -33,11 +37,17 @@ export default function Layout() {
    * @function handleLogout
    */
   const handleLogout = () => {
+    localStorage.removeItem('valora_user');
+    localStorage.removeItem('valora_token');
     navigate('/login');
   };
 
+  const closeDropdowns = () => {
+    setActiveDropdown(null);
+  };
+
   return (
-    <div className="app-wrapper">
+    <div className="app-wrapper" onClick={closeDropdowns}>
       <div className="app-layout">
         {/* Sidebar Navigation */}
         <aside className="sidebar">
@@ -52,29 +62,59 @@ export default function Layout() {
               <LayoutDashboard size={20} className="nav-icon" />
               <span className="nav-label">Dashboard</span>
             </NavLink>
-            
+
             {userRole !== 'contact' && (
               <>
+                <NavLink to="/sales-orders" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Sales Orders">
+                  <ShoppingBag size={20} className="nav-icon" />
+                  <span className="nav-label">Sales Orders</span>
+                </NavLink>
+
+                <NavLink to="/customer-invoices" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Customer Invoices">
+                  <FileText size={20} className="nav-icon" />
+                  <span className="nav-label">Customer Invoices</span>
+                </NavLink>
+
+                <NavLink to="/purchase-orders" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Purchase Orders">
+                  <ShoppingCart size={20} className="nav-icon" />
+                  <span className="nav-label">Purchase Orders</span>
+                </NavLink>
+
+                <NavLink to="/vendor-bills" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Vendor Bills">
+                  <FileText size={20} className="nav-icon" />
+                  <span className="nav-label">Vendor Bills</span>
+                </NavLink>
+
                 <NavLink to="/contacts" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Contacts">
                   <Users size={20} className="nav-icon" />
                   <span className="nav-label">Contacts</span>
                 </NavLink>
-                
+
                 <NavLink to="/products" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Products">
                   <Package size={20} className="nav-icon" />
                   <span className="nav-label">Products</span>
                 </NavLink>
-                
+
+                <NavLink to="/accounts" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Chart of Accounts">
+                  <BookOpen size={20} className="nav-icon" />
+                  <span className="nav-label">Chart of Accounts</span>
+                </NavLink>
+
                 <NavLink to="/journals" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Journals">
-                  <FileText size={20} className="nav-icon" />
+                  <ListFilter size={20} className="nav-icon" />
                   <span className="nav-label">Journals</span>
                 </NavLink>
-                
+
+                <NavLink to="/journal-entries" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Journal Entries">
+                  <Layers size={20} className="nav-icon" />
+                  <span className="nav-label">Journal Entries</span>
+                </NavLink>
+
                 <NavLink to="/reports/balance-sheet" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Balance Sheet">
                   <BarChart3 size={20} className="nav-icon" />
                   <span className="nav-label">Balance Sheet</span>
                 </NavLink>
-                
+
                 <NavLink to="/reports/pnl" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="Profit & Loss">
                   <BarChart3 size={20} className="nav-icon" />
                   <span className="nav-label">Profit & Loss</span>
@@ -119,10 +159,8 @@ export default function Layout() {
         {/* Main Content Area */}
         <div className="main-content">
           <header className="top-header">
-            <div style={{ flex: 1 }}>
-              {/* Dashboard specific greeting will go here via portal or we just leave this space for layout, wait, image has greeting on left. Let's just put the greeting here for all pages or let the page handle it. Let's leave it blank and let page put title */}
-            </div>
-            
+            <div style={{ flex: 1 }}></div>
+
             <div className="header-actions">
               <div className="header-search">
                 <Search size={16} color="#9CA3AF" />
@@ -139,15 +177,15 @@ export default function Layout() {
                   )}
                 </Link>
               )}
-              
+
               <Link to="/notifications" style={{ color: 'inherit', display: 'flex' }}>
                 <Bell size={20} className="header-icon" />
               </Link>
-              
+
               <Link to="/settings" style={{ color: 'inherit', display: 'flex' }}>
                 <Settings size={20} className="header-icon" />
               </Link>
-              
+
               <Link to="/profile" style={{ textDecoration: 'none' }}>
                 <div className="user-profile">
                   <div className="avatar">
@@ -157,7 +195,7 @@ export default function Layout() {
               </Link>
             </div>
           </header>
-          
+
           <main className="page-content">
             <Outlet />
           </main>

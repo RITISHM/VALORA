@@ -29,9 +29,9 @@
   align-items: center;
   padding: 24px 0;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              background-color 0.3s ease,
-              box-shadow 0.3s ease,
-              border-color 0.3s ease;
+    background-color 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
   border-right: 1px solid #E5E7EB;
   box-sizing: border-box;
   overflow: hidden;
@@ -168,7 +168,8 @@
 /* Sidebar Expanded on Hover */
 .sidebar:hover {
   width: 240px;
-  background-color: var(--valora-primary, #714B67); /* Contrast plum color */
+  background-color: var(--valora-primary, #714B67);
+  /* Contrast plum color */
   box-shadow: 4px 0 24px rgba(113, 75, 103, 0.2);
   border-right-color: transparent;
 }
@@ -235,7 +236,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background-color: #FAFAFB; /* Very light inner background */
+  background-color: #FAFAFB;
+  /* Very light inner background */
 }
 
 .top-header {
@@ -302,7 +304,8 @@
 }
 
 .user-info {
-  display: none; /* Hide for cleaner look, greeting is on dashboard */
+  display: none;
+  /* Hide for cleaner look, greeting is on dashboard */
 }
 
 .page-content {
@@ -344,4 +347,69 @@
 
 .primary-btn:hover {
   opacity: 0.85;
+}
+
+/* Top Mega Navigation Bar Styles */
+.top-nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mega-dropdown-wrapper {
+  position: relative;
+}
+
+.top-nav-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 8px 16px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1E293B;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.top-nav-tab:hover, .top-nav-tab.active {
+  background-color: #F1F5F9;
+  color: #714B67;
+}
+
+.mega-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background-color: #FFFFFF;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  min-width: 220px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mega-dropdown-menu a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.mega-dropdown-menu a:hover {
+  background-color: #F8FAFC;
+  color: #714B67;
 }

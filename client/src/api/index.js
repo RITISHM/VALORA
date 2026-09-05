@@ -1,25 +1,5 @@
-/**
- * @file index.js
- * @description Centralized API client service module for communicating with the Valora ERP backend.
- * Encapsulates authentication headers, response parsing, error handling, and domain-specific
- * HTTP request methods for Contacts, Products, Accounting, and Financial Reports.
- * @module api
- */
-
-/**
- * Base URL for all backend HTTP requests.
- * Uses VITE_BACKEND_URL environment variable with fallback to local port 5000.
- * @type {string}
- */
 export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
-/**
- * Retrieves standard authorization and content headers for API requests.
- * Extracts stored JWT token from localStorage if present.
- * 
- * @function getAuthHeaders
- * @returns {Record<string, string>} Header object with Content-Type and optional Bearer Authorization.
- */
 const getAuthHeaders = () => {
   const token = localStorage.getItem('valora_token');
   return {
@@ -28,16 +8,6 @@ const getAuthHeaders = () => {
   };
 };
 
-/**
- * Global response handler for fetch promises.
- * Processes 204 No Content, logs 401 Unauthorized, checks HTTP status, and extracts JSON data.
- * 
- * @async
- * @function handleResponse
- * @param {Response} response - Native Fetch Response object.
- * @returns {Promise<any>} Parsed JSON response body or null for empty responses.
- * @throws {Error} Throws error with backend error message if response.ok is false.
- */
 const handleResponse = async (response) => {
   if (response.status === 401) {
     console.error('Unauthorized access');
@@ -56,72 +26,34 @@ const handleResponse = async (response) => {
   return data;
 };
 
-/**
- * API client object aggregating endpoint calls grouped by domain model.
- */
 export const api = {
-  // ==========================================
-  // Contacts Management
-  // ==========================================
-
-  /**
-   * Fetches the complete list of business contacts.
-   * @async
-   * @function getContacts
-   * @returns {Promise<Array<Object>>} List of contact records.
-   */
+  // Contacts
   getContacts: async () => {
     const response = await fetch(`${BACKEND_URL}/contacts`, { headers: getAuthHeaders() });
     return handleResponse(response);
   },
-
-  /**
-   * Creates a new business contact record.
-   * @async
-   * @function createContact
-   * @param {Object} contact - Contact payload containing name, type, email, phone, etc.
-   * @param {string} contact.type - Contact classification ('customer', 'vendor', etc.).
-   * @returns {Promise<Object>} Created contact record returned by backend.
-   */
   createContact: async (contact) => {
     const response = await fetch(`${BACKEND_URL}/contacts`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({
         ...contact,
-        type: contact.type.toUpperCase()
+        type: contact.type ? contact.type.toUpperCase() : 'CUSTOMER'
       })
     });
     return handleResponse(response);
   },
-
-  /**
-   * Updates an existing contact by unique identifier.
-   * @async
-   * @function updateContact
-   * @param {string|number} id - Target contact ID.
-   * @param {Object} contact - Updated contact fields.
-   * @returns {Promise<Object>} Updated contact record.
-   */
   updateContact: async (id, contact) => {
     const response = await fetch(`${BACKEND_URL}/contacts/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({
         ...contact,
-        type: contact.type.toUpperCase()
+        type: contact.type ? contact.type.toUpperCase() : 'CUSTOMER'
       })
     });
     return handleResponse(response);
   },
-
-  /**
-   * Deletes a contact record by ID.
-   * @async
-   * @function deleteContact
-   * @param {string|number} id - Target contact ID to remove.
-   * @returns {Promise<null>} Resolves on successful deletion.
-   */
   deleteContact: async (id) => {
     const response = await fetch(`${BACKEND_URL}/contacts/${id}`, {
       method: 'DELETE',
@@ -130,68 +62,33 @@ export const api = {
     return handleResponse(response);
   },
 
-  // ==========================================
-  // Products & Inventory
-  // ==========================================
-
-  /**
-   * Fetches all registered products from the catalogue.
-   * @async
-   * @function getProducts
-   * @returns {Promise<Array<Object>>} List of product records.
-   */
+  // Products
   getProducts: async () => {
     const response = await fetch(`${BACKEND_URL}/products`, { headers: getAuthHeaders() });
     return handleResponse(response);
   },
-
-  /**
-   * Creates a new product entry in the catalogue.
-   * @async
-   * @function createProduct
-   * @param {Object} product - Product properties (name, type, sales_price, cost_price, etc.).
-   * @param {string} product.type - Product type classification.
-   * @returns {Promise<Object>} Created product record.
-   */
   createProduct: async (product) => {
     const response = await fetch(`${BACKEND_URL}/products`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({
         ...product,
-        type: product.type.toUpperCase()
+        type: product.type ? product.type.toUpperCase() : 'GOODS'
       })
     });
     return handleResponse(response);
   },
-
-  /**
-   * Updates an existing product by unique ID.
-   * @async
-   * @function updateProduct
-   * @param {string|number} id - Product identifier.
-   * @param {Object} product - Updated product properties.
-   * @returns {Promise<Object>} Updated product record.
-   */
   updateProduct: async (id, product) => {
     const response = await fetch(`${BACKEND_URL}/products/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({
         ...product,
-        type: product.type.toUpperCase()
+        type: product.type ? product.type.toUpperCase() : 'GOODS'
       })
     });
     return handleResponse(response);
   },
-
-  /**
-   * Deletes a product from the catalogue by ID.
-   * @async
-   * @function deleteProduct
-   * @param {string|number} id - Product identifier.
-   * @returns {Promise<null>} Resolves on successful removal.
-   */
   deleteProduct: async (id) => {
     const response = await fetch(`${BACKEND_URL}/products/${id}`, {
       method: 'DELETE',
@@ -200,72 +97,206 @@ export const api = {
     return handleResponse(response);
   },
 
-  // ==========================================
-  // Chart of Accounts (CoA)
-  // ==========================================
-
-  /**
-   * Fetches the hierarchical Chart of Accounts (Assets, Liabilities, Equity, Income, Expense).
-   * @async
-   * @function getChartOfAccounts
-   * @returns {Promise<Array<Object>>} List of GL account definitions.
-   */
+  // Chart of Accounts
   getChartOfAccounts: async () => {
     const response = await fetch(`${BACKEND_URL}/accounts`, { headers: getAuthHeaders() });
     return handleResponse(response);
   },
+  createAccount: async (accountData) => {
+    const response = await fetch(`${BACKEND_URL}/accounts`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(accountData)
+    });
+    return handleResponse(response);
+  },
 
-  // ==========================================
-  // Journals & General Ledger Entries
-  // ==========================================
-
-  /**
-   * Fetches defined accounting journals (Sales, Purchase, Bank, Cash, Miscellaneous).
-   * @async
-   * @function getJournals
-   * @returns {Promise<Array<Object>>} List of configured journals.
-   */
+  // Journals
   getJournals: async () => {
     const response = await fetch(`${BACKEND_URL}/journals`, { headers: getAuthHeaders() });
     return handleResponse(response);
   },
+  createJournal: async (journalData) => {
+    const response = await fetch(`${BACKEND_URL}/journals`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(journalData)
+    });
+    return handleResponse(response);
+  },
 
-  /**
-   * Fetches posted double-entry journal entries and audit trails.
-   * @async
-   * @function getJournalEntries
-   * @returns {Promise<Array<Object>>} List of journal entries with debit/credit line items.
-   */
+  // Journal Entries
   getJournalEntries: async () => {
     const response = await fetch(`${BACKEND_URL}/journal-entries`, { headers: getAuthHeaders() });
     return handleResponse(response);
   },
+  createJournalEntry: async (entryData) => {
+    const response = await fetch(`${BACKEND_URL}/journal-entries`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(entryData)
+    });
+    return handleResponse(response);
+  },
 
-  // ==========================================
-  // Financial Reporting
-  // ==========================================
+  // Sales Orders
+  getSalesOrders: async () => {
+    const response = await fetch(`${BACKEND_URL}/sales-orders`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+  createSalesOrder: async (soData) => {
+    const response = await fetch(`${BACKEND_URL}/sales-orders`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(soData)
+    });
+    return handleResponse(response);
+  },
+  confirmSalesOrder: async (id) => {
+    const response = await fetch(`${BACKEND_URL}/sales-orders/${id}/confirm`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
+  createInvoiceFromSalesOrder: async (id) => {
+    const response = await fetch(`${BACKEND_URL}/sales-orders/${id}/create-invoice`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
 
-  /**
-   * Generates Balance Sheet statement report for a given fiscal year.
-   * @async
-   * @function getBalanceSheet
-   * @param {number} [year=currentYear] - Fiscal year for calculation.
-   * @returns {Promise<Object>} Balance Sheet report data with Assets, Liabilities, and Equity balances.
-   */
+  // Customer Invoices
+  getCustomerInvoices: async () => {
+    const response = await fetch(`${BACKEND_URL}/customer-invoices`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+  createCustomerInvoice: async (invData) => {
+    const response = await fetch(`${BACKEND_URL}/customer-invoices`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(invData)
+    });
+    return handleResponse(response);
+  },
+  confirmCustomerInvoice: async (id) => {
+    const response = await fetch(`${BACKEND_URL}/customer-invoices/${id}/confirm`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
+  payCustomerInvoice: async (id, paymentData) => {
+    const response = await fetch(`${BACKEND_URL}/customer-invoices/${id}/pay`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(paymentData)
+    });
+    return handleResponse(response);
+  },
+
+  // Purchase Orders
+  getPurchaseOrders: async () => {
+    const response = await fetch(`${BACKEND_URL}/purchase-orders`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+  createPurchaseOrder: async (poData) => {
+    const response = await fetch(`${BACKEND_URL}/purchase-orders`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(poData)
+    });
+    return handleResponse(response);
+  },
+  confirmPurchaseOrder: async (id) => {
+    const response = await fetch(`${BACKEND_URL}/purchase-orders/${id}/confirm`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
+
+  // Vendor Bills
+  getVendorBills: async () => {
+    const response = await fetch(`${BACKEND_URL}/vendor-bills`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+  createVendorBill: async (billData) => {
+    const response = await fetch(`${BACKEND_URL}/vendor-bills`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(billData)
+    });
+    return handleResponse(response);
+  },
+  confirmVendorBill: async (id) => {
+    const response = await fetch(`${BACKEND_URL}/vendor-bills/${id}/confirm`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
+  payVendorBill: async (id, paymentData) => {
+    const response = await fetch(`${BACKEND_URL}/vendor-bills/${id}/pay`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(paymentData)
+    });
+    return handleResponse(response);
+  },
+
+  // Payments
+  getPayments: async () => {
+    const response = await fetch(`${BACKEND_URL}/payments`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+  createPayment: async (paymentData) => {
+    const response = await fetch(`${BACKEND_URL}/payments`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(paymentData)
+    });
+    return handleResponse(response);
+  },
+
+  // Analytic Accounts & Budgets
+  getAnalyticAccounts: async () => {
+    const response = await fetch(`${BACKEND_URL}/analytic-accounts`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+  createAnalyticAccount: async (data) => {
+    const response = await fetch(`${BACKEND_URL}/analytic-accounts`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return handleResponse(response);
+  },
+  getBudgets: async () => {
+    const response = await fetch(`${BACKEND_URL}/budgets`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+  createBudget: async (data) => {
+    const response = await fetch(`${BACKEND_URL}/budgets`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return handleResponse(response);
+  },
+
+  // Reports
   getBalanceSheet: async (year = new Date().getFullYear()) => {
     const response = await fetch(`${BACKEND_URL}/reports/balance-sheet?year=${year}`, { headers: getAuthHeaders() });
     return handleResponse(response);
   },
-
-  /**
-   * Generates Profit and Loss (Income Statement) report for a given fiscal year.
-   * @async
-   * @function getProfitAndLoss
-   * @param {number} [year=currentYear] - Fiscal year for calculation.
-   * @returns {Promise<Object>} Profit and Loss statement with Income, Expenses, and Net Profit.
-   */
   getProfitAndLoss: async (year = new Date().getFullYear()) => {
     const response = await fetch(`${BACKEND_URL}/reports/profit-and-loss?year=${year}`, { headers: getAuthHeaders() });
+    return handleResponse(response);
+  },
+  getBudgetReport: async () => {
+    const response = await fetch(`${BACKEND_URL}/reports/budget`, { headers: getAuthHeaders() });
     return handleResponse(response);
   }
 };

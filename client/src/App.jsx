@@ -13,15 +13,34 @@ import Signup from './pages/signup.jsx';
 import AdminCreateUser from './pages/AdminCreateUser.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Layout from './components/Layout.jsx';
+
+// Master Pages
 import ContactList from './pages/masters/ContactList.jsx';
 import ProductList from './pages/masters/ProductList.jsx';
 import CustomerMarketplace from './pages/portal/CustomerMarketplace.jsx';
 import VendorProductForm from './pages/portal/VendorProductForm.jsx';
 import CartCheckout from './pages/portal/CartCheckout.jsx';
 import ChartOfAccounts from './pages/masters/ChartOfAccounts.jsx';
+
+// Accounting Pages
+import Journals from './pages/accounting/Journals.jsx';
 import JournalEntries from './pages/accounting/JournalEntries.jsx';
+import Payments from './pages/accounting/Payments.jsx';
+import AnalyticAccounts from './pages/accounting/AnalyticAccounts.jsx';
+import Budgets from './pages/accounting/Budgets.jsx';
+
+// Sales & Purchase Pages
+import SalesOrders from './pages/sales/SalesOrders.jsx';
+import CustomerInvoices from './pages/sales/CustomerInvoices.jsx';
+import PurchaseOrders from './pages/purchase/PurchaseOrders.jsx';
+import VendorBills from './pages/purchase/VendorBills.jsx';
+
+// Report Pages
 import BalanceSheet from './pages/reports/BalanceSheet.jsx';
 import ProfitAndLoss from './pages/reports/ProfitAndLoss.jsx';
+import BudgetReport from './pages/reports/BudgetReport.jsx';
+
+// Miscellaneous Pages
 import Settings from './pages/Settings.jsx';
 import Notifications from './pages/Notifications.jsx';
 import Profile from './pages/Profile.jsx';
@@ -43,15 +62,36 @@ export default function App() {
         {/* Authenticated Routes inside Layout */}
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
+          
+          {/* Sales Tab */}
+          <Route path="/sales-orders" element={<SalesOrders />} />
+          <Route path="/customer-invoices" element={<CustomerInvoices />} />
+          
+          {/* Purchase Tab */}
+          <Route path="/purchase-orders" element={<PurchaseOrders />} />
+          <Route path="/vendor-bills" element={<VendorBills />} />
+          
+          {/* Payments & Receipts */}
+          <Route path="/payments" element={<Payments />} />
+          
+          {/* Master & Accounts Tab */}
           <Route path="/contacts" element={<ContactList />} />
           <Route path="/products" element={<ProductList />} />
           <Route path="/portal/customer" element={<CustomerMarketplace />} />
           <Route path="/portal/vendor" element={<VendorProductForm />} />
           <Route path="/portal/cart" element={<CartCheckout />} />
+          <Route path="/analytic-accounts" element={<AnalyticAccounts />} />
+          <Route path="/budgets" element={<Budgets />} />
           <Route path="/accounts" element={<ChartOfAccounts />} />
-          <Route path="/journals" element={<JournalEntries />} />
+          <Route path="/journals" element={<Journals />} />
+          <Route path="/journal-entries" element={<JournalEntries />} />
+          
+          {/* Reports Tab */}
           <Route path="/reports/balance-sheet" element={<BalanceSheet />} />
           <Route path="/reports/pnl" element={<ProfitAndLoss />} />
+          <Route path="/reports/budget" element={<BudgetReport />} />
+          
+          {/* Misc */}
           <Route path="/settings" element={<Settings />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
