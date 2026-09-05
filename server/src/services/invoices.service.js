@@ -1,5 +1,6 @@
 const prisma = require('../prisma');
 const accountingService = require('./accounting.service');
+const inventoryService = require('./inventory.service');
 
 class InvoicesService {
   async generateInvoiceNumber() {
@@ -17,23 +18,41 @@ class InvoicesService {
 
     const invoice_number = await this.generateInvoiceNumber();
 
-    let grandTotal = 0;
+    let docSubtotal = 0;
+    let docTaxAmount = 0;
+
     const formattedLines = lines.map((line) => {
       const qty = parseFloat(line.qty) || 1.0;
       const unit_price = parseFloat(line.unit_price) || 0.0;
-      const total = Math.round(qty * unit_price * 100) / 100;
-      grandTotal += total;
+      const tax_rate = parseFloat(line.tax_rate) || 0.0;
+
+      if (tax_rate < 0) {
+        const error = new Error('Tax rate cannot be negative');
+        error.statusCode = 400;
+        throw error;
+      }
+
+      const lineSubtotal = Math.round(qty * unit_price * 100) / 100;
+      const lineTax = Math.round(lineSubtotal * (tax_rate / 100) * 100) / 100;
+      const lineTotal = Math.round((lineSubtotal + lineTax) * 100) / 100;
+
+      docSubtotal += lineSubtotal;
+      docTaxAmount += lineTax;
 
       return {
         product_id: line.product_id,
         analytic_account_id: line.analytic_account_id || null,
         qty,
         unit_price,
-        total,
+        tax_rate,
+        tax_amount: lineTax,
+        total: lineTotal,
       };
     });
 
-    grandTotal = Math.round(grandTotal * 100) / 100;
+    docSubtotal = Math.round(docSubtotal * 100) / 100;
+    docTaxAmount = Math.round(docTaxAmount * 100) / 100;
+    const docTotal = Math.round((docSubtotal + docTaxAmount) * 100) / 100;
 
     return await prisma.customerInvoice.create({
       data: {
@@ -43,7 +62,9 @@ class InvoicesService {
         invoice_date: new Date(invoice_date),
         due_date: due_date ? new Date(due_date) : null,
         status: 'DRAFT',
-        total: grandTotal,
+        subtotal: docSubtotal,
+        tax_amount: docTaxAmount,
+        total: docTotal,
         lines: {
           create: formattedLines,
         },
@@ -78,6 +99,7 @@ class InvoicesService {
       analytic_account_id: l.analytic_account_id,
       qty: l.qty,
       unit_price: l.unit_price,
+      tax_rate: l.tax_rate || 0,
     }));
 
     return await this.create({
@@ -132,16 +154,21 @@ class InvoicesService {
 
   /**
    * Confirm Customer Invoice:
-   * 1. Status -> CONFIRMED
-   * 2. Auto-posts Journal Entry (Dr Debtors / Cr Sales Income)
-   * 3. Rolls up line amounts to tagged Analytic Accounts in active Budgets
+   * 1. Check stock availability for GOODS products.
+   * 2. Transactionally update status to CONFIRMED and create SALE stock movements.
+   * 3. Auto-posts Journal Entry (Dr Debtors / Cr Sales Income / Cr Tax Payable).
+   * 4. Updates budget lines.
    */
   async confirm(id) {
     const invoice = await prisma.customerInvoice.findUnique({
       where: { id },
       include: {
         customer: true,
-        lines: true,
+        lines: {
+          include: {
+            product: true,
+          },
+        },
       },
     });
 
@@ -157,7 +184,32 @@ class InvoicesService {
       throw error;
     }
 
-    // 1. Find or create Sales Journal & Accounts (Debtors, Sales Income)
+    // 1. Check stock availability for GOODS products before confirmation
+    await inventoryService.checkStockAvailability(invoice.lines);
+
+    // 2. Perform DB transaction for Status update & Stock movements
+    await prisma.$transaction(async (tx) => {
+      await tx.customerInvoice.update({
+        where: { id },
+        data: { status: 'CONFIRMED' },
+      });
+
+      // Deduct stock for GOODS products
+      for (const line of invoice.lines) {
+        if (line.product && line.product.type === 'GOODS') {
+          await tx.stockMovement.create({
+            data: {
+              product_id: line.product_id,
+              quantity: line.qty,
+              type: 'SALE',
+              reference: invoice.invoice_number,
+            },
+          });
+        }
+      }
+    });
+
+    // 3. Find or create Chart of Accounts & Sales Journal
     const salesJournal = await prisma.journal.findFirst({
       where: { type: 'SALES' },
     });
@@ -168,34 +220,56 @@ class InvoicesService {
       where: { name: 'Sales Income' },
     });
 
+    let taxPayableAccount = await prisma.account.findFirst({
+      where: { name: 'Tax Payable' },
+    });
+
+    if (!taxPayableAccount && invoice.tax_amount > 0) {
+      taxPayableAccount = await prisma.account.create({
+        data: { name: 'Tax Payable', type: 'LIABILITY' },
+      });
+    }
+
     if (!salesJournal || !debtorsAccount || !salesIncomeAccount) {
       const error = new Error('Required Chart of Accounts (Debtors, Sales Income) or Sales Journal missing');
       error.statusCode = 400;
       throw error;
     }
 
-    // 2. Post Journal Entry: Dr Debtors (invoice.total), Cr Sales Income (invoice.total)
+    // Build Journal Items
+    const journalLines = [
+      {
+        accountId: debtorsAccount.id,
+        partnerId: invoice.customer_id,
+        debit: invoice.total,
+        credit: 0,
+      },
+      {
+        accountId: salesIncomeAccount.id,
+        partnerId: null,
+        debit: 0,
+        credit: invoice.subtotal,
+      },
+    ];
+
+    if (invoice.tax_amount > 0 && taxPayableAccount) {
+      journalLines.push({
+        accountId: taxPayableAccount.id,
+        partnerId: null,
+        debit: 0,
+        credit: invoice.tax_amount,
+      });
+    }
+
+    // Auto-post Journal Entry
     await accountingService.postJournalEntry({
       journalId: salesJournal.id,
       reference: `Invoice ${invoice.invoice_number}`,
       entryDate: invoice.invoice_date,
-      lines: [
-        {
-          accountId: debtorsAccount.id,
-          partnerId: invoice.customer_id,
-          debit: invoice.total,
-          credit: 0,
-        },
-        {
-          accountId: salesIncomeAccount.id,
-          partnerId: null,
-          debit: 0,
-          credit: invoice.total,
-        },
-      ],
+      lines: journalLines,
     });
 
-    // 3. Roll up amounts into tagged Analytic Account Budget Lines
+    // 4. Update Budget lines rollup
     for (const line of invoice.lines) {
       if (line.analytic_account_id) {
         await prisma.budgetLine.updateMany({
@@ -214,21 +288,7 @@ class InvoicesService {
       }
     }
 
-    // 4. Update status to CONFIRMED
-    return await prisma.customerInvoice.update({
-      where: { id },
-      data: { status: 'CONFIRMED' },
-      include: {
-        customer: true,
-        so: true,
-        lines: {
-          include: {
-            product: true,
-            analytic_account: true,
-          },
-        },
-      },
-    });
+    return await this.getById(id);
   }
 }
 
