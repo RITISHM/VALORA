@@ -26,7 +26,7 @@
   min-height: 100vh;
   width: 100vw;
   font-family: var(--font-family);
-  background-color: var(--valora-bg);
+  background-color: #FFFFFF;
   overflow: hidden;
 }
 
@@ -136,7 +136,7 @@
   width: 100%;
   max-width: 440px;
   background: transparent;
-  padding: 48px 0;
+  padding: 48px;
   border-radius: 12px;
   box-shadow: none;
 }
@@ -149,8 +149,9 @@
 .welcome-text {
   font-size: 3rem;
   color: var(--valora-text-main);
-  margin: 0 0 8px 0;
-  font-weight: 600;
+  margin: 0 0 12px 0;
+  font-weight: 700;
+  line-height: 1.15;
 }
 
 .subtitle-text {
@@ -326,5 +327,6 @@
     padding: 32px 0;
     box-shadow: none;
     border: none;
+    background: transparent;
   }
 }

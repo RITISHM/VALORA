@@ -1,12 +1,24 @@
 /* client/src/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
+
+:root {
+  --font-family: 'Comfortaa', cursive, sans-serif;
+}
+
 body, html {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
+  font-family: 'Comfortaa', cursive, sans-serif;
 }
 
 *, *::before, *::after {
   box-sizing: border-box;
+  font-family: 'Comfortaa', cursive, sans-serif;
+}
+
+button, input, optgroup, select, textarea {
+  font-family: inherit;
 }
