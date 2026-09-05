@@ -18,6 +18,15 @@ class AccountsController {
       next(err);
     }
   }
+
+  async createAccount(req, res, next) {
+    try {
+      const account = await accountsService.createAccount(req.body);
+      return res.status(201).json(account);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new AccountsController();
