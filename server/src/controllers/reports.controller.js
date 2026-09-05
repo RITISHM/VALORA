@@ -1,4 +1,5 @@
 const reportsService = require("../services/reports.service");
+const aiService = require("../services/ai.service");
 
 class ReportsController {
   async getBalanceSheet(req, res, next) {
@@ -35,6 +36,17 @@ class ReportsController {
     try {
       const data = await reportsService.getDashboardAnalytics();
       return res.status(200).json(data);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getAIInsights(req, res, next) {
+    try {
+      const { year } = req.query;
+      const report = await reportsService.getProfitAndLoss(year);
+      const insights = await aiService.generateInsights(report);
+      return res.status(200).json(insights);
     } catch (err) {
       next(err);
     }

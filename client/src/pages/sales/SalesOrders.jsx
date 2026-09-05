@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, ArrowLeft, FileText, CheckCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, FileText, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DataTable from "../../components/DataTable";
 import { api } from "../../api";
+import "../../styles/forms.css";
 
 export default function SalesOrders() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export default function SalesOrders() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [budgetWarning, setBudgetWarning] = useState(null);
 
   const [formData, setFormData] = useState({
     customerId: "",
@@ -42,7 +44,7 @@ export default function SalesOrders() {
       setIsLoading(false);
     }
   };
-  // checkpoint 1
+
   useEffect(() => {
     loadData();
     const queryParams = new URLSearchParams(location.search);
@@ -50,6 +52,12 @@ export default function SalesOrders() {
       setIsFormOpen(true);
     }
   }, [location]);
+
+  const calculateTotal = () =>
+    formData.lines.reduce(
+      (sum, l) => sum + (Number(l.quantity) * Number(l.unitPrice) || 0),
+      0,
+    );
 
   const handleAddLine = () => {
     setFormData((prev) => ({
@@ -79,13 +87,6 @@ export default function SalesOrders() {
       newLines[idx] = updatedLine;
       return { ...prev, lines: newLines };
     });
-  };
-
-  const calculateTotal = () => {
-    return formData.lines.reduce(
-      (sum, line) => sum + (Number(line.quantity) * Number(line.unitPrice) || 0),
-      0,
-    );
   };
 
   const handleSave = async () => {
@@ -163,33 +164,17 @@ export default function SalesOrders() {
     setIsLoading(true);
     try {
       const fullDoc = await api.getSalesOrderById(row.id);
-      setSelectedBill
-        ? setSelectedBill(fullDoc)
-        : setSelectedOrder
-          ? setSelectedOrder(fullDoc)
-          : setSelectedInvoice(fullDoc);
+      setSelectedOrder(fullDoc);
       setFormData({
-        ...(row.vendor_id ? { vendorId: fullDoc.vendor_id } : {}),
-        ...(row.customer_id ? { customerId: fullDoc.customer_id } : {}),
-        billNumber: fullDoc.bill_number || "",
-        billReference: fullDoc.bill_reference || "",
-        orderNumber: fullDoc.order_number || "",
-        invoiceNumber: fullDoc.invoice_number || "",
-        billDate: fullDoc.bill_date ? new Date(fullDoc.bill_date).toISOString().split("T")[0] : "",
-        orderDate: fullDoc.order_date
-          ? new Date(fullDoc.order_date).toISOString().split("T")[0]
-          : "",
-        invoiceDate: fullDoc.invoice_date
-          ? new Date(fullDoc.invoice_date).toISOString().split("T")[0]
-          : "",
-        dueDate: fullDoc.due_date ? new Date(fullDoc.due_date).toISOString().split("T")[0] : "",
+        customerId: fullDoc.customer_id || "",
+        soDate: fullDoc.so_date ? new Date(fullDoc.so_date).toISOString().split("T")[0] : "",
+        orderNumber: fullDoc.so_number || "",
         lines: fullDoc.lines?.map((l) => ({
           productId: l.product_id,
-          accountId: l.account_id || "",
           analyticAccountId: l.analytic_account_id || "",
           quantity: l.qty || l.quantity || 1,
           unitPrice: l.unit_price || 0,
-        })) || [{ productId: "", accountId: "", analyticAccountId: "", quantity: 1, unitPrice: 0 }],
+        })) || [{ productId: "", analyticAccountId: "", quantity: 1, unitPrice: 0 }],
       });
       setIsFormOpen(true);
     } catch (err) {
@@ -203,21 +188,12 @@ export default function SalesOrders() {
   const columns = [
     { header: "SO No.", accessor: "so_number", render: (row) => <strong>{row.so_number}</strong> },
     { header: "Customer", render: (row) => row.contact?.name || "-" },
-    { header: "SO Date", render: (row) => new Date(row.so_date).toLocaleDateString() },
-    { header: "Total", render: (row) => `₹ ${Number(row.total || 0).toLocaleString()}` },
+    { header: "SO Date", render: (row) => new Date(row.so_date).toLocaleDateString("en-IN") },
+    { header: "Total", render: (row) => `₹ ${Number(row.total || 0).toLocaleString("en-IN")}` },
     {
       header: "Status",
       render: (row) => (
-        <span
-          style={{
-            padding: "4px 10px",
-            borderRadius: "6px",
-            fontSize: "0.8rem",
-            fontWeight: "700",
-            backgroundColor: row.status === "CONFIRMED" ? "#D1FAE5" : "#FEF3C7",
-            color: row.status === "CONFIRMED" ? "#059669" : "#D97706",
-          }}
-        >
+        <span className={`fv-badge ${row.status === "CONFIRMED" ? "fv-badge-confirmed" : "fv-badge-draft"}`}>
           {row.status}
         </span>
       ),
@@ -225,12 +201,8 @@ export default function SalesOrders() {
     {
       header: "Action",
       render: (row) => (
-        <button
-          className="secondary-btn"
-          onClick={() => handleRowClick(row)}
-          style={{ padding: "4px 10px", fontSize: "0.8rem" }}
-        >
-          View Form
+        <button className="secondary-btn" onClick={() => handleRowClick(row)} style={{ padding: "4px 12px", fontSize: "0.8rem" }}>
+          View
         </button>
       ),
     },
@@ -240,271 +212,198 @@ export default function SalesOrders() {
     const userStr = localStorage.getItem("valora_user");
     const user = userStr ? JSON.parse(userStr) : null;
     const isAccountant = user?.role?.toLowerCase() === "accountant";
-
-    const isConfirmed =
-      selectedOrder?.status === "CONFIRMED" || selectedOrder?.status === "INVOICED";
+    const isConfirmed = selectedOrder?.status === "CONFIRMED" || selectedOrder?.status === "INVOICED";
     const isReadOnly = isConfirmed || (isAccountant && Boolean(selectedOrder));
+    const grandTotal = calculateTotal();
 
     return (
-      <div className="page-content" style={{ maxWidth: "1000px", margin: "0 auto" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "24px",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <button
-              className="secondary-btn"
-              onClick={handleCloseForm}
-              style={{ display: "flex", alignItems: "center", gap: "6px" }}
-            >
-              <ArrowLeft size={16} /> Back
-            </button>
-            <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800" }}>
-              Sales Order Form View
-            </h2>
-          </div>
-
-          <div style={{ display: "flex", gap: "10px" }}>
-            {!selectedOrder && (
-              <button className="primary-btn" onClick={handleSave} disabled={isSaving}>
-                Save Order
+      <div className="page-content">
+        <div className="fv-page">
+          <div className="fv-topbar">
+            <div className="fv-topbar-left">
+              <button className="fv-btn fv-btn-back" onClick={handleCloseForm}>
+                <ArrowLeft size={15} /> Back
               </button>
-            )}
-            {selectedOrder && !isConfirmed && (
-              <button
-                className="primary-btn"
-                onClick={handleConfirm}
-                disabled={isSaving}
-                style={{
-                  backgroundColor: "#059669",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                <CheckCircle size={16} /> Confirm
-              </button>
-            )}
-            {selectedOrder && isConfirmed && (
-              <button
-                className="primary-btn"
-                onClick={handleCreateInvoice}
-                disabled={isSaving}
-                style={{
-                  backgroundColor: "#2563EB",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                <FileText size={16} /> Create Invoice
-              </button>
-            )}
-            <button className="secondary-btn" onClick={handleCloseForm}>
-              Cancel
-            </button>
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: "#FFFFFF",
-            border: "2px solid #1E293B",
-            borderRadius: "16px",
-            padding: "24px",
-          }}
-        >
-          <div
-            className="form-row"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
-              gap: "20px",
-              marginBottom: "24px",
-            }}
-          >
-            <div className="form-field">
-              <label style={{ fontWeight: "600", fontSize: "0.85rem" }}>SO No.</label>
-              <input
-                type="text"
-                value={formData.orderNumber}
-                onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
-                disabled={true}
-                placeholder="Auto-Generated"
-              />
+              <div>
+                <h1 className="fv-topbar-title">
+                  {selectedOrder ? selectedOrder.so_number : "New Sales Order"}
+                </h1>
+                <p className="fv-topbar-subtitle">
+                  {selectedOrder ? `Customer: ${contacts.find(c => c.id === formData.customerId)?.name || "—"}` : "Fill in the details below"}
+                </p>
+              </div>
             </div>
-            <div className="form-field">
-              <label style={{ fontWeight: "600", fontSize: "0.85rem" }}>
-                Customer Name (From Contact Master) *
-              </label>
-              <select
-                value={formData.customerId}
-                onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
-                disabled={isReadOnly}
-                required
-              >
-                <option value="">-- Select Customer --</option>
-                {contacts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.type ? (c.type.toUpperCase() === 'BOTH' ? 'Customer & Vendor' : c.type.charAt(0).toUpperCase() + c.type.slice(1).toLowerCase()) : 'Contact'})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-field">
-              <label style={{ fontWeight: "600", fontSize: "0.85rem" }}>SO Date</label>
-              <input
-                type="date"
-                value={formData.soDate}
-                onChange={(e) => setFormData({ ...formData, soDate: e.target.value })}
-                disabled={isReadOnly}
-              />
+
+            <div className="fv-topbar-actions">
+              <div className="fv-status-bar">
+                <span className={`fv-status-step ${!selectedOrder || selectedOrder.status === "DRAFT" ? "active" : "done"}`}>Draft</span>
+                <span className={`fv-status-step ${isConfirmed ? "active" : ""}`}>Confirmed</span>
+              </div>
+
+              {!selectedOrder && (
+                <button className="fv-btn fv-btn-save" onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? "Saving…" : "Save Order"}
+                </button>
+              )}
+              {selectedOrder && !isConfirmed && (
+                <button className="fv-btn fv-btn-confirm" onClick={handleConfirm} disabled={isSaving}>
+                  <CheckCircle size={15} /> Confirm
+                </button>
+              )}
+              {selectedOrder && isConfirmed && (
+                <button className="fv-btn fv-btn-bill" onClick={handleCreateInvoice} disabled={isSaving}>
+                  <FileText size={15} /> Create Invoice
+                </button>
+              )}
+              <button className="fv-btn fv-btn-ghost" onClick={handleCloseForm}>Cancel</button>
             </div>
           </div>
 
-          <h3 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "16px" }}>
-            Order Lines
-          </h3>
+          <div className="fv-card">
+            <div className="fv-card-body">
+              <p className="fv-section-label">Order Details</p>
+              <div className="fv-grid fv-grid-3">
+                <div className="fv-field">
+                  <label className="fv-label">SO No.</label>
+                  <input
+                    className="fv-input fv-input-autogen"
+                    value={formData.orderNumber}
+                    disabled
+                    placeholder="Auto-Generated"
+                  />
+                </div>
+                <div className="fv-field">
+                  <label className="fv-label">Customer Name <span className="fv-required">*</span></label>
+                  <select
+                    className="fv-select"
+                    value={formData.customerId}
+                    onChange={e => setFormData({ ...formData, customerId: e.target.value })}
+                    disabled={isReadOnly}
+                  >
+                    <option value="">— Select Customer —</option>
+                    {contacts.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                        {c.type ? ` (${c.type === "BOTH" ? "Customer & Vendor" : c.type})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="fv-field">
+                  <label className="fv-label">SO Date</label>
+                  <input
+                    className="fv-input"
+                    type="date"
+                    value={formData.soDate}
+                    onChange={e => setFormData({ ...formData, soDate: e.target.value })}
+                    disabled={isReadOnly}
+                  />
+                </div>
+              </div>
+            </div>
 
-          <table className="valora-table" style={{ width: "100%", marginBottom: "16px" }}>
-            <thead>
-              <tr>
-                <th style={{ width: "50px" }}>Sr. No.</th>
-                <th>Product (From Product Master)</th>
-                <th>Budget Analytics</th>
-                <th style={{ textAlign: "right" }}>Qty</th>
-                <th style={{ textAlign: "right" }}>Unit Price (₹)</th>
-                <th style={{ textAlign: "right" }}>Total (₹)</th>
-                {!isReadOnly && <th style={{ width: "40px" }}></th>}
-              </tr>
-            </thead>
-            <tbody>
-              {formData.lines.map((line, idx) => {
-                const lineTotal = Number(line.quantity || 0) * Number(line.unitPrice || 0);
-                return (
-                  <tr key={idx}>
-                    <td>{idx + 1}</td>
-                    <td>
-                      <select
-                        value={line.productId}
-                        onChange={(e) => handleLineChange(idx, "productId", e.target.value)}
-                        disabled={isReadOnly}
-                        style={{
-                          width: "100%",
-                          padding: "6px",
-                          borderRadius: "6px",
-                          border: "1px solid #CBD5E1",
-                        }}
-                      >
-                        <option value="">-- Select Product --</option>
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name} (₹ {p.sales_price})
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <select
-                        value={line.analyticAccountId}
-                        onChange={(e) => handleLineChange(idx, "analyticAccountId", e.target.value)}
-                        disabled={isReadOnly}
-                        style={{
-                          width: "100%",
-                          padding: "6px",
-                          borderRadius: "6px",
-                          border: "1px solid #CBD5E1",
-                        }}
-                      >
-                        <option value="">-- Select Analytics --</option>
-                        {analyticAccounts.map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.name}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td style={{ textAlign: "right" }}>
-                      <input
-                        type="number"
-                        min="1"
-                        value={line.quantity}
-                        onChange={(e) => handleLineChange(idx, "quantity", e.target.value)}
-                        disabled={isReadOnly}
-                        style={{
-                          width: "70px",
-                          textAlign: "right",
-                          padding: "6px",
-                          borderRadius: "6px",
-                          border: "1px solid #CBD5E1",
-                        }}
-                      />
-                    </td>
-                    <td style={{ textAlign: "right" }}>
-                      <input
-                        type="number"
-                        value={line.unitPrice}
-                        onChange={(e) => handleLineChange(idx, "unitPrice", e.target.value)}
-                        disabled={isReadOnly}
-                        style={{
-                          width: "100px",
-                          textAlign: "right",
-                          padding: "6px",
-                          borderRadius: "6px",
-                          border: "1px solid #CBD5E1",
-                        }}
-                      />
-                    </td>
-                    <td style={{ textAlign: "right", fontWeight: "700" }}>
-                      ₹ {lineTotal.toLocaleString()}
-                    </td>
-                    {!isReadOnly && (
-                      <td style={{ textAlign: "center" }}>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveLine(idx)}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            color: "#EF4444",
-                            cursor: "pointer",
-                          }}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+            <div className="fv-lines-section">
+              <p className="fv-lines-title">Sales Order Lines</p>
+              <div className="fv-table-wrap">
+                <table className="fv-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: 40 }}>Sr.</th>
+                      <th>Product <span style={{ color: "#DC2626" }}>*</span></th>
+                      <th>Budget Analytics</th>
+                      <th style={{ textAlign: "right", width: 80 }}>Qty <span style={{ color: "#DC2626" }}>*</span></th>
+                      <th style={{ textAlign: "right", width: 120 }}>Unit Price (₹) <span style={{ color: "#DC2626" }}>*</span></th>
+                      <th style={{ textAlign: "right", width: 120 }}>Total (₹)</th>
+                      {!isReadOnly && <th style={{ width: 40 }}></th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {formData.lines.map((line, idx) => {
+                      const lineTotal = Number(line.quantity || 0) * Number(line.unitPrice || 0);
+                      return (
+                        <tr key={idx}>
+                          <td style={{ textAlign: "center", fontWeight: 700, color: "#94A3B8", fontSize: "0.8rem" }}>{idx + 1}</td>
+                          <td>
+                            <select
+                              className="fv-table-select"
+                              value={line.productId}
+                              onChange={e => handleLineChange(idx, "productId", e.target.value)}
+                              disabled={isReadOnly}
+                            >
+                              <option value="">— Select Product —</option>
+                              {products.map(p => (
+                                <option key={p.id} value={p.id}>{p.name} (Sales: ₹{p.sales_price})</option>
+                              ))}
+                            </select>
+                          </td>
+                          <td>
+                            <select
+                              className="fv-table-select"
+                              value={line.analyticAccountId}
+                              onChange={e => handleLineChange(idx, "analyticAccountId", e.target.value)}
+                              disabled={isReadOnly}
+                            >
+                              <option value="">— Select Analytics —</option>
+                              {analyticAccounts.map(a => (
+                                <option key={a.id} value={a.id}>{a.name}</option>
+                              ))}
+                            </select>
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            {isReadOnly ? (
+                              <span style={{ fontWeight: 600 }}>{line.quantity}</span>
+                            ) : (
+                              <input
+                                className="fv-table-input fv-table-input-sm"
+                                type="number"
+                                min="1"
+                                value={line.quantity}
+                                onChange={e => handleLineChange(idx, "quantity", e.target.value)}
+                              />
+                            )}
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            {isReadOnly ? (
+                              <span style={{ fontWeight: 600 }}>₹ {Number(line.unitPrice).toLocaleString("en-IN")}</span>
+                            ) : (
+                              <input
+                                className="fv-table-input fv-table-input-md"
+                                type="number"
+                                value={line.unitPrice}
+                                onChange={e => handleLineChange(idx, "unitPrice", e.target.value)}
+                              />
+                            )}
+                          </td>
+                          <td style={{ textAlign: "right", fontWeight: 700, color: "#0F172A" }}>
+                            ₹ {lineTotal.toLocaleString("en-IN")}
+                          </td>
+                          {!isReadOnly && (
+                            <td>
+                              <button className="fv-remove-btn" type="button" onClick={() => handleRemoveLine(idx)} title="Remove">✕</button>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={!isReadOnly ? 5 : 5} style={{ textAlign: "right", color: "#64748B" }}>Grand Total</td>
+                      <td style={{ textAlign: "right", color: "#714B67", fontSize: "1rem" }}>
+                        ₹ {grandTotal.toLocaleString("en-IN")}
                       </td>
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-            <tfoot>
-              <tr style={{ fontWeight: "800", fontSize: "1.1rem", background: "#F8FAFC" }}>
-                <td colSpan={5} style={{ textAlign: "right" }}>
-                  Grand Total:
-                </td>
-                <td style={{ textAlign: "right", color: "#2563EB" }}>
-                  ₹ {calculateTotal().toLocaleString()}
-                </td>
-                {!isReadOnly && <td></td>}
-              </tr>
-            </tfoot>
-          </table>
-
-          {!isReadOnly && (
-            <button
-              type="button"
-              className="secondary-btn"
-              onClick={handleAddLine}
-              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-            >
-              <Plus size={16} /> Add Product Line
-            </button>
-          )}
+                      {!isReadOnly && <td />}
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              {!isReadOnly && (
+                <button className="fv-add-line" type="button" onClick={handleAddLine}>
+                  <Plus size={14} /> Add Product Line
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -512,21 +411,16 @@ export default function SalesOrders() {
 
   return (
     <div className="page-content" style={{ padding: 0 }}>
-      <div className="page-header">
-        <h1 className="page-title">Sales Orders</h1>
-      </div>
+      <div className="page-header"><h1 className="page-title">Sales Orders</h1></div>
       {isLoading ? (
-        <p>Loading sales orders...</p>
+        <p style={{ padding: "40px", color: "#64748B" }}>Loading sales orders…</p>
       ) : (
         <DataTable
           title="Sales Order"
           columns={columns}
           data={salesOrders}
-          onNewClick={() => {
-            setSelectedOrder(null);
-            setIsFormOpen(true);
-          }}
-          searchPlaceholder="Search sales orders..."
+          onNewClick={() => { setSelectedOrder(null); setIsFormOpen(true); }}
+          searchPlaceholder="Search sales orders…"
         />
       )}
     </div>

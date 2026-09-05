@@ -9,5 +9,6 @@ router.get("/dashboard", (req, res, next) => controller.getDashboardAnalytics(re
 router.get("/balance-sheet", (req, res, next) => controller.getBalanceSheet(req, res, next));
 router.get("/profit-and-loss", (req, res, next) => controller.getProfitAndLoss(req, res, next));
 router.get("/budget", (req, res, next) => controller.getBudgetReport(req, res, next));
+router.get("/ai-insights", (req, res, next) => controller.getAIInsights(req, res, next));
 
 module.exports = router;
