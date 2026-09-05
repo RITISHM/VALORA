@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Hexagon } from 'lucide-react';
+import { BACKEND_URL } from '../api';
 import '../styles/login.css';
 
 export default function Login() {
@@ -32,17 +33,32 @@ export default function Login() {
 
     setIsLoading(true);
 
-    // Mock API request delay
-    setTimeout(() => {
-      setIsLoading(false);
-      // Mock validation logic: assume "admin" / "password" works, else throw exact spec error
-      if (formData.loginId === 'admin' && formData.password === 'password') {
-        alert('Login successful! (Routing to dashboard...)');
-        // navigate('/dashboard'); // Uncomment when dashboard is ready
-      } else {
-        setError('Invalid Login Id or Password');
+    try {
+      const response = await fetch(`${BACKEND_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          login_id: formData.loginId,
+          password: formData.password
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        setError(data.error || 'Invalid Login Id or Password');
+        setIsLoading(false);
+        return;
       }
-    }, 1200);
+
+      localStorage.setItem('valora_token', data.token);
+      localStorage.setItem('valora_user', JSON.stringify(data.user));
+
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Network error. Please try again later.');
+      setIsLoading(false);
+    }
   };
 
   return (

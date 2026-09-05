@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Hexagon } from 'lucide-react';
+import { BACKEND_URL } from '../api';
 import '../styles/signup.css';
 
 export default function Signup() {
@@ -58,19 +59,49 @@ export default function Signup() {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleMockSignup = async (e) => {
+    const handleSignup = async (e) => {
         e.preventDefault();
 
         if (!validateForm()) return;
 
         setIsLoading(true);
 
-        // Mock API request delay
-        setTimeout(() => {
-            setIsLoading(false);
-            alert('Account created successfully! (Routing to login...)');
+        try {
+            const mappedRole = formData.role === 'Administrator' ? 'ADMIN' : 'ACCOUNTANT';
+            
+            const response = await fetch(`${BACKEND_URL}/auth/signup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: formData.name,
+                    login_id: formData.loginId,
+                    email: formData.email,
+                    password: formData.password,
+                    role: mappedRole
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (Array.isArray(data.error)) {
+                    // Handle Zod array errors
+                    setErrors({ submit: data.error.map(err => err.message).join(', ') });
+                } else {
+                    setErrors({ submit: data.error || 'Signup failed' });
+                }
+                setIsLoading(false);
+                return;
+            }
+
+            // Signup successful, navigate to login
             navigate('/login');
-        }, 1200);
+        } catch (err) {
+            setErrors({ submit: 'Network error. Please try again later.' });
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -106,7 +137,13 @@ export default function Signup() {
                         <p className="subtitle-text">Register a new User or Administrator</p>
                     </div>
 
-                    <form onSubmit={handleMockSignup} className="login-form" noValidate>
+                    <form onSubmit={handleSignup} className="login-form" noValidate>
+                        
+                        {errors.submit && (
+                            <div className="error-message" style={{ marginBottom: '16px', textAlign: 'center' }}>
+                                {errors.submit}
+                            </div>
+                        )}
 
                         <div className="input-row">
                             {/* Name Input */}

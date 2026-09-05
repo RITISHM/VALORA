@@ -1,5 +1,7 @@
 import './mockData'; // Ensure it's initialized
 
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const delay = (ms = 500) => new Promise(resolve => setTimeout(resolve, ms));
 
 const getData = () => JSON.parse(localStorage.getItem('valora_data'));
