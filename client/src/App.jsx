@@ -21,6 +21,7 @@ import CustomerMarketplace from './pages/portal/CustomerMarketplace.jsx';
 import VendorProductForm from './pages/portal/VendorProductForm.jsx';
 import CartCheckout from './pages/portal/CartCheckout.jsx';
 import PortalInvoices from './pages/portal/PortalInvoices.jsx';
+import InvoiceDetail from './pages/portal/InvoiceDetail.jsx';
 import ChartOfAccounts from './pages/masters/ChartOfAccounts.jsx';
 
 // Accounting Pages
@@ -82,6 +83,7 @@ export default function App() {
           <Route path="/portal/vendor" element={<VendorProductForm />} />
           <Route path="/portal/cart" element={<CartCheckout />} />
           <Route path="/portal/invoices" element={<PortalInvoices />} />
+          <Route path="/portal/invoices/:id" element={<InvoiceDetail />} />
           <Route path="/analytic-accounts" element={<AnalyticAccounts />} />
           <Route path="/budgets" element={<Budgets />} />
           <Route path="/accounts" element={<ChartOfAccounts />} />

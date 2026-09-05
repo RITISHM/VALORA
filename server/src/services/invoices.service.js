@@ -207,6 +207,9 @@ class InvoicesService {
           });
         }
       }
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
     });
 
     // 3. Find or create Chart of Accounts & Sales Journal
@@ -317,6 +320,9 @@ class InvoicesService {
         where: { id },
         data: { status: 'PAID' },
       });
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
     });
 
     // Auto-post Payment Journal Entry

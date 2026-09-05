@@ -71,6 +71,9 @@ class AccountingService {
       });
 
       return entry;
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
     });
   }
 
