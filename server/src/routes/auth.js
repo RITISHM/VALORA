@@ -98,4 +98,33 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
+const { authenticateToken } = require('../middleware/role');
+
+router.put('/me', authenticateToken, async (req, res, next) => {
+  try {
+    const { name } = req.body;
+    
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ error: 'Name cannot be empty' });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { name: name.trim() }
+    });
+
+    res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        contact_id: user.contact_id
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;
