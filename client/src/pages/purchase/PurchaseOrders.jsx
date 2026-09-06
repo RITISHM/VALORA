@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, CheckCircle, FileText, Plus, Trash2, AlertTriangle, Pencil } from "lucide-react";
+import { ArrowLeft, CheckCircle, FileText, Plus, Trash2, AlertTriangle, Pencil, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "../../components/DataTable";
 import { api } from "../../api";
@@ -253,15 +253,15 @@ export default function PurchaseOrders() {
       header: "Action",
       render: (r) => (
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); handleRowClick(r); }}
+          <button 
+            onClick={(e) => { e.stopPropagation(); handleRowClick(r); }} 
             style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
-            title="Edit / View"
+            title={r.status === "DRAFT" ? "Edit" : "View"}
           >
-            <Pencil size={16} />
+            {r.status === "DRAFT" ? <Pencil size={16} /> : <Eye size={16} />}
           </button>
-          <button
-            onClick={(e) => handleDeleteRow(e, r.id, r.status)}
+          <button 
+            onClick={(e) => handleDeleteRow(e, r.id, r.status)} 
             style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
             title="Delete"
           >

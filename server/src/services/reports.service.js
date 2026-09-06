@@ -217,36 +217,27 @@ class ReportsService {
     };
   }
   async getDashboardAnalytics() {
-    // Basic implementation for dashboard metrics
-    const [
-      recentInvoices,
-      recentBills,
-      totalPaidInvoices,
-      totalUnpaidInvoices,
-      totalUnpaidBills,
-      pendingJournals,
-    ] = await Promise.all([
-      prisma.customerInvoice.findMany({
-        take: 5,
-        orderBy: { invoice_date: "desc" },
-        include: { customer: true },
-      }),
-      prisma.vendorBill.findMany({
-        take: 5,
-        orderBy: { bill_date: "desc" },
-        include: { vendor: true },
-      }),
-      prisma.customerInvoice.aggregate({ _sum: { total: true }, where: { status: "PAID" } }),
-      prisma.customerInvoice.aggregate({
-        _sum: { total: true },
-        where: { status: { in: ["DRAFT", "CONFIRMED"] } },
-      }),
-      prisma.vendorBill.aggregate({
-        _sum: { total: true },
-        where: { status: { in: ["DRAFT", "CONFIRMED"] } },
-      }),
-      prisma.journalEntry.count({ where: { status: "DRAFT" } }),
-    ]);
+    // Run queries sequentially to prevent Prisma connection pool exhaustion
+    const recentInvoices = await prisma.customerInvoice.findMany({
+      take: 5,
+      orderBy: { invoice_date: "desc" },
+      include: { customer: true },
+    });
+    const recentBills = await prisma.vendorBill.findMany({
+      take: 5,
+      orderBy: { bill_date: "desc" },
+      include: { vendor: true },
+    });
+    const totalPaidInvoices = await prisma.customerInvoice.aggregate({ _sum: { total: true }, where: { status: "PAID" } });
+    const totalUnpaidInvoices = await prisma.customerInvoice.aggregate({
+      _sum: { total: true },
+      where: { status: { in: ["DRAFT", "CONFIRMED", "POSTED"] } },
+    });
+    const totalUnpaidBills = await prisma.vendorBill.aggregate({
+      _sum: { total: true },
+      where: { status: { in: ["DRAFT", "CONFIRMED", "POSTED"] } },
+    });
+    const pendingJournals = await prisma.journalEntry.count({ where: { status: "DRAFT" } });
 
     const admin = {
       totalDue: totalUnpaidInvoices._sum.total || 0,

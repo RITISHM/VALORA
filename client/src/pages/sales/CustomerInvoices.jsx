@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, CheckCircle, DollarSign, ShoppingCart, AlertTriangle, Plus, X, Printer, Trash2, Pencil } from "lucide-react";
+import { ArrowLeft, CheckCircle, DollarSign, ShoppingCart, AlertTriangle, Plus, X, Printer, Trash2, Pencil, Eye } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DataTable from "../../components/DataTable";
 import { api } from "../../api";
@@ -254,15 +254,15 @@ export default function CustomerInvoices() {
       header: "Action",
       render: (row) => (
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); handleRowClick(row); }}
+          <button 
+            onClick={(e) => { e.stopPropagation(); handleRowClick(row); }} 
             style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
-            title="Edit / View"
+            title={row.status === "DRAFT" ? "Edit" : "View"}
           >
-            <Pencil size={16} />
+            {row.status === "DRAFT" ? <Pencil size={16} /> : <Eye size={16} />}
           </button>
-          <button
-            onClick={(e) => handleDeleteRow(e, row.id, row.status)}
+          <button 
+            onClick={(e) => handleDeleteRow(e, row.id, row.status)} 
             style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
             title="Delete"
           >

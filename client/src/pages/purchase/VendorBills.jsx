@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, CheckCircle, DollarSign, ShoppingCart, PieChart, AlertTriangle, Plus, X, Printer, Trash2, Pencil } from "lucide-react";
+import { ArrowLeft, CheckCircle, DollarSign, ShoppingCart, PieChart, AlertTriangle, Plus, X, Printer, Trash2, Pencil, Eye } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DataTable from "../../components/DataTable";
 import { api } from "../../api";
@@ -282,9 +282,9 @@ export default function VendorBills() {
           <button
             onClick={(e) => { e.stopPropagation(); handleRowClick(r); }}
             style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
-            title="Edit / View"
+            title={r.status === "DRAFT" ? "Edit" : "View"}
           >
-            <Pencil size={16} />
+            {r.status === "DRAFT" ? <Pencil size={16} /> : <Eye size={16} />}
           </button>
           <button
             onClick={(e) => handleDeleteRow(e, r.id, r.status)}
