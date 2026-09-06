@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, CheckCircle, DollarSign, ShoppingCart, PieChart, AlertTriangle, Plus, X, Printer, Trash2, Pencil } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DataTable from "../../components/DataTable";

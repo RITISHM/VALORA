@@ -7,7 +7,7 @@
  * @module components/Layout
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Package, FileText, BarChart3, LogOut, Hexagon, Search, Bell, Settings,

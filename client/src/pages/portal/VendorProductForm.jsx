@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Store, Upload, CheckCircle } from 'lucide-react';
 import { BACKEND_URL } from '../../api';
 import '../../styles/dashboard.css';

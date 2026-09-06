@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { FileText, ArrowLeft, DollarSign, CheckCircle, Clock, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api, BACKEND_URL } from '../../api';

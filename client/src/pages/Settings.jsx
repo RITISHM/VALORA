@@ -6,7 +6,7 @@
  * @module pages/Settings
  */
 
-import React from 'react';
+
 
 /**
  * Settings component displaying organization-wide configuration and administrative links.

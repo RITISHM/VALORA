@@ -7,7 +7,7 @@
  * @module pages/Signup
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Hexagon, Check, X, AlertCircle } from 'lucide-react';
 import { useSignupStore } from '../store/useSignupStore';
