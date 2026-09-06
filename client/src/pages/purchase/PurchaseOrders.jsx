@@ -8,15 +8,15 @@ import "../../styles/forms.css";
 export default function PurchaseOrders() {
   const navigate = useNavigate();
   const [purchaseOrders, setPurchaseOrders] = useState([]);
-  const [contacts, setContacts]             = useState([]);
-  const [products, setProducts]             = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [products, setProducts] = useState([]);
   const [analyticAccounts, setAnalyticAccounts] = useState([]);
-  const [budgets, setBudgets]               = useState([]);
-  const [isLoading, setIsLoading]           = useState(true);
-  const [isFormOpen, setIsFormOpen]         = useState(false);
-  const [isSaving, setIsSaving]             = useState(false);
-  const [selectedOrder, setSelectedOrder]   = useState(null);
-  const [budgetWarning, setBudgetWarning]   = useState(null);
+  const [budgets, setBudgets] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [budgetWarning, setBudgetWarning] = useState(null);
 
   const [formData, setFormData] = useState({
     vendorId: "",
@@ -83,7 +83,7 @@ export default function PurchaseOrders() {
   const handleLineChange = (idx, field, value) => {
     setFormData(prev => {
       const lines = [...prev.lines];
-      const line  = { ...lines[idx], [field]: value };
+      const line = { ...lines[idx], [field]: value };
       if (field === "productId") {
         const prod = products.find(p => p.id === value);
         if (prod) line.unitPrice = prod.cost || prod.sales_price || 0;
@@ -169,7 +169,7 @@ export default function PurchaseOrders() {
       return;
     }
     if (!window.confirm("Are you sure you want to delete this purchase order? This cannot be undone.")) return;
-    
+
     setIsSaving(true);
     try {
       await api.deletePurchaseOrder(selectedOrder.id);
@@ -253,15 +253,15 @@ export default function PurchaseOrders() {
       header: "Action",
       render: (r) => (
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            onClick={(e) => { e.stopPropagation(); handleRowClick(r); }} 
+          <button
+            onClick={(e) => { e.stopPropagation(); handleRowClick(r); }}
             style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
             title="Edit / View"
           >
             <Pencil size={16} />
           </button>
-          <button 
-            onClick={(e) => handleDeleteRow(e, r.id, r.status)} 
+          <button
+            onClick={(e) => handleDeleteRow(e, r.id, r.status)}
             style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
             title="Delete"
           >
@@ -278,10 +278,10 @@ export default function PurchaseOrders() {
   if (isFormOpen) {
     const userStr = localStorage.getItem("valora_user");
     const user = userStr ? JSON.parse(userStr) : null;
-    const isAccountant  = user?.role?.toLowerCase() === "accountant";
-    const isConfirmed   = selectedOrder?.status === "CONFIRMED" || selectedOrder?.status === "BILLED";
-    const isReadOnly    = isConfirmed || (isAccountant && Boolean(selectedOrder));
-    const grandTotal    = calculateTotal();
+    const isAccountant = user?.role?.toLowerCase() === "accountant";
+    const isConfirmed = selectedOrder?.status === "CONFIRMED" || selectedOrder?.status === "BILLED";
+    const isReadOnly = isConfirmed || (isAccountant && Boolean(selectedOrder));
+    const grandTotal = calculateTotal();
 
     return (
       <div className="page-content">
