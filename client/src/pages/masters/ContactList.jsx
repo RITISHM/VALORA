@@ -380,14 +380,7 @@ export default function ContactList() {
   return (
     <div className="page-content" style={{ padding: 0 }}>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', paddingBottom: '16px', marginBottom: '24px' }}>
-        <h1 className="page-title">Contacts & Users</h1>
-        {!isAccountant && (
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button className="submit-btn" onClick={() => setIsUserFormOpen(true)} style={{ width: 'auto', padding: '10px 16px', borderRadius: '8px', backgroundColor: 'var(--valora-text-main)' }}>
-              + Add User
-            </button>
-          </div>
-        )}
+        <h1 className="page-title">Business Contacts</h1>
       </div>
       
       {isLoading ? (
@@ -423,15 +416,7 @@ export default function ContactList() {
             )}
           />
 
-          <div style={{ marginTop: '40px' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '16px' }}>System Users</h3>
-            <DataTable 
-              title="User" 
-              columns={userColumns} 
-              data={users} 
-              searchPlaceholder="Search users..."
-            />
-          </div>
+
         </>
       )}
     </div>
