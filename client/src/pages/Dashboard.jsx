@@ -29,6 +29,7 @@ import {
   Loader2,
   Eye,
 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useNavigate, Link, useOutletContext } from "react-router-dom";
 import { BACKEND_URL, api } from "../api";
 import "../styles/dashboard.css";
@@ -492,50 +493,45 @@ function AdminDashboard() {
           </div>
 
           {/* Chart Widget */}
-          <div className="chart-widget">
+          <div className="chart-widget" style={{ display: "flex", flexDirection: "column" }}>
             <div className="section-header">
               <h3>Cash Flow</h3>
-              <span className="meta-text">₹ 1.2M Total</span>
+              <span className="meta-text">₹ 452k Total</span>
             </div>
 
-            <div className="bar-chart">
-              <div className="y-axis">
-                <span>80k</span>
-                <span>60k</span>
-                <span>40k</span>
-                <span>20k</span>
-                <span>0k</span>
-              </div>
-              <div className="bars-container">
-                <div className="bar-wrapper">
-                  <div className="bar bg-light-blue" style={{ height: "40%" }}></div>
-                  <span>S</span>
-                </div>
-                <div className="bar-wrapper">
-                  <div className="bar bg-light-blue" style={{ height: "60%" }}></div>
-                  <span>M</span>
-                </div>
-                <div className="bar-wrapper">
-                  <div className="bar bg-light-blue" style={{ height: "35%" }}></div>
-                  <span>T</span>
-                </div>
-                <div className="bar-wrapper">
-                  <div className="bar bg-purple" style={{ height: "55%" }}></div>
-                  <span>W</span>
-                </div>
-                <div className="bar-wrapper">
-                  <div className="bar bg-light-blue" style={{ height: "80%" }}></div>
-                  <span>T</span>
-                </div>
-                <div className="bar-wrapper">
-                  <div className="bar bg-light-blue" style={{ height: "70%" }}></div>
-                  <span>F</span>
-                </div>
-                <div className="bar-wrapper">
-                  <div className="bar bg-light-blue" style={{ height: "70%" }}></div>
-                  <span>S</span>
-                </div>
-              </div>
+            <div style={{ flex: 1, minHeight: "220px", width: "100%", marginTop: "16px" }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={[
+                  { name: "S", amount: 45000 },
+                  { name: "M", amount: 82000 },
+                  { name: "T", amount: 35000 },
+                  { name: "W", amount: 120000 },
+                  { name: "T", amount: 65000 },
+                  { name: "F", amount: 50000 },
+                  { name: "S", amount: 55000 }
+                ]} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#9CA3AF", fontWeight: 700 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#9CA3AF", fontWeight: 600 }} tickFormatter={(val) => `${val / 1000}k`} />
+                  <Tooltip 
+                    cursor={{ fill: "transparent" }}
+                    contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)" }}
+                    formatter={(value) => [`₹ ${value.toLocaleString("en-IN")}`, "Cash Flow"]}
+                  />
+                  <Bar dataKey="amount" radius={[4, 4, 4, 4]}>
+                    {[
+                      { name: "S", amount: 45000 },
+                      { name: "M", amount: 82000 },
+                      { name: "T", amount: 35000 },
+                      { name: "W", amount: 120000 },
+                      { name: "T", amount: 65000 },
+                      { name: "F", amount: 50000 },
+                      { name: "S", amount: 55000 }
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.amount > 100000 ? "#714B67" : "rgba(1, 126, 132, 0.4)"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
