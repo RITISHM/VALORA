@@ -18,7 +18,7 @@ export default function CustomerInvoices() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
-  
+
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [paymentData, setPaymentData] = useState({
     payment_via: "BANK",
@@ -180,7 +180,7 @@ export default function CustomerInvoices() {
       return;
     }
     if (!window.confirm("Are you sure you want to delete this invoice? This cannot be undone.")) return;
-    
+
     setIsSaving(true);
     try {
       await api.deleteCustomerInvoice(selectedInvoice.id);
@@ -254,15 +254,15 @@ export default function CustomerInvoices() {
       header: "Action",
       render: (row) => (
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            onClick={(e) => { e.stopPropagation(); handleRowClick(row); }} 
+          <button
+            onClick={(e) => { e.stopPropagation(); handleRowClick(row); }}
             style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
             title="Edit / View"
           >
             <Pencil size={16} />
           </button>
-          <button 
-            onClick={(e) => handleDeleteRow(e, row.id, row.status)} 
+          <button
+            onClick={(e) => handleDeleteRow(e, row.id, row.status)}
             style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
             title="Delete"
           >
@@ -375,8 +375,8 @@ export default function CustomerInvoices() {
                       const cid = e.target.value;
                       const c = contacts.find(x => x.id === cid);
                       const taxRate = c?.tax_rate || 0;
-                      setFormData(prev => ({ 
-                        ...prev, 
+                      setFormData(prev => ({
+                        ...prev,
                         customerId: cid,
                         lines: prev.lines.map(l => ({ ...l, taxRate }))
                       }));

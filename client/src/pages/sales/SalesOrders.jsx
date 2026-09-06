@@ -156,7 +156,7 @@ export default function SalesOrders() {
       return;
     }
     if (!window.confirm("Are you sure you want to delete this sales order? This cannot be undone.")) return;
-    
+
     setIsSaving(true);
     try {
       await api.deleteSalesOrder(selectedOrder.id);
@@ -238,15 +238,15 @@ export default function SalesOrders() {
       header: "Action",
       render: (row) => (
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            onClick={(e) => { e.stopPropagation(); handleRowClick(row); }} 
+          <button
+            onClick={(e) => { e.stopPropagation(); handleRowClick(row); }}
             style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
             title="Edit / View"
           >
             <Pencil size={16} />
           </button>
-          <button 
-            onClick={(e) => handleDeleteRow(e, row.id, row.status)} 
+          <button
+            onClick={(e) => handleDeleteRow(e, row.id, row.status)}
             style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
             title="Delete"
           >

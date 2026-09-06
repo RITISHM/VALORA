@@ -6,19 +6,19 @@ import { api } from "../../api";
 import "../../styles/forms.css";
 
 export default function VendorBills() {
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const [bills, setBills]                   = useState([]);
-  const [contacts, setContacts]             = useState([]);
-  const [products, setProducts]             = useState([]);
-  const [accounts, setAccounts]             = useState([]);
+  const [bills, setBills] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   const [analyticAccounts, setAnalyticAccounts] = useState([]);
-  const [isLoading, setIsLoading]           = useState(true);
-  const [isFormOpen, setIsFormOpen]         = useState(false);
-  const [isSaving, setIsSaving]             = useState(false);
-  const [selectedBill, setSelectedBill]     = useState(null);
-  const [budgetWarning, setBudgetWarning]   = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [selectedBill, setSelectedBill] = useState(null);
+  const [budgetWarning, setBudgetWarning] = useState(null);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
 
   const [paymentData, setPaymentData] = useState({
@@ -98,7 +98,7 @@ export default function VendorBills() {
   const handleLineChange = (idx, field, value) => {
     setFormData(prev => {
       const lines = [...prev.lines];
-      const line  = { ...lines[idx], [field]: value };
+      const line = { ...lines[idx], [field]: value };
       if (field === "productId") {
         const prod = products.find(p => p.id === value);
         if (prod) line.unitPrice = prod.cost || prod.sales_price || 0;
@@ -232,7 +232,7 @@ export default function VendorBills() {
       return;
     }
     if (!window.confirm("Are you sure you want to delete this bill? This cannot be undone.")) return;
-    
+
     setIsSaving(true);
     try {
       await api.deleteVendorBill(selectedBill.id);
@@ -279,15 +279,15 @@ export default function VendorBills() {
       header: "Action",
       render: (r) => (
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            onClick={(e) => { e.stopPropagation(); handleRowClick(r); }} 
+          <button
+            onClick={(e) => { e.stopPropagation(); handleRowClick(r); }}
             style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
             title="Edit / View"
           >
             <Pencil size={16} />
           </button>
-          <button 
-            onClick={(e) => handleDeleteRow(e, r.id, r.status)} 
+          <button
+            onClick={(e) => handleDeleteRow(e, r.id, r.status)}
             style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
             title="Delete"
           >
@@ -302,17 +302,17 @@ export default function VendorBills() {
      FORM VIEW
   ═══════════════════════════════════════════ */
   if (isFormOpen) {
-    const userStr     = localStorage.getItem("valora_user");
-    const user        = userStr ? JSON.parse(userStr) : null;
+    const userStr = localStorage.getItem("valora_user");
+    const user = userStr ? JSON.parse(userStr) : null;
     const isAccountant = user?.role?.toLowerCase() === "accountant";
 
-    const isPosted    = selectedBill?.status === "CONFIRMED" || selectedBill?.status === "POSTED";
-    const isPaid      = selectedBill?.status === "PAID";
-    const isReadOnly  = isPosted || isPaid || (isAccountant && Boolean(selectedBill));
+    const isPosted = selectedBill?.status === "CONFIRMED" || selectedBill?.status === "POSTED";
+    const isPaid = selectedBill?.status === "PAID";
+    const isReadOnly = isPosted || isPaid || (isAccountant && Boolean(selectedBill));
 
-    const grandTotal  = calculateTotal();
-    const paidAmount  = isPaid ? selectedBill?.total || grandTotal : 0;
-    const amountDue   = (selectedBill?.total || grandTotal) - paidAmount;
+    const grandTotal = calculateTotal();
+    const paidAmount = isPaid ? selectedBill?.total || grandTotal : 0;
+    const amountDue = (selectedBill?.total || grandTotal) - paidAmount;
 
     return (
       <div className="page-content">
