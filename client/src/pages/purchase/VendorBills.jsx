@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, CheckCircle, DollarSign, ShoppingCart, PieChart, AlertTriangle, Plus, X, Printer, Trash2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, DollarSign, ShoppingCart, PieChart, AlertTriangle, Plus, X, Printer, Trash2, Pencil } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DataTable from "../../components/DataTable";
 import { api } from "../../api";
@@ -246,25 +246,31 @@ export default function VendorBills() {
     }
   };
 
+  const handleDeleteRow = async (e, id, status) => {
+    e.stopPropagation();
+    if (status !== "DRAFT") {
+      alert("Only DRAFT bills can be deleted.");
+      return;
+    }
+    if (!window.confirm("Are you sure you want to delete this bill?")) return;
+    try {
+      await api.deleteVendorBill(id);
+      await loadData();
+    } catch (err) {
+      alert(err.message || "Failed to delete");
+    }
+  };
+
   /* ── Table columns ── */
   const columns = [
-    {
-      header: "Vendor Bill No.",
-      accessor: "bill_reference",
-      render: (r) => <strong>{r.bill_reference}</strong>,
-    },
+    { header: "Bill Ref", accessor: "bill_reference", render: (r) => <strong>{r.bill_reference}</strong> },
     { header: "Vendor Name", render: (r) => r.vendor?.name || "-" },
     { header: "Bill Date", render: (r) => new Date(r.bill_date).toLocaleDateString("en-IN") },
-    { header: "Due Date", render: (r) => r.due_date ? new Date(r.due_date).toLocaleDateString("en-IN") : "-" },
     { header: "Total", render: (r) => `₹ ${Number(r.total || 0).toLocaleString("en-IN")}` },
     {
       header: "Status",
       render: (r) => (
-        <span className={`fv-badge ${
-          r.status === "PAID"      ? "fv-badge-paid"      :
-          r.status === "CONFIRMED" ? "fv-badge-confirmed" :
-          "fv-badge-draft"
-        }`}>
+        <span className={`fv-badge ${r.status === "PAID" ? "fv-badge-paid" : r.status === "CONFIRMED" || r.status === "POSTED" ? "fv-badge-confirmed" : "fv-badge-draft"}`}>
           {r.status}
         </span>
       ),
@@ -272,9 +278,22 @@ export default function VendorBills() {
     {
       header: "Action",
       render: (r) => (
-        <button className="secondary-btn" onClick={() => handleRowClick(r)} style={{ padding: "4px 12px", fontSize: "0.8rem" }}>
-          View
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            onClick={(e) => { e.stopPropagation(); handleRowClick(r); }} 
+            style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
+            title="Edit / View"
+          >
+            <Pencil size={16} />
+          </button>
+          <button 
+            onClick={(e) => handleDeleteRow(e, r.id, r.status)} 
+            style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
+            title="Delete"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
       ),
     },
   ];
@@ -731,8 +750,15 @@ export default function VendorBills() {
           title="Vendor Bill"
           columns={columns}
           data={bills}
-          onNewClick={() => { setSelectedBill(null); setIsFormOpen(true); }}
-          searchPlaceholder="Search vendor bills…"
+          onNewClick={() => {
+            setSelectedBill(null);
+            setIsFormOpen(true);
+          }}
+          enableKanban={false}
+          searchPlaceholder="Search bills..."
+          emptyStateIcon={ShoppingCart}
+          emptyStateTitle="No Vendor Bills yet"
+          emptyStateMessage="Create your first purchase order or register a bill directly to get started!"
         />
       )}
     </div>
