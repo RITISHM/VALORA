@@ -28,6 +28,7 @@ import {
   Sunrise,
   Loader2,
   Eye,
+  Receipt,
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useNavigate, Link, useOutletContext } from "react-router-dom";
@@ -358,7 +359,7 @@ function AdminDashboard() {
               style={{ cursor: "pointer" }}
             >
               <div className="card-graphic bg-purple">
-                <Activity size={40} strokeWidth={1} color="#714B67" />
+                <Receipt size={40} strokeWidth={1} color="#714B67" />
               </div>
               <div className="card-content">
                 <h3>Customer Invoice #992</h3>
