@@ -36,7 +36,10 @@ export default function DataTable({
   searchPlaceholder = "Search...",
   enableKanban = true,
   kanbanRender,
-  renderKanbanCard
+  renderKanbanCard,
+  emptyStateIcon: EmptyIcon,
+  emptyStateTitle,
+  emptyStateMessage
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'kanban'
@@ -145,7 +148,15 @@ export default function DataTable({
               ) : (
                 <tr>
                   <td colSpan={columns.length} className="no-data">
-                    No records found.
+                    {EmptyIcon || emptyStateTitle ? (
+                      <div className="premium-empty-state">
+                        {EmptyIcon && <EmptyIcon className="empty-icon" strokeWidth={1.5} />}
+                        {emptyStateTitle && <h3>{emptyStateTitle}</h3>}
+                        <p>{emptyStateMessage || "No records found."}</p>
+                      </div>
+                    ) : (
+                      <div style={{ padding: '48px' }}>No records found.</div>
+                    )}
                   </td>
                 </tr>
               )}
@@ -202,8 +213,18 @@ export default function DataTable({
               )
             ))
           ) : (
-            <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', color: '#64748B' }}>
-              No records found.
+            <div style={{ gridColumn: '1 / -1' }}>
+              {EmptyIcon || emptyStateTitle ? (
+                <div className="premium-empty-state" style={{ padding: '80px 20px' }}>
+                  {EmptyIcon && <EmptyIcon className="empty-icon" strokeWidth={1.5} />}
+                  {emptyStateTitle && <h3>{emptyStateTitle}</h3>}
+                  <p>{emptyStateMessage || "No records found."}</p>
+                </div>
+              ) : (
+                <div style={{ padding: '40px', textAlign: 'center', color: '#64748B' }}>
+                  No records found.
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -36,6 +36,15 @@ class PurchaseOrdersController {
       next(error);
     }
   }
+
+  async delete(req, res, next) {
+    try {
+      await service.delete(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new PurchaseOrdersController();

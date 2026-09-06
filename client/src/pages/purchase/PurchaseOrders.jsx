@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, CheckCircle, FileText, Plus, Trash2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, CheckCircle, FileText, Plus, Trash2, AlertTriangle, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "../../components/DataTable";
 import { api } from "../../api";
@@ -162,6 +162,27 @@ export default function PurchaseOrders() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!selectedOrder) return;
+    if (selectedOrder.status !== "DRAFT") {
+      alert("Only DRAFT purchase orders can be deleted.");
+      return;
+    }
+    if (!window.confirm("Are you sure you want to delete this purchase order? This cannot be undone.")) return;
+    
+    setIsSaving(true);
+    try {
+      await api.deletePurchaseOrder(selectedOrder.id);
+      await loadData();
+      alert("Purchase Order deleted successfully");
+      handleCloseForm();
+    } catch (err) {
+      alert(err.message || "Failed to delete");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setSelectedOrder(null);
@@ -199,6 +220,21 @@ export default function PurchaseOrders() {
     }
   };
 
+  const handleDeleteRow = async (e, id, status) => {
+    e.stopPropagation();
+    if (status !== "DRAFT") {
+      alert("Only DRAFT purchase orders can be deleted.");
+      return;
+    }
+    if (!window.confirm("Are you sure you want to delete this purchase order?")) return;
+    try {
+      await api.deletePurchaseOrder(id);
+      await loadData();
+    } catch (err) {
+      alert(err.message || "Failed to delete");
+    }
+  };
+
   /* ── Table columns ── */
   const columns = [
     { header: "PO No.", accessor: "po_number", render: (r) => <strong>{r.po_number}</strong> },
@@ -216,9 +252,22 @@ export default function PurchaseOrders() {
     {
       header: "Action",
       render: (r) => (
-        <button className="secondary-btn" onClick={() => handleRowClick(r)} style={{ padding: "4px 12px", fontSize: "0.8rem" }}>
-          View
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            onClick={(e) => { e.stopPropagation(); handleRowClick(r); }} 
+            style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
+            title="Edit / View"
+          >
+            <Pencil size={16} />
+          </button>
+          <button 
+            onClick={(e) => handleDeleteRow(e, r.id, r.status)} 
+            style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
+            title="Delete"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
       ),
     },
   ];
@@ -264,6 +313,11 @@ export default function PurchaseOrders() {
               {!selectedOrder && (
                 <button className="fv-btn fv-btn-save" onClick={handleSave} disabled={isSaving}>
                   {isSaving ? "Saving…" : "Save Order"}
+                </button>
+              )}
+              {selectedOrder && selectedOrder.status === "DRAFT" && (
+                <button className="fv-btn fv-btn-ghost print-hide" style={{ color: "#DC2626" }} onClick={handleDelete} disabled={isSaving} title="Delete">
+                  <Trash2 size={15} /> Delete
                 </button>
               )}
               {selectedOrder && !isConfirmed && (

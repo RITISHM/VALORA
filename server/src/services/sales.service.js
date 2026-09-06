@@ -132,6 +132,22 @@ class SalesService {
       throw error;
     }
   }
+
+  async delete(id) {
+    const so = await prisma.salesOrder.findUnique({ where: { id } });
+    if (!so) {
+      const error = new Error("Sales Order not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    if (so.status !== "DRAFT") {
+      const error = new Error("Only DRAFT sales orders can be deleted");
+      error.statusCode = 400;
+      throw error;
+    }
+    await prisma.salesOrderLine.deleteMany({ where: { sales_order_id: id } });
+    return await prisma.salesOrder.delete({ where: { id } });
+  }
 }
 
 module.exports = new SalesService();

@@ -132,6 +132,22 @@ class PurchaseOrdersService {
       throw error;
     }
   }
+
+  async delete(id) {
+    const po = await prisma.purchaseOrder.findUnique({ where: { id } });
+    if (!po) {
+      const error = new Error("Purchase Order not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    if (po.status !== "DRAFT") {
+      const error = new Error("Only DRAFT purchase orders can be deleted");
+      error.statusCode = 400;
+      throw error;
+    }
+    await prisma.purchaseOrderLine.deleteMany({ where: { purchase_order_id: id } });
+    return await prisma.purchaseOrder.delete({ where: { id } });
+  }
 }
 
 module.exports = new PurchaseOrdersService();

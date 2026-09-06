@@ -197,6 +197,13 @@ export const api = {
     });
     return handleResponse(response);
   },
+  deleteSalesOrder: async (id) => {
+    const response = await fetch(`${BACKEND_URL}/sales-orders/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
 
   // Customer Invoices
   getCustomerInvoiceById: async (id) => { const response = await fetch(`${BACKEND_URL}/customer-invoices/${id}`, { headers: getAuthHeaders() }); return handleResponse(response); },
@@ -252,6 +259,13 @@ export const api = {
   confirmPurchaseOrder: async (id) => {
     const response = await fetch(`${BACKEND_URL}/purchase-orders/${id}/confirm`, {
       method: 'POST',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
+  deletePurchaseOrder: async (id) => {
+    const response = await fetch(`${BACKEND_URL}/purchase-orders/${id}`, {
+      method: 'DELETE',
       headers: getAuthHeaders()
     });
     return handleResponse(response);

@@ -49,6 +49,16 @@ class SalesController {
       next(err);
     }
   }
+
+  async delete(req, res, next) {
+    try {
+      const { id } = req.params;
+      await salesService.delete(id);
+      return res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new SalesController();

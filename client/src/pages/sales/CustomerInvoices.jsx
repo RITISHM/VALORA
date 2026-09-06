@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, CheckCircle, DollarSign, ShoppingCart, AlertTriangle, Plus, X, Printer, Trash2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, DollarSign, ShoppingCart, AlertTriangle, Plus, X, Printer, Trash2, Pencil } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DataTable from "../../components/DataTable";
 import { api } from "../../api";
@@ -238,33 +238,37 @@ export default function CustomerInvoices() {
   };
 
   const columns = [
-    {
-      header: "Invoice No.",
-      accessor: "invoice_number",
-      render: (r) => <strong>{r.invoice_number}</strong>,
-    },
-    { header: "Customer Name", render: (r) => r.customer?.name || "-" },
-    { header: "Invoice Date", render: (r) => new Date(r.invoice_date).toLocaleDateString("en-IN") },
-    { header: "Due Date", render: (r) => r.due_date ? new Date(r.due_date).toLocaleDateString("en-IN") : "-" },
-    { header: "Total", render: (r) => `₹ ${Number(r.total || 0).toLocaleString("en-IN")}` },
+    { header: "Invoice No.", accessor: "invoice_number", render: (row) => <strong>{row.invoice_number}</strong> },
+    { header: "Customer Name", render: (row) => row.contact?.name || "-" },
+    { header: "Invoice Date", render: (row) => new Date(row.invoice_date).toLocaleDateString("en-IN") },
+    { header: "Total", render: (row) => `₹ ${Number(row.total || 0).toLocaleString("en-IN")}` },
     {
       header: "Status",
-      render: (r) => (
-        <span className={`fv-badge ${
-          r.status === "PAID"      ? "fv-badge-paid"      :
-          r.status === "CONFIRMED" ? "fv-badge-confirmed" :
-          "fv-badge-draft"
-        }`}>
-          {r.status}
+      render: (row) => (
+        <span className={`fv-badge ${row.status === "PAID" ? "fv-badge-paid" : row.status === "CONFIRMED" || row.status === "POSTED" ? "fv-badge-confirmed" : "fv-badge-draft"}`}>
+          {row.status}
         </span>
       ),
     },
     {
       header: "Action",
-      render: (r) => (
-        <button className="secondary-btn" onClick={() => handleRowClick(r)} style={{ padding: "4px 12px", fontSize: "0.8rem" }}>
-          View
-        </button>
+      render: (row) => (
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            onClick={(e) => { e.stopPropagation(); handleRowClick(row); }} 
+            style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
+            title="Edit / View"
+          >
+            <Pencil size={16} />
+          </button>
+          <button 
+            onClick={(e) => handleDeleteRow(e, row.id, row.status)} 
+            style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
+            title="Delete"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
       ),
     },
   ];
