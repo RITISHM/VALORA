@@ -83,6 +83,28 @@ function AdminDashboard() {
     setActiveDropdown(null);
   };
 
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const currentMonthYear = currentTime.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
+  const startOfWeek = new Date(currentTime);
+  startOfWeek.setDate(currentTime.getDate() - currentTime.getDay()); // Sunday
+
+  const weekDays = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate() + i);
+    return {
+      date: d,
+      dayName: d.toLocaleDateString("en-IN", { weekday: "short" }).toUpperCase(),
+      dayNum: d.getDate(),
+      isToday: d.toDateString() === currentTime.toDateString(),
+    };
+  });
+
   return (
     <div className="dashboard-container" onClick={closeDropdowns}>
       <div className="dashboard-greeting" style={{ marginBottom: "24px" }}>
@@ -414,43 +436,26 @@ function AdminDashboard() {
         <div className="dashboard-side-col">
           {/* Calendar Widget */}
           <div className="calendar-widget">
-            <div className="calendar-header">
-              <h3>May 2026</h3>
+            <div className="calendar-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                <h3 style={{ margin: 0, fontSize: "1.1rem" }}>{currentMonthYear}</h3>
+                <span style={{ fontSize: "0.85rem", color: "#64748B", fontWeight: "600" }}>
+                  {currentTime.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                </span>
+              </div>
               <div className="calendar-nav">
                 <span>&lt;</span>
                 <span>&gt;</span>
               </div>
             </div>
             <div className="calendar-days">
-              <div className="day-col">
-                <span>SUN</span>
-                <span>2</span>
-              </div>
-              <div className="day-col active">
-                <span>MON</span>
-                <span>3</span>
-                <div className="dot"></div>
-              </div>
-              <div className="day-col">
-                <span>TUE</span>
-                <span>4</span>
-              </div>
-              <div className="day-col">
-                <span>WED</span>
-                <span>5</span>
-              </div>
-              <div className="day-col">
-                <span>THU</span>
-                <span>6</span>
-              </div>
-              <div className="day-col">
-                <span>FRI</span>
-                <span>7</span>
-              </div>
-              <div className="day-col">
-                <span>SAT</span>
-                <span>8</span>
-              </div>
+              {weekDays.map((d, i) => (
+                <div key={i} className={`day-col ${d.isToday ? "active" : ""}`}>
+                  <span>{d.dayName}</span>
+                  <span>{d.dayNum}</span>
+                  {d.isToday && <div className="dot"></div>}
+                </div>
+              ))}
             </div>
           </div>
 
@@ -464,30 +469,25 @@ function AdminDashboard() {
             </div>
 
             <div className="schedule-list">
-              <div className="schedule-item dark">
-                <div className="sch-date">05</div>
-                <div className="sch-info">
-                  <h4>Vendor Payment</h4>
-                  <span>Azure Furniture</span>
-                </div>
-                <div className="sch-time">18:00 - 19:30</div>
-              </div>
-              <div className="schedule-item light">
-                <div className="sch-date">06</div>
-                <div className="sch-info">
-                  <h4>Sales Review</h4>
-                  <span>Internal Meeting</span>
-                </div>
-                <div className="sch-time">11:00 - 12:30</div>
-              </div>
-              <div className="schedule-item light">
-                <div className="sch-date">07</div>
-                <div className="sch-info">
-                  <h4>Tax Filing</h4>
-                  <span>Quarterly Update</span>
-                </div>
-                <div className="sch-time">14:00 - 15:30</div>
-              </div>
+              {[
+                { title: "Vendor Payment", subtitle: "Azure Furniture", time: "18:00 - 19:30", theme: "dark", offsetDays: 0 },
+                { title: "Sales Review", subtitle: "Internal Meeting", time: "11:00 - 12:30", theme: "light", offsetDays: 1 },
+                { title: "Tax Filing", subtitle: "Quarterly Update", time: "14:00 - 15:30", theme: "light", offsetDays: 2 }
+              ].map((item, idx) => {
+                const itemDate = new Date(currentTime);
+                itemDate.setDate(currentTime.getDate() + item.offsetDays);
+                const dateStr = itemDate.getDate().toString().padStart(2, "0");
+                return (
+                  <div key={idx} className={`schedule-item ${item.theme}`}>
+                    <div className="sch-date">{dateStr}</div>
+                    <div className="sch-info">
+                      <h4>{item.title}</h4>
+                      <span>{item.subtitle}</span>
+                    </div>
+                    <div className="sch-time">{item.time}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
