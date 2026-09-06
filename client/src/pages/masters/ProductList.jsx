@@ -78,7 +78,7 @@ export default function ProductList() {
         sales_price: Number(formData.salesPrice),
         cost: Number(formData.cost)
       };
-      
+
       if (editingId) {
         const updatedProduct = await api.updateProduct(editingId, payload);
         setProducts(prev => prev.map(p => p.id === editingId ? updatedProduct : p));
@@ -163,15 +163,15 @@ export default function ProductList() {
     ...(!isAccountant ? [{
       header: 'Actions', render: (row) => (
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            onClick={() => handleEdit(row)} 
+          <button
+            onClick={() => handleEdit(row)}
             style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
             title="Edit Product"
           >
             <Pencil size={16} />
           </button>
-          <button 
-            onClick={() => handleDelete(row.id)} 
+          <button
+            onClick={() => handleDelete(row.id)}
             style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
             title="Delete Product"
           >
@@ -185,20 +185,20 @@ export default function ProductList() {
   if (isFormOpen) {
     return (
       <div className="page-content">
-        <FormShell 
-          title={editingId ? "Edit Product" : "New Product"} 
-          onSave={handleSave} 
+        <FormShell
+          title={editingId ? "Edit Product" : "New Product"}
+          onSave={handleSave}
           onCancel={handleCloseForm}
           isSaving={isSaving}
         >
           <div className="form-row">
             <div className="form-field">
               <label>Product Name *</label>
-              <input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="E.g. Office Desk" required />
+              <input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="E.g. Office Desk" required />
             </div>
             <div className="form-field">
               <label>Type</label>
-              <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}>
+              <select value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })}>
                 <option value="GOODS">Goods</option>
                 <option value="SERVICE">Service</option>
                 <option value="COMBO">Combo</option>
@@ -208,17 +208,17 @@ export default function ProductList() {
           <div className="form-row">
             <div className="form-field">
               <label>Category</label>
-              <input value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} placeholder="E.g. Furniture" />
+              <input value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} placeholder="E.g. Furniture" />
             </div>
           </div>
           <div className="form-row">
             <div className="form-field">
               <label>Sales Price (₹)</label>
-              <input type="number" value={formData.salesPrice} onChange={e => setFormData({...formData, salesPrice: e.target.value})} placeholder="0.00" />
+              <input type="number" value={formData.salesPrice} onChange={e => setFormData({ ...formData, salesPrice: e.target.value })} placeholder="0.00" />
             </div>
             <div className="form-field">
               <label>Cost / Purchase Price (₹)</label>
-              <input type="number" value={formData.cost} onChange={e => setFormData({...formData, cost: e.target.value})} placeholder="0.00" />
+              <input type="number" value={formData.cost} onChange={e => setFormData({ ...formData, cost: e.target.value })} placeholder="0.00" />
             </div>
           </div>
         </FormShell>
@@ -234,11 +234,11 @@ export default function ProductList() {
       {isLoading ? (
         <p>Loading products...</p>
       ) : (
-        <DataTable 
-          title="Product" 
-          columns={columns} 
-          data={products} 
-          onNewClick={() => setIsFormOpen(true)} 
+        <DataTable
+          title="Product"
+          columns={columns}
+          data={products}
+          onNewClick={() => setIsFormOpen(true)}
           searchPlaceholder="Search products..."
           enableKanban={true}
           renderKanbanCard={(item) => (
@@ -251,8 +251,8 @@ export default function ProductList() {
                   <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: 'var(--valora-text-main)' }}>{item.name}</h4>
                   {!isAccountant && (
                     <div style={{ display: 'flex', gap: '4px' }}>
-                      <button onClick={() => handleEdit(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-primary)' }}><Pencil size={14}/></button>
-                      <button onClick={() => handleDelete(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-error)' }}><Trash2 size={14}/></button>
+                      <button onClick={() => handleEdit(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-primary)' }}><Pencil size={14} /></button>
+                      <button onClick={() => handleDelete(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-error)' }}><Trash2 size={14} /></button>
                     </div>
                   )}
                 </div>

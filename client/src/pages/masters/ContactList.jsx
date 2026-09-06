@@ -19,15 +19,15 @@ export default function ContactList() {
 
   const [contacts, setContacts] = useState([]);
   const [users, setUsers] = useState([]);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  
+
   const [isUserFormOpen, setIsUserFormOpen] = useState(false);
   const [editingUserId, setEditingUserId] = useState(null);
-  
+
   const [userFormData, setUserFormData] = useState({
     name: '', login_id: '', email: '', password: '', role: 'ACCOUNTANT', contact_id: ''
   });
@@ -116,7 +116,7 @@ export default function ContactList() {
     if (userFormData.role === 'CONTACT' && !userFormData.contact_id) {
       return alert('Please link a Vendor profile for this user.');
     }
-    
+
     setIsSaving(true);
     try {
       const payload = { ...userFormData };
@@ -125,7 +125,7 @@ export default function ContactList() {
       if (editingUserId) {
         delete payload.password; // Do not send password on update
         delete payload.login_id; // Do not update login ID
-        
+
         const updatedUser = await api.updateUser(editingUserId, payload);
         setUsers(prev => prev.map(u => u.id === editingUserId ? updatedUser : u));
         alert('User updated successfully!');
@@ -190,28 +190,30 @@ export default function ContactList() {
 
   const contactColumns = [
     { header: 'Name', accessor: 'name' },
-    { header: 'Type', render: (row) => (
-      <span style={{ 
-        padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem',
-        backgroundColor: row.type === 'Customer' ? 'rgba(25, 135, 84, 0.1)' : 'rgba(113, 75, 103, 0.1)',
-        color: row.type === 'Customer' ? 'var(--valora-success)' : 'var(--valora-primary)'
-      }}>{row.type}</span>
-    )},
+    {
+      header: 'Type', render: (row) => (
+        <span style={{
+          padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem',
+          backgroundColor: row.type === 'Customer' ? 'rgba(25, 135, 84, 0.1)' : 'rgba(113, 75, 103, 0.1)',
+          color: row.type === 'Customer' ? 'var(--valora-success)' : 'var(--valora-primary)'
+        }}>{row.type}</span>
+      )
+    },
     { header: 'Email', accessor: 'email' },
     { header: 'Mobile', accessor: 'mobile' },
     { header: 'Location', render: (row) => `${row.city || ''} ${row.state ? ', ' + row.state : ''}` },
     ...(!isAccountant ? [{
       header: 'Actions', render: (row) => (
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            onClick={() => handleEditContact(row)} 
+          <button
+            onClick={() => handleEditContact(row)}
             style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
             title="Edit Contact"
           >
             <Pencil size={16} />
           </button>
-          <button 
-            onClick={() => handleDeleteContact(row.id)} 
+          <button
+            onClick={() => handleDeleteContact(row.id)}
             style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
             title="Delete Contact"
           >
@@ -226,55 +228,61 @@ export default function ContactList() {
     { header: 'Name', accessor: 'name' },
     { header: 'Login ID', accessor: 'login_id' },
     { header: 'Email', accessor: 'email' },
-    { header: 'Role', render: (row) => (
-      <span style={{ 
-        padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '600',
-        backgroundColor: row.role === 'ADMIN' ? '#FEE2E2' : row.role === 'ACCOUNTANT' ? '#E0E7FF' : '#F3F4F6',
-        color: row.role === 'ADMIN' ? '#991B1B' : row.role === 'ACCOUNTANT' ? '#3730A3' : '#374151'
-      }}>{row.role}</span>
-    )},
-    { header: 'Linked Contact', render: (row) => {
-      if (row.role !== 'CONTACT') return <span style={{ color: '#9CA3AF' }}>N/A</span>;
-      const contact = contacts.find(c => c.id === row.contact_id);
-      return contact ? contact.name : <span style={{ color: 'var(--valora-error)' }}>Unknown</span>;
-    }},
-    { header: 'Actions', render: (row) => (
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <button 
-          onClick={() => handleEditUser(row)} 
-          style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
-          title="Edit User"
-        >
-          <Pencil size={16} />
-        </button>
-        <button 
-          onClick={() => handleDeleteUser(row.id)} 
-          style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
-          title="Delete User"
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
-    )}
+    {
+      header: 'Role', render: (row) => (
+        <span style={{
+          padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '600',
+          backgroundColor: row.role === 'ADMIN' ? '#FEE2E2' : row.role === 'ACCOUNTANT' ? '#E0E7FF' : '#F3F4F6',
+          color: row.role === 'ADMIN' ? '#991B1B' : row.role === 'ACCOUNTANT' ? '#3730A3' : '#374151'
+        }}>{row.role}</span>
+      )
+    },
+    {
+      header: 'Linked Contact', render: (row) => {
+        if (row.role !== 'CONTACT') return <span style={{ color: '#9CA3AF' }}>N/A</span>;
+        const contact = contacts.find(c => c.id === row.contact_id);
+        return contact ? contact.name : <span style={{ color: 'var(--valora-error)' }}>Unknown</span>;
+      }
+    },
+    {
+      header: 'Actions', render: (row) => (
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => handleEditUser(row)}
+            style={{ background: 'none', border: 'none', color: 'var(--valora-primary)', cursor: 'pointer', padding: '4px' }}
+            title="Edit User"
+          >
+            <Pencil size={16} />
+          </button>
+          <button
+            onClick={() => handleDeleteUser(row.id)}
+            style={{ background: 'none', border: 'none', color: 'var(--valora-error)', cursor: 'pointer', padding: '4px' }}
+            title="Delete User"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      )
+    }
   ];
 
   if (isFormOpen) {
     return (
       <div className="page-content">
-        <FormShell 
-          title={editingId ? "Edit Contact" : "New Contact"} 
-          onSave={handleSaveContact} 
+        <FormShell
+          title={editingId ? "Edit Contact" : "New Contact"}
+          onSave={handleSaveContact}
           onCancel={handleCloseForm}
           isSaving={isSaving}
         >
           <div className="form-row">
             <div className="form-field">
               <label>Name *</label>
-              <input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="E.g. Azure Furniture" required />
+              <input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="E.g. Azure Furniture" required />
             </div>
             <div className="form-field">
               <label>Type</label>
-              <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}>
+              <select value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })}>
                 <option>Customer</option>
                 <option>Vendor</option>
                 <option>Both</option>
@@ -284,27 +292,27 @@ export default function ContactList() {
           <div className="form-row">
             <div className="form-field">
               <label>Email</label>
-              <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="contact@example.com" />
+              <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="contact@example.com" />
             </div>
             <div className="form-field">
               <label>Mobile</label>
-              <input value={formData.mobile} onChange={e => setFormData({...formData, mobile: e.target.value})} placeholder="Phone number" />
+              <input value={formData.mobile} onChange={e => setFormData({ ...formData, mobile: e.target.value })} placeholder="Phone number" />
             </div>
           </div>
           <div className="form-row">
             <div className="form-field">
               <label>City</label>
-              <input value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} placeholder="City" />
+              <input value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} placeholder="City" />
             </div>
             <div className="form-field">
               <label>State</label>
-              <input value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} placeholder="State" />
+              <input value={formData.state} onChange={e => setFormData({ ...formData, state: e.target.value })} placeholder="State" />
             </div>
           </div>
           <div className="form-row">
             <div className="form-field">
               <label>Default Tax Rate (%)</label>
-              <input type="number" step="0.01" min="0" max="100" value={formData.tax_rate} onChange={e => setFormData({...formData, tax_rate: e.target.value})} placeholder="e.g. 18" />
+              <input type="number" step="0.01" min="0" max="100" value={formData.tax_rate} onChange={e => setFormData({ ...formData, tax_rate: e.target.value })} placeholder="e.g. 18" />
             </div>
           </div>
         </FormShell>
@@ -315,20 +323,20 @@ export default function ContactList() {
   if (isUserFormOpen) {
     return (
       <div className="page-content">
-        <FormShell 
-          title={editingUserId ? "Edit User" : "New User"} 
-          onSave={handleSaveUser} 
-          onCancel={handleCloseForm} 
+        <FormShell
+          title={editingUserId ? "Edit User" : "New User"}
+          onSave={handleSaveUser}
+          onCancel={handleCloseForm}
           isSaving={isSaving}
         >
           <div className="form-row">
             <div className="form-field">
               <label>Name *</label>
-              <input value={userFormData.name} onChange={e => setUserFormData({...userFormData, name: e.target.value})} placeholder="e.g. Jane Doe" required />
+              <input value={userFormData.name} onChange={e => setUserFormData({ ...userFormData, name: e.target.value })} placeholder="e.g. Jane Doe" required />
             </div>
             <div className="form-field">
               <label>Role</label>
-              <select value={userFormData.role} onChange={e => setUserFormData({...userFormData, role: e.target.value})}>
+              <select value={userFormData.role} onChange={e => setUserFormData({ ...userFormData, role: e.target.value })}>
                 <option value="ADMIN">Administrator</option>
                 <option value="ACCOUNTANT">Accountant</option>
                 <option value="CONTACT">Vendor/Customer Portal User</option>
@@ -338,24 +346,24 @@ export default function ContactList() {
           <div className="form-row">
             <div className="form-field">
               <label>Login ID {editingUserId ? '' : '*'}</label>
-              <input 
-                value={userFormData.login_id} 
-                onChange={e => setUserFormData({...userFormData, login_id: e.target.value})} 
-                placeholder={editingUserId ? "Cannot change Login ID" : "Assign a unique Login ID"} 
+              <input
+                value={userFormData.login_id}
+                onChange={e => setUserFormData({ ...userFormData, login_id: e.target.value })}
+                placeholder={editingUserId ? "Cannot change Login ID" : "Assign a unique Login ID"}
                 disabled={!!editingUserId}
-                required={!editingUserId} 
+                required={!editingUserId}
               />
             </div>
             <div className="form-field">
               <label>Email Address *</label>
-              <input type="email" value={userFormData.email} onChange={e => setUserFormData({...userFormData, email: e.target.value})} placeholder="Required email address" required />
+              <input type="email" value={userFormData.email} onChange={e => setUserFormData({ ...userFormData, email: e.target.value })} placeholder="Required email address" required />
             </div>
           </div>
           {!editingUserId && (
             <div className="form-row">
               <div className="form-field">
                 <label>Initial Password *</label>
-                <input type="password" value={userFormData.password} onChange={e => setUserFormData({...userFormData, password: e.target.value})} placeholder="Must include upper, lower, number, special char" required />
+                <input type="password" value={userFormData.password} onChange={e => setUserFormData({ ...userFormData, password: e.target.value })} placeholder="Must include upper, lower, number, special char" required />
               </div>
             </div>
           )}
@@ -363,7 +371,7 @@ export default function ContactList() {
             <div className="form-row">
               <div className="form-field">
                 <label>Link to Vendor/Customer Profile *</label>
-                <select value={userFormData.contact_id} onChange={e => setUserFormData({...userFormData, contact_id: e.target.value})} required>
+                <select value={userFormData.contact_id} onChange={e => setUserFormData({ ...userFormData, contact_id: e.target.value })} required>
                   <option value="">Select Contact...</option>
                   {contacts.map(c => (
                     <option key={c.id} value={c.id}>{c.name} ({c.type})</option>
@@ -382,16 +390,16 @@ export default function ContactList() {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', paddingBottom: '16px', marginBottom: '24px' }}>
         <h1 className="page-title">Business Contacts</h1>
       </div>
-      
+
       {isLoading ? (
         <div style={{ padding: '40px', textAlign: 'center', color: '#6B7280' }}>Loading data...</div>
       ) : (
         <>
-          <DataTable 
-            title="Contact" 
-            columns={contactColumns} 
-            data={contacts} 
-            onNewClick={() => setIsFormOpen(true)} 
+          <DataTable
+            title="Contact"
+            columns={contactColumns}
+            data={contacts}
+            onNewClick={() => setIsFormOpen(true)}
             searchPlaceholder="Search contacts..."
             enableKanban={true}
             renderKanbanCard={(item) => (
@@ -404,8 +412,8 @@ export default function ContactList() {
                     <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: 'var(--valora-text-main)' }}>{item.name}</h4>
                     {!isAccountant && (
                       <div style={{ display: 'flex', gap: '4px' }}>
-                        <button onClick={() => handleEditContact(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-primary)' }}><Pencil size={14}/></button>
-                        <button onClick={() => handleDeleteContact(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-error)' }}><Trash2 size={14}/></button>
+                        <button onClick={() => handleEditContact(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-primary)' }}><Pencil size={14} /></button>
+                        <button onClick={() => handleDeleteContact(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--valora-error)' }}><Trash2 size={14} /></button>
                       </div>
                     )}
                   </div>

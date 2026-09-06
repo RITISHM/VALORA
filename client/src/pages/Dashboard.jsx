@@ -402,7 +402,7 @@ function AdminDashboard() {
                   <Activity size={20} /> AI Financial Insights
                 </h3>
                 {!insights && !loadingInsights && (
-                  <button 
+                  <button
                     onClick={fetchInsights}
                     style={{ background: "#4F46E5", color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer", fontWeight: "600", fontSize: "0.9rem" }}
                   >
@@ -410,13 +410,13 @@ function AdminDashboard() {
                   </button>
                 )}
               </div>
-              
+
               {loadingInsights && (
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#6B7280" }}>
                   <Loader2 size={18} style={{ animation: "spin 2s linear infinite" }} /> Analyzing ledger data...
                 </div>
               )}
-              
+
               {insights && (
                 <ul style={{ margin: 0, paddingLeft: "20px", color: "#1F2937", display: "flex", flexDirection: "column", gap: "12px" }}>
                   {insights.map((insight, idx) => (
@@ -512,7 +512,7 @@ function AdminDashboard() {
                 ]} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#9CA3AF", fontWeight: 700 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#9CA3AF", fontWeight: 600 }} tickFormatter={(val) => `${val / 1000}k`} />
-                  <Tooltip 
+                  <Tooltip
                     cursor={{ fill: "transparent" }}
                     contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)" }}
                     formatter={(value) => [`₹ ${value.toLocaleString("en-IN")}`, "Cash Flow"]}
