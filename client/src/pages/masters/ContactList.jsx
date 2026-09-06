@@ -33,7 +33,7 @@ export default function ContactList() {
   });
 
   const [formData, setFormData] = useState({
-    name: '', type: 'Customer', email: '', mobile: '', city: '', state: '', tax_rate: ''
+    name: '', type: 'CUSTOMER', email: '', mobile: '', city: '', state: '', tax_rate: ''
   });
 
   const loadData = async () => {
@@ -83,12 +83,12 @@ export default function ContactList() {
   const handleEditContact = (row) => {
     setFormData({
       name: row.name || '',
-      type: row.type || 'Customer',
+      type: row.type || 'CUSTOMER',
       email: row.email || '',
       mobile: row.mobile || '',
       city: row.city || '',
       state: row.state || '',
-      tax_rate: row.tax_rate || ''
+      tax_rate: row.tax_rate != null ? row.tax_rate : ''
     });
     setEditingId(row.id);
     setIsFormOpen(true);
@@ -184,7 +184,7 @@ export default function ContactList() {
     setIsUserFormOpen(false);
     setEditingId(null);
     setEditingUserId(null);
-    setFormData({ name: '', type: 'Customer', email: '', mobile: '', city: '', state: '', tax_rate: '' });
+    setFormData({ name: '', type: 'CUSTOMER', email: '', mobile: '', city: '', state: '', tax_rate: '' });
     setUserFormData({ name: '', login_id: '', email: '', password: '', role: 'ACCOUNTANT', contact_id: '' });
   };
 
@@ -283,9 +283,9 @@ export default function ContactList() {
             <div className="form-field">
               <label>Type</label>
               <select value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })}>
-                <option>Customer</option>
-                <option>Vendor</option>
-                <option>Both</option>
+                <option value="CUSTOMER">Customer</option>
+                <option value="VENDOR">Vendor</option>
+                <option value="BOTH">Both (Customer &amp; Vendor)</option>
               </select>
             </div>
           </div>

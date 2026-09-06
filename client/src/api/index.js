@@ -21,7 +21,13 @@ const fetchWithCache = async (key, url) => {
 
 const handleResponse = async (response) => {
   if (response.status === 401) {
-    console.error('Unauthorized access');
+    // Session expired or token invalid — clear local state and redirect to login
+    localStorage.removeItem('valora_token');
+    localStorage.removeItem('valora_user');
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login';
+    }
+    throw new Error('Session expired. Please log in again.');
   }
 
   if (response.status === 204) {
@@ -31,7 +37,7 @@ const handleResponse = async (response) => {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error || 'API Request Failed');
+    throw new Error(data.error || `Request failed with status ${response.status}`);
   }
 
   return data;

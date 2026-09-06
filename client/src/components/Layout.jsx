@@ -7,7 +7,7 @@
  * @module components/Layout
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Package, FileText, BarChart3, LogOut, Hexagon, Search, Bell, Settings,
@@ -33,10 +33,20 @@ export default function Layout() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const userStr = localStorage.getItem('valora_user');
+  const tokenStr = localStorage.getItem('valora_token');
   const user = userStr ? JSON.parse(userStr) : null;
   const userRole = user?.role?.toLowerCase() || '';
   const contactType = user?.contact_type || '';
   const isVendor = contactType === 'VENDOR' || contactType === 'BOTH';
+
+  // Auth guard: redirect to login if no session exists
+  useEffect(() => {
+    if (!tokenStr || !user) {
+      navigate('/login', { replace: true });
+    }
+  }, [tokenStr, user, navigate]);
+
+  if (!tokenStr || !user) return null;
 
   /**
    * Logs out user by redirecting to the login view.

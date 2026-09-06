@@ -140,7 +140,7 @@ export default function JournalEntries() {
     // For now, we'll map what we have from the row.
     setSelectedEntry(row);
     setFormData({
-      entryDate: new Date(row.entry_date).toISOString().split("T")[0],
+      entryDate: row.entry_date ? new Date(row.entry_date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
       journalId: row.journal_id || "",
       reference: row.reference || "",
       lines: row.journal_items?.map((item) => ({
@@ -155,7 +155,7 @@ export default function JournalEntries() {
   };
 
   const columns = [
-    { header: "Date", render: (row) => new Date(row.entry_date).toLocaleDateString("en-IN") },
+    { header: "Date", render: (row) => row.entry_date ? new Date(row.entry_date).toLocaleDateString("en-IN") : "-" },
     { header: "Number / Ref", render: (row) => <strong>{row.entry_number || row.reference || "-"}</strong> },
     { header: "Journal", render: (row) => row.journal?.name || "-" },
     {

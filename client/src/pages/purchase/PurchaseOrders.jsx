@@ -239,7 +239,7 @@ export default function PurchaseOrders() {
   const columns = [
     { header: "PO No.", accessor: "po_number", render: (r) => <strong>{r.po_number}</strong> },
     { header: "Vendor Name", render: (r) => r.vendor?.name || "-" },
-    { header: "PO Date", render: (r) => new Date(r.po_date).toLocaleDateString("en-IN") },
+    { header: "PO Date", render: (r) => r.po_date ? new Date(r.po_date).toLocaleDateString("en-IN") : "-" },
     { header: "Total", render: (r) => `₹ ${Number(r.total || 0).toLocaleString("en-IN")}` },
     {
       header: "Status",

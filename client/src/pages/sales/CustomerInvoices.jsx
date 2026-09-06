@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, CheckCircle, DollarSign, ShoppingCart, AlertTriangle, Plus, X, Printer, Trash2, Pencil, Eye } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DataTable from "../../components/DataTable";
+import Loader from "../../components/Loader";
 import { api } from "../../api";
 import "../../styles/forms.css";
+import valoraLogo from "../../assets/valora-logo-dark.png";
 
 export default function CustomerInvoices() {
   const navigate = useNavigate();
@@ -35,6 +37,121 @@ export default function CustomerInvoices() {
     dueDate: new Date(Date.now() + 14 * 86400000).toISOString().split("T")[0],
     lines: [{ productId: "", accountId: "", analyticAccountId: "", quantity: 1, unitPrice: 0, taxRate: 0 }],
   });
+
+  const handlePrint = () => {
+    if (!selectedInvoice) return;
+    const customer = contacts.find(c => c.id === formData.customerId);
+    const lines = formData.lines;
+    const grandTotal = calculateTotal();
+
+    const printWindow = window.open('', '_blank', 'width=900,height=1100');
+    const logoSrc = valoraLogo;
+
+    const linesHtml = lines.map((line, idx) => {
+      const prod = products.find(p => p.id === line.productId);
+      const sub = (Number(line.quantity) || 0) * (Number(line.unitPrice) || 0);
+      const tax = sub * ((Number(line.taxRate) || 0) / 100);
+      const total = sub + tax;
+      return `
+        <tr>
+          <td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:0.9rem;">${idx + 1}</td>
+          <td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:0.9rem;">${prod?.name || '—'}</td>
+          <td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:0.9rem;text-align:right;">${Number(line.quantity)}</td>
+          <td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:0.9rem;text-align:right;">₹${Number(line.unitPrice).toLocaleString('en-IN')}</td>
+          <td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:0.9rem;text-align:right;">${Number(line.taxRate) || 0}%</td>
+          <td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:0.9rem;text-align:right;font-weight:600;">₹${total.toLocaleString('en-IN')}</td>
+        </tr>`;
+    }).join('');
+
+    const subtotal = lines.reduce((s, l) => s + (Number(l.quantity)||0)*(Number(l.unitPrice)||0), 0);
+    const taxTotal = grandTotal - subtotal;
+    const statusLabel = selectedInvoice.status === 'PAID' ? '<span style="color:#166534;background:#dcfce7;padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:700;">PAID</span>' :
+      selectedInvoice.status === 'CONFIRMED' || selectedInvoice.status === 'POSTED' ? '<span style="color:#1e40af;background:#dbeafe;padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:700;">CONFIRMED</span>' :
+      '<span style="color:#92400e;background:#fef3c7;padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:700;">DRAFT</span>';
+
+    printWindow.document.write(`<!DOCTYPE html><html><head>
+      <meta charset="UTF-8"/>
+      <title>Invoice ${selectedInvoice.invoice_number || ''}</title>
+      <style>
+        @page { size: A4; margin: 15mm 20mm; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #1e293b; font-size: 0.9rem; background:#fff; }
+        .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:32px; padding-bottom:24px; border-bottom:2px solid #714b67; }
+        .logo { width:120px; }
+        .company-name { font-size:1.6rem; font-weight:800; color:#714b67; }
+        .company-sub { font-size:0.8rem; color:#64748b; margin-top:2px; }
+        .inv-title { font-size:2rem; font-weight:900; color:#714b67; text-transform:uppercase; letter-spacing:2px; }
+        .inv-number { font-size:0.85rem; color:#64748b; margin-top:4px; }
+        .meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:28px; }
+        .meta-box { padding:16px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0; }
+        .meta-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#64748b; margin-bottom:6px; }
+        .meta-value { font-size:0.95rem; font-weight:600; color:#1e293b; }
+        .meta-muted { font-size:0.82rem; color:#64748b; margin-top:2px; }
+        table { width:100%; border-collapse:collapse; margin-bottom:24px; }
+        thead tr { background:#714b67; color:#fff; }
+        thead th { padding:10px 12px; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; text-align:left; }
+        thead th:last-child,thead th:nth-child(n+3) { text-align:right; }
+        .totals { display:flex; flex-direction:column; align-items:flex-end; gap:6px; margin-bottom:32px; }
+        .total-row { display:flex; gap:32px; font-size:0.88rem; }
+        .total-row.grand { font-size:1.1rem; font-weight:800; color:#714b67; border-top:2px solid #714b67; padding-top:8px; margin-top:4px; }
+        .total-label { color:#64748b; min-width:120px; text-align:right; }
+        .total-val { font-weight:600; min-width:100px; text-align:right; }
+        .footer { margin-top:40px; padding-top:16px; border-top:1px solid #e2e8f0; text-align:center; font-size:0.75rem; color:#94a3b8; }
+        .status-wrap { margin-top:8px; }
+        @media print { body{-webkit-print-color-adjust:exact;print-color-adjust:exact;} }
+      </style>
+    </head><body>
+      <div class="header">
+        <div>
+          <div class="company-name">VALORA</div>
+          <div class="company-sub">Enterprise Resource Planning</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="inv-title">Tax Invoice</div>
+          <div class="inv-number">${selectedInvoice.invoice_number || 'DRAFT'}</div>
+          <div class="status-wrap">${statusLabel}</div>
+        </div>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-box">
+          <div class="meta-label">Billed To</div>
+          <div class="meta-value">${customer?.name || '—'}</div>
+          ${customer?.email ? `<div class="meta-muted">${customer.email}</div>` : ''}
+          ${customer?.mobile ? `<div class="meta-muted">${customer.mobile}</div>` : ''}
+          ${customer?.city ? `<div class="meta-muted">${customer.city}${customer.state ? ', ' + customer.state : ''}</div>` : ''}
+        </div>
+        <div class="meta-box">
+          <div class="meta-label">Invoice Details</div>
+          <div class="meta-value">Date: ${formData.invoiceDate ? new Date(formData.invoiceDate).toLocaleDateString('en-IN', {day:'2-digit',month:'long',year:'numeric'}) : '—'}</div>
+          ${formData.dueDate ? `<div class="meta-muted">Due: ${new Date(formData.dueDate).toLocaleDateString('en-IN', {day:'2-digit',month:'long',year:'numeric'})}</div>` : ''}
+          ${formData.invoiceReference ? `<div class="meta-muted">Ref: ${formData.invoiceReference}</div>` : ''}
+        </div>
+      </div>
+      <table>
+        <thead><tr>
+          <th style="width:40px;">#</th>
+          <th>Product / Description</th>
+          <th style="text-align:right;width:60px;">Qty</th>
+          <th style="text-align:right;width:110px;">Unit Price</th>
+          <th style="text-align:right;width:60px;">Tax</th>
+          <th style="text-align:right;width:110px;">Total</th>
+        </tr></thead>
+        <tbody>${linesHtml}</tbody>
+      </table>
+      <div class="totals">
+        <div class="total-row"><span class="total-label">Subtotal</span><span class="total-val">₹${subtotal.toLocaleString('en-IN')}</span></div>
+        <div class="total-row"><span class="total-label">Tax Amount</span><span class="total-val">₹${taxTotal.toLocaleString('en-IN')}</span></div>
+        <div class="total-row grand"><span class="total-label">Grand Total</span><span class="total-val">₹${grandTotal.toLocaleString('en-IN')}</span></div>
+      </div>
+      <div class="footer">
+        <p>Thank you for your business. Please contact us at support@valora.in for any queries.</p>
+        <p style="margin-top:4px;">This is a computer-generated invoice and does not require a physical signature.</p>
+      </div>
+    </body></html>`);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 250);
+  };
 
   const loadData = async () => {
     setIsLoading(true);
@@ -194,6 +311,21 @@ export default function CustomerInvoices() {
     }
   };
 
+  const handleDeleteRow = async (e, id, status) => {
+    e.stopPropagation();
+    if (status !== "DRAFT") {
+      alert("Only DRAFT invoices can be deleted.");
+      return;
+    }
+    if (!window.confirm("Are you sure you want to delete this invoice?")) return;
+    try {
+      await api.deleteCustomerInvoice(id);
+      await loadData();
+    } catch (err) {
+      alert(err.message || "Failed to delete");
+    }
+  };
+
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setSelectedInvoice(null);
@@ -239,8 +371,8 @@ export default function CustomerInvoices() {
 
   const columns = [
     { header: "Invoice No.", accessor: "invoice_number", render: (row) => <strong>{row.invoice_number}</strong> },
-    { header: "Customer Name", render: (row) => row.contact?.name || "-" },
-    { header: "Invoice Date", render: (row) => new Date(row.invoice_date).toLocaleDateString("en-IN") },
+    { header: "Customer Name", render: (row) => row.customer?.name || "-" },
+    { header: "Invoice Date", render: (row) => row.invoice_date ? new Date(row.invoice_date).toLocaleDateString("en-IN") : "-" },
     { header: "Total", render: (row) => `₹ ${Number(row.total || 0).toLocaleString("en-IN")}` },
     {
       header: "Status",
@@ -319,7 +451,7 @@ export default function CustomerInvoices() {
                 </button>
               )}
               {selectedInvoice && (
-                <button className="fv-btn fv-btn-ghost print-hide" onClick={() => window.print()} title="Print">
+                <button className="fv-btn fv-btn-ghost print-hide" onClick={handlePrint} title="Print Invoice">
                   <Printer size={15} /> Print
                 </button>
               )}

@@ -474,3 +474,53 @@
   background-color: #F8FAFC;
   color: #714B67;
 }
+
+/* ============================
+   GLOBAL PRINT STYLES
+   Hide all chrome when printing reports via window.print()
+   ============================ */
+@media print {
+  /* Hide navigation and chrome */
+  .sidebar,
+  .top-header,
+  .print-hide {
+    display: none !important;
+  }
+
+  /* Let content take full page width */
+  .app-wrapper,
+  .app-layout {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .main-content {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .page-content {
+    padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color: #000 !important;
+  }
+
+  /* Avoid page breaks inside table rows */
+  tr {
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+}

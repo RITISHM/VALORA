@@ -223,8 +223,8 @@ export default function SalesOrders() {
 
   const columns = [
     { header: "SO No.", accessor: "so_number", render: (row) => <strong>{row.so_number}</strong> },
-    { header: "Customer", render: (row) => row.contact?.name || "-" },
-    { header: "SO Date", render: (row) => new Date(row.so_date).toLocaleDateString("en-IN") },
+    { header: "Customer", render: (row) => row.customer?.name || "-" },
+    { header: "SO Date", render: (row) => row.so_date ? new Date(row.so_date).toLocaleDateString("en-IN") : "-" },
     { header: "Total", render: (row) => `₹ ${Number(row.total || 0).toLocaleString("en-IN")}` },
     {
       header: "Status",

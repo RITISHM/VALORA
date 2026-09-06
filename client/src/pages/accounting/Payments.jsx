@@ -71,7 +71,7 @@ export default function Payments() {
   };
 
   const columns = [
-    { header: 'Date', render: (row) => new Date(row.date || row.created_at).toLocaleDateString() },
+    { header: 'Date', render: (row) => { const d = row.date || row.created_at; return d ? new Date(d).toLocaleDateString('en-IN') : '-'; } },
     { header: 'Type', render: (row) => (
       <span style={{
         padding: '4px 10px',
@@ -84,9 +84,9 @@ export default function Payments() {
         {row.payment_type || 'SEND'}
       </span>
     )},
-    { header: 'Partner', render: (row) => row.contact?.name || '-' },
+    { header: 'Partner', render: (row) => row.partner?.name || row.contact?.name || '-' },
     { header: 'Payment Via', accessor: 'payment_via' },
-    { header: 'Amount', render: (row) => `₹ ${Number(row.amount || 0).toLocaleString()}` },
+    { header: 'Amount', render: (row) => `₹ ${Number(row.amount || 0).toLocaleString('en-IN')}` },
     { header: 'Memo / Note', accessor: 'note' }
   ];
 
