@@ -15,49 +15,58 @@ class AIService {
       "Cash flow appears positive. It might be a good time to negotiate better terms with your frequent vendors."
     ];
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      console.warn("OPENAI_API_KEY is not set. Falling back to mock insights.");
+      console.warn("GEMINI_API_KEY is not set. Falling back to mock insights.");
       return mockInsights;
     }
 
     try {
       // Format the context
+      let incomeBreakdown = pnlData.income.items.map(i => `  - ${i.name}: ₹${i.balance}`).join("\n") || "  None";
+      let expenseBreakdown = pnlData.expenses.items.map(e => `  - ${e.name}: ₹${e.balance}`).join("\n") || "  None";
+
       const prompt = `
-You are an expert CFO. Review the following Profit and Loss statement and provide 3 short, actionable business insights.
-Focus on profit margins, areas of high expenditure, and growth opportunities. Keep it concise.
+You are an expert Chief Financial Officer (CFO) performing a strict financial audit. Review the following Profit and Loss statement and provide 3 highly analytical, data-driven financial insights. 
+Do not give generic business tips or advice (e.g., "invest in marketing" or "negotiate with vendors"). Focus exclusively on deep financial analysis, margin efficiency, revenue composition anomalies, and expense distribution based strictly on the provided numbers. Use professional financial terminology.
 
 FINANCIAL CONTEXT:
 - Total Income: ₹${pnlData.income.total}
+Income Breakdown:
+${incomeBreakdown}
+
 - Total Expenses: ₹${pnlData.expenses.total}
+Expense Breakdown:
+${expenseBreakdown}
+
 - Net Profit: ₹${pnlData.net_profit}
 
 Respond ONLY with a valid JSON array of 3 strings. Example: ["Insight 1", "Insight 2", "Insight 3"]
 `;
 
-      const url = `https://api.openai.com/v1/chat/completions`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
       
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.7,
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.7
+          }
         }),
       });
 
       if (!response.ok) {
-        console.error("OpenAI API Error:", await response.text());
+        console.error("Gemini API Error:", await response.text());
         return mockInsights;
       }
 
       const data = await response.json();
-      const rawText = data.choices?.[0]?.message?.content;
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!rawText) {
         return mockInsights;
