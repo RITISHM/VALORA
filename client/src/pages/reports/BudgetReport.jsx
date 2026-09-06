@@ -9,7 +9,7 @@
  * - Export to CSV for offline reporting
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   ArrowLeft, TrendingUp, AlertTriangle, BarChart2, Search,
   ChevronDown, ChevronUp, LayoutList, LayoutGrid, Calendar,

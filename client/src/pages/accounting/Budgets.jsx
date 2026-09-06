@@ -18,7 +18,7 @@
  *   Name rule: strip existing " Revised" suffix, then add " Revised" once.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Plus, Trash2, CheckCircle, RefreshCw, XCircle, AlertTriangle, ExternalLink, LayoutList, LayoutGrid, Calendar, User } from 'lucide-react';
 import DataTable from '../../components/DataTable';
 import { api } from '../../api';

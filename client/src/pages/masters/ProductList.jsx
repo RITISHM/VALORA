@@ -6,7 +6,7 @@
  * @module pages/masters/ProductList
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Trash2, Pencil } from 'lucide-react';
 import DataTable from '../../components/DataTable';
 import FormShell from '../../components/FormShell';

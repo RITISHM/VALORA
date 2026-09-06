@@ -6,7 +6,7 @@
  * @module pages/reports/BalanceSheet
  */
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { api } from "../../api";
 
 /** Format a number as Indian Rupee with always-2 decimal places */

@@ -5,7 +5,7 @@
  * @module components/DataTable
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Search, Plus, LayoutGrid, List, ArrowLeft } from 'lucide-react';
 import '../styles/components.css';
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { ShoppingCart, Search, Filter } from "lucide-react";
 import { BACKEND_URL } from "../../api";
 import { useCartStore } from "../../store/useCartStore";

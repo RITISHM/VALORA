@@ -6,7 +6,7 @@
  * @module pages/masters/ContactList
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Trash2, Pencil, Users, Building2 } from 'lucide-react';
 import DataTable from '../../components/DataTable';
 import FormShell from '../../components/FormShell';
