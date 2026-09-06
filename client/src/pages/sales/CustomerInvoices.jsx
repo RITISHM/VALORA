@@ -33,7 +33,7 @@ export default function CustomerInvoices() {
     invoiceReference: "",
     invoiceDate: new Date().toISOString().split("T")[0],
     dueDate: new Date(Date.now() + 14 * 86400000).toISOString().split("T")[0],
-    lines: [{ productId: "", accountId: "", analyticAccountId: "", quantity: 1, unitPrice: 0 }],
+    lines: [{ productId: "", accountId: "", analyticAccountId: "", quantity: 1, unitPrice: 0, taxRate: 0 }],
   });
 
   const loadData = async () => {
@@ -68,14 +68,17 @@ export default function CustomerInvoices() {
 
   const calculateTotal = () =>
     formData.lines.reduce(
-      (sum, line) => sum + (Number(line.quantity) * Number(line.unitPrice) || 0),
+      (sum, line) => {
+        const sub = (Number(line.quantity) || 0) * (Number(line.unitPrice) || 0);
+        return sum + sub + (sub * ((Number(line.taxRate) || 0) / 100));
+      },
       0,
     );
 
   const handleAddLine = () =>
     setFormData(prev => ({
       ...prev,
-      lines: [...prev.lines, { productId: "", accountId: "", analyticAccountId: "", quantity: 1, unitPrice: 0 }],
+      lines: [...prev.lines, { productId: "", accountId: "", analyticAccountId: "", quantity: 1, unitPrice: 0, taxRate: 0 }],
     }));
 
   const handleRemoveLine = (idx) => {
@@ -113,6 +116,7 @@ export default function CustomerInvoices() {
           analytic_account_id: l.analyticAccountId || null,
           qty: Number(l.quantity),
           unit_price: Number(l.unitPrice),
+          tax_rate: Number(l.taxRate) || 0,
         })),
       };
 
@@ -179,7 +183,7 @@ export default function CustomerInvoices() {
       invoiceReference: "",
       invoiceDate: new Date().toISOString().split("T")[0],
       dueDate: new Date(Date.now() + 14 * 86400000).toISOString().split("T")[0],
-      lines: [{ productId: "", accountId: "", analyticAccountId: "", quantity: 1, unitPrice: 0 }],
+      lines: [{ productId: "", accountId: "", analyticAccountId: "", quantity: 1, unitPrice: 0, taxRate: 0 }],
     });
   };
 
@@ -200,7 +204,8 @@ export default function CustomerInvoices() {
           analyticAccountId: l.analytic_account_id || "",
           quantity: l.qty || l.quantity || 1,
           unitPrice: l.unit_price || 0,
-        })) || [{ productId: "", accountId: "", analyticAccountId: "", quantity: 1, unitPrice: 0 }],
+          taxRate: l.tax_rate || 0,
+        })) || [{ productId: "", accountId: "", analyticAccountId: "", quantity: 1, unitPrice: 0, taxRate: 0 }],
       });
       setIsFormOpen(true);
     } catch (err) {
@@ -331,7 +336,16 @@ export default function CustomerInvoices() {
                     className="fv-select"
                     value={formData.customerId}
                     disabled={isReadOnly}
-                    onChange={e => setFormData({ ...formData, customerId: e.target.value })}
+                    onChange={e => {
+                      const cid = e.target.value;
+                      const c = contacts.find(x => x.id === cid);
+                      const taxRate = c?.tax_rate || 0;
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        customerId: cid,
+                        lines: prev.lines.map(l => ({ ...l, taxRate }))
+                      }));
+                    }}
                   >
                     <option value="">— Select Customer —</option>
                     {contacts.map(c => (
@@ -389,13 +403,16 @@ export default function CustomerInvoices() {
                       <th>Budget Analytics</th>
                       <th style={{ textAlign: "right", width: 80 }}>Qty <span style={{ color: "#DC2626" }}>*</span></th>
                       <th style={{ textAlign: "right", width: 120 }}>Unit Price (₹) <span style={{ color: "#DC2626" }}>*</span></th>
+                      <th style={{ textAlign: "right", width: 80 }}>Tax (%)</th>
                       <th style={{ textAlign: "right", width: 120 }}>Total (₹)</th>
                       {!isReadOnly && <th style={{ width: 40 }}></th>}
                     </tr>
                   </thead>
                   <tbody>
                     {formData.lines.map((line, idx) => {
-                      const lineTotal = Number(line.quantity || 0) * Number(line.unitPrice || 0);
+                      const subtotal = Number(line.quantity || 0) * Number(line.unitPrice || 0);
+                      const taxAmount = subtotal * ((Number(line.taxRate) || 0) / 100);
+                      const lineTotal = subtotal + taxAmount;
                       return (
                         <tr key={idx}>
                           <td style={{ textAlign: "center", fontWeight: 700, color: "#94A3B8", fontSize: "0.8rem" }}>{idx + 1}</td>
@@ -463,6 +480,19 @@ export default function CustomerInvoices() {
                               />
                             )}
                           </td>
+                          <td style={{ textAlign: "right" }}>
+                            {isReadOnly ? (
+                              <span style={{ fontWeight: 600 }}>{line.taxRate}%</span>
+                            ) : (
+                              <input
+                                className="fv-table-input fv-table-input-sm"
+                                type="number"
+                                min="0" max="100" step="0.01"
+                                value={line.taxRate}
+                                onChange={e => handleLineChange(idx, "taxRate", e.target.value)}
+                              />
+                            )}
+                          </td>
                           <td style={{ textAlign: "right", fontWeight: 700, color: "#0F172A" }}>
                             ₹ {lineTotal.toLocaleString("en-IN")}
                           </td>
@@ -477,7 +507,7 @@ export default function CustomerInvoices() {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colSpan={!isReadOnly ? 6 : 6} style={{ textAlign: "right", color: "#64748B" }}>Grand Total</td>
+                      <td colSpan={!isReadOnly ? 7 : 7} style={{ textAlign: "right", color: "#64748B" }}>Grand Total</td>
                       <td style={{ textAlign: "right", color: "#714B67", fontSize: "1rem" }}>
                         ₹ {grandTotal.toLocaleString("en-IN")}
                       </td>

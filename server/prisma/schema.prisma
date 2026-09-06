@@ -111,6 +111,7 @@ model Contact {
   state            String?
   pincode          String?
   image_url        String?
+  tax_rate         Float?
   users            User[]
   journal_items    JournalItem[]
   budgets          Budget[]

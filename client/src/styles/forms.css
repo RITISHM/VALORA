@@ -17,7 +17,7 @@
   --form-warning: #D97706;
   --form-danger: #DC2626;
   --form-info: #2563EB;
-  --form-input-h: 42px;
+  --form-input-h: 52px;
   --form-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
   --form-shadow-hover: 0 4px 12px rgba(0,0,0,0.08), 0 16px 40px rgba(0,0,0,0.06);
   --transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
@@ -27,8 +27,9 @@
    FORM PAGE WRAPPER
    ════════════════════════════════════════════════════════════════ */
 .fv-page {
-  max-width: 1100px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -57,7 +58,7 @@
 }
 
 .fv-topbar-title {
-  font-size: 1.45rem;
+  font-size: 1.65rem;
   font-weight: 800;
   color: var(--form-text);
   letter-spacing: -0.3px;
@@ -137,11 +138,11 @@
 
 /* ── Card inner section ── */
 .fv-card-body {
-  padding: 28px 32px;
+  padding: 40px 48px;
 }
 
 .fv-card-section {
-  padding: 24px 32px;
+  padding: 36px 48px;
   border-top: 1px solid var(--form-border);
 }
 
@@ -151,12 +152,12 @@
 
 /* ── Section heading ── */
 .fv-section-label {
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--form-muted);
-  margin: 0 0 16px 0;
+  margin: 0 0 24px 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -174,7 +175,7 @@
    ════════════════════════════════════════════════════════════════ */
 .fv-grid {
   display: grid;
-  gap: 20px 24px;
+  gap: 32px 36px;
 }
 
 .fv-grid-2  { grid-template-columns: 1fr 1fr; }
@@ -197,11 +198,11 @@
 .fv-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
 }
 
 .fv-label {
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--form-text);
   letter-spacing: 0.2px;
@@ -230,7 +231,7 @@
   padding: 0 14px;
   border: 1.5px solid var(--form-border);
   border-radius: 10px;
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   font-family: inherit;
   font-weight: 500;
   color: var(--form-text);
@@ -278,7 +279,7 @@
 
 /* ── Textarea ── */
 .fv-textarea {
-  padding: 12px 14px;
+  padding: 16px 18px;
   border: 1.5px solid var(--form-border);
   border-radius: 10px;
   font-size: 0.9rem;
@@ -291,7 +292,7 @@
   width: 100%;
   box-sizing: border-box;
   resize: vertical;
-  min-height: 80px;
+  min-height: 120px;
 }
 
 .fv-textarea:focus {
@@ -327,7 +328,7 @@
    LINE ITEMS TABLE
    ════════════════════════════════════════════════════════════════ */
 .fv-lines-section {
-  padding: 0 32px 28px;
+  padding: 0 48px 40px;
 }
 
 .fv-lines-title {
@@ -336,7 +337,7 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--form-muted);
-  margin: 0 0 14px 0;
+  margin: 0 0 24px 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -368,7 +369,7 @@
 
 .fv-table th {
   padding: 10px 14px;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
@@ -379,7 +380,7 @@
 
 .fv-table td {
   padding: 8px 10px;
-  font-size: 0.88rem;
+  font-size: 1rem;
   color: var(--form-text);
   border-bottom: 1px solid #F1F5F9;
   vertical-align: middle;
@@ -404,11 +405,11 @@
 /* ── Table inline inputs ── */
 .fv-table-input,
 .fv-table-select {
-  height: 34px;
+  height: 40px;
   padding: 0 10px;
   border: 1.5px solid var(--form-border);
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-family: inherit;
   font-weight: 500;
   color: var(--form-text);

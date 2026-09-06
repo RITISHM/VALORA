@@ -33,7 +33,7 @@ export default function ContactList() {
   });
 
   const [formData, setFormData] = useState({
-    name: '', type: 'Customer', email: '', mobile: '', city: '', state: ''
+    name: '', type: 'Customer', email: '', mobile: '', city: '', state: '', tax_rate: ''
   });
 
   const loadData = async () => {
@@ -58,11 +58,18 @@ export default function ContactList() {
     if (!formData.name) return alert('Name is required');
     setIsSaving(true);
     try {
+      const payload = { ...formData };
+      if (payload.tax_rate) {
+        payload.tax_rate = parseFloat(payload.tax_rate);
+      } else {
+        payload.tax_rate = null;
+      }
+
       if (editingId) {
-        const updatedContact = await api.updateContact(editingId, formData);
+        const updatedContact = await api.updateContact(editingId, payload);
         setContacts(prev => prev.map(c => c.id === editingId ? updatedContact : c));
       } else {
-        const newContact = await api.createContact(formData);
+        const newContact = await api.createContact(payload);
         setContacts(prev => [...prev, newContact]);
       }
       handleCloseForm();
@@ -80,7 +87,8 @@ export default function ContactList() {
       email: row.email || '',
       mobile: row.mobile || '',
       city: row.city || '',
-      state: row.state || ''
+      state: row.state || '',
+      tax_rate: row.tax_rate || ''
     });
     setEditingId(row.id);
     setIsFormOpen(true);
@@ -176,7 +184,7 @@ export default function ContactList() {
     setIsUserFormOpen(false);
     setEditingId(null);
     setEditingUserId(null);
-    setFormData({ name: '', type: 'Customer', email: '', mobile: '', city: '', state: '' });
+    setFormData({ name: '', type: 'Customer', email: '', mobile: '', city: '', state: '', tax_rate: '' });
     setUserFormData({ name: '', login_id: '', email: '', password: '', role: 'ACCOUNTANT', contact_id: '' });
   };
 
@@ -291,6 +299,12 @@ export default function ContactList() {
             <div className="form-field">
               <label>State</label>
               <input value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} placeholder="State" />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field">
+              <label>Default Tax Rate (%)</label>
+              <input type="number" step="0.01" min="0" max="100" value={formData.tax_rate} onChange={e => setFormData({...formData, tax_rate: e.target.value})} placeholder="e.g. 18" />
             </div>
           </div>
         </FormShell>

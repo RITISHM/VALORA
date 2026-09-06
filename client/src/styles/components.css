@@ -87,11 +87,12 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
   border: 1px solid var(--valora-border);
   overflow: hidden;
-  max-width: 800px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .form-shell-header {
-  padding: 24px;
+  padding: 32px 40px;
   border-bottom: 1px solid var(--valora-border);
   display: flex;
   justify-content: space-between;
@@ -105,10 +106,10 @@
 }
 
 .form-shell-body {
-  padding: 24px;
+  padding: 40px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 32px;
 }
 
 .form-shell-footer {
@@ -141,11 +142,11 @@
 .form-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
 }
 
 .form-field label {
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #0F172A; /* var(--form-text) */
   letter-spacing: 0.2px;
@@ -155,11 +156,11 @@
 }
 
 .form-field input, .form-field select, .form-field textarea {
-  height: 42px; /* var(--form-input-h) */
+  height: 52px; /* var(--form-input-h) */
   padding: 0 14px;
   border: 1.5px solid #E2E8F0; /* var(--form-border) */
   border-radius: 10px;
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   font-family: inherit;
   font-weight: 500;
   color: #0F172A; /* var(--form-text) */
@@ -200,8 +201,8 @@
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px 24px;
-  margin-bottom: 20px;
+  gap: 32px 36px;
+  margin-bottom: 32px;
 }
 
 .form-row:last-child {

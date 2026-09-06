@@ -10,6 +10,7 @@ const contactSchema = z.object({
   state: z.string().optional().nullable(),
   pincode: z.string().optional().nullable(),
   image_url: z.string().url().optional().nullable(),
+  tax_rate: z.number().min(0).max(100).optional().nullable(),
 });
 
 class ContactsController {
