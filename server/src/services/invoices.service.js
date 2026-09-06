@@ -344,6 +344,25 @@ class InvoicesService {
 
     return await this.getById(id);
   }
+
+  async delete(id) {
+    const invoice = await prisma.customerInvoice.findUnique({ where: { id } });
+    if (!invoice) {
+      const error = new Error("Invoice not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    if (invoice.status !== "DRAFT") {
+      const error = new Error("Only DRAFT invoices can be deleted");
+      error.statusCode = 400;
+      throw error;
+    }
+    
+    return await prisma.$transaction(async (tx) => {
+      await tx.customerInvoiceLine.deleteMany({ where: { invoice_id: id } });
+      return tx.customerInvoice.delete({ where: { id } });
+    });
+  }
 }
 
 module.exports = new InvoicesService();

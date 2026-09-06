@@ -1,4 +1,3 @@
-/* client/src/index.css */
 @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
 
 :root {
@@ -11,12 +10,12 @@ body, html {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: 'Comfortaa', cursive, sans-serif;
+  font-family: var(--font-family);
 }
 
 *, *::before, *::after {
   box-sizing: border-box;
-  font-family: 'Comfortaa', cursive, sans-serif;
+  font-family: var(--font-family);
 }
 
 button, input, optgroup, select, textarea {
@@ -25,15 +24,30 @@ button, input, optgroup, select, textarea {
 
 /* Print Styles */
 @media print {
-  .sidebar, .top-header, .header-actions {
+  @page { margin: 1.2cm; }
+
+  /* Hide navigation and UI cruft */
+  .sidebar, .top-header, .header-actions, .header-search, .user-profile {
     display: none !important;
   }
   
-  .layout-container, .main-content, .page-content {
+  /* Hide all interactive elements */
+  button, .secondary-btn, .primary-btn, .fv-btn, .fv-add-line, 
+  .fv-remove-btn, .fv-topbar-actions, .see-all, .fv-status-bar, 
+  .calendar-nav, .data-table-actions, .print-hide {
+    display: none !important;
+  }
+
+  /* Reset layout for full page printing */
+  .app-wrapper, .app-layout, .main-content, .page-content, .fv-page {
     margin: 0 !important;
     padding: 0 !important;
     height: auto !important;
+    width: 100% !important;
     overflow: visible !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
   }
 
   body, html {
@@ -42,8 +56,47 @@ button, input, optgroup, select, textarea {
     background-color: white !important;
   }
 
+  /* Force background colors and deep blacks */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  /* Clean up form inputs so they look like static document text */
+  input, select, textarea, .fv-input, .fv-table-input, .fv-select {
+    border: none !important;
+    background: transparent !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: #111116 !important;
+    box-shadow: none !important;
+    font-weight: 700 !important;
+  }
+  
+  select {
+    white-space: pre-wrap;
+  }
+
+  /* Valora Print Header */
+  .main-content::before {
+    content: "VALORA";
+    display: flex;
+    align-items: center;
+    font-size: 26pt;
+    font-weight: 800;
+    color: #4F46E5 !important;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #4F46E5 !important;
+    text-align: left;
+    letter-spacing: 2px;
+    width: 100%;
+    /* Inject the lucide-react Hexagon logo via background SVG */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="%234F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: left center;
+    padding-left: 44px; /* Space for the logo */
   }
 }

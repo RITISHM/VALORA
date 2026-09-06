@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, CheckCircle, DollarSign, ShoppingCart, AlertTriangle, Plus, X } from "lucide-react";
+import { ArrowLeft, CheckCircle, DollarSign, ShoppingCart, AlertTriangle, Plus, X, Printer, Trash2 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DataTable from "../../components/DataTable";
 import { api } from "../../api";
@@ -173,6 +173,27 @@ export default function CustomerInvoices() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!selectedInvoice) return;
+    if (selectedInvoice.status !== "DRAFT") {
+      alert("Only DRAFT invoices can be deleted.");
+      return;
+    }
+    if (!window.confirm("Are you sure you want to delete this invoice? This cannot be undone.")) return;
+    
+    setIsSaving(true);
+    try {
+      await api.deleteCustomerInvoice(selectedInvoice.id);
+      await loadData();
+      alert("Invoice deleted successfully");
+      handleCloseForm();
+    } catch (err) {
+      alert(err.message || "Failed to delete");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setSelectedInvoice(null);
@@ -291,6 +312,16 @@ export default function CustomerInvoices() {
               {!selectedInvoice && (
                 <button className="fv-btn fv-btn-save" onClick={handleSave} disabled={isSaving}>
                   {isSaving ? "Saving…" : "Save Invoice"}
+                </button>
+              )}
+              {selectedInvoice && (
+                <button className="fv-btn fv-btn-ghost print-hide" onClick={() => window.print()} title="Print">
+                  <Printer size={15} /> Print
+                </button>
+              )}
+              {selectedInvoice && selectedInvoice.status === "DRAFT" && (
+                <button className="fv-btn fv-btn-ghost print-hide" style={{ color: "#DC2626" }} onClick={handleDelete} disabled={isSaving} title="Delete">
+                  <Trash2 size={15} /> Delete
                 </button>
               )}
               {selectedInvoice && !isPosted && !isPaid && (

@@ -48,6 +48,16 @@ class VendorBillsController {
       next(err);
     }
   }
+
+  async delete(req, res, next) {
+    try {
+      const { id } = req.params;
+      const deleted = await vendorBillsService.delete(id);
+      return res.status(200).json(deleted);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new VendorBillsController();

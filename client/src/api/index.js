@@ -219,6 +219,13 @@ export const api = {
     });
     return handleResponse(response);
   },
+  deleteCustomerInvoice: async (id) => {
+    const response = await fetch(`${BACKEND_URL}/customer-invoices/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
   payCustomerInvoice: async (id, paymentData) => {
     const response = await fetch(`${BACKEND_URL}/customer-invoices/${id}/pay`, {
       method: 'POST',
@@ -267,6 +274,13 @@ export const api = {
   confirmVendorBill: async (id) => {
     const response = await fetch(`${BACKEND_URL}/vendor-bills/${id}/confirm`, {
       method: 'POST',
+      headers: getAuthHeaders()
+    });
+    return handleResponse(response);
+  },
+  deleteVendorBill: async (id) => {
+    const response = await fetch(`${BACKEND_URL}/vendor-bills/${id}`, {
+      method: 'DELETE',
       headers: getAuthHeaders()
     });
     return handleResponse(response);

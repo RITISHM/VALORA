@@ -232,6 +232,25 @@ class VendorBillsService {
     return await this.getById(id);
   }
 
+  async delete(id) {
+    const bill = await prisma.vendorBill.findUnique({ where: { id } });
+    if (!bill) {
+      const error = new Error("Bill not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    if (bill.status !== "DRAFT") {
+      const error = new Error("Only DRAFT bills can be deleted");
+      error.statusCode = 400;
+      throw error;
+    }
+    
+    return await prisma.$transaction(async (tx) => {
+      await tx.vendorBillLine.deleteMany({ where: { bill_id: id } });
+      return tx.vendorBill.delete({ where: { id } });
+    });
+  }
+
   async pay(id, { method = "BANK", amount }) {
     const bill = await prisma.vendorBill.findUnique({
       where: { id },

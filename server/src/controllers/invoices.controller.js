@@ -49,6 +49,16 @@ class InvoicesController {
       next(err);
     }
   }
+
+  async delete(req, res, next) {
+    try {
+      const { id } = req.params;
+      const deleted = await invoicesService.delete(id);
+      return res.status(200).json(deleted);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new InvoicesController();
