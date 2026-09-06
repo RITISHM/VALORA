@@ -9,10 +9,11 @@
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, Loader2, Hexagon, Check, X, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Check, X, AlertCircle } from 'lucide-react';
 import { useSignupStore } from '../store/useSignupStore';
 import { BACKEND_URL } from '../api';
 import '../styles/signup.css';
+import valoraLogoTransparent from '../assets/valora-logo-transparent.png';
 
 /**
  * Public Signup Page component for regular enterprise users.
@@ -130,8 +131,7 @@ export default function Signup() {
             <div className="login-brand-panel">
                 <div className="brand-content">
                     <div className="brand-logo">
-                        <Hexagon size={40} className="logo-icon" />
-                        <h1>VALORA</h1>
+                        <img src={valoraLogoTransparent} alt="Valora" className="brand-logo-img" />
                     </div>
                     <div className="brand-messaging">
                         <h2>Join the Platform</h2>

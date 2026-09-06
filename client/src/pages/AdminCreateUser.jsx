@@ -12,6 +12,7 @@ import { Eye, EyeOff, Loader2, ShieldCheck, Check, X, AlertCircle, UserPlus, Arr
 import { validatePassword, validateLoginId, validateEmail } from '../store/useSignupStore';
 import { BACKEND_URL } from '../api';
 import '../styles/signup.css';
+import valoraLogoTransparent from '../assets/valora-logo-transparent.png';
 
 /**
  * Admin view component for provisioning new system users with role assignment.
@@ -246,8 +247,7 @@ export default function AdminCreateUser({ isEmbedded = false }) {
       <div className="login-brand-panel">
         <div className="brand-content">
           <div className="brand-logo">
-            <ShieldCheck size={44} className="logo-icon" />
-            <h1>VALORA</h1>
+            <img src={valoraLogoTransparent} alt="Valora" className="brand-logo-img" />
           </div>
           <div className="brand-messaging">
             <h2>Administration Portal</h2>

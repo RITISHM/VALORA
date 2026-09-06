@@ -8,9 +8,10 @@
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, Loader2, Hexagon } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { BACKEND_URL } from '../api';
 import '../styles/login.css';
+import valoraLogoTransparent from '../assets/valora-logo-transparent.png';
 
 /**
  * Login view component for authenticating registered users.
@@ -94,8 +95,7 @@ export default function Login() {
       <div className="login-brand-panel">
         <div className="brand-content">
           <div className="brand-logo">
-            <Hexagon size={40} className="logo-icon" />
-            <h1>VALORA</h1>
+            <img src={valoraLogoTransparent} alt="Valora" className="brand-logo-img" />
           </div>
           <div className="brand-messaging">
             <h2>Enterprise Resource Clarity</h2>

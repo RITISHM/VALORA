@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import '../styles/layout.css';
 import { useCartStore } from '../store/useCartStore';
+import valoraLogoTransparent from '../assets/valora-logo-transparent.png';
+import valoraLogoDark from '../assets/valora-logo-dark.png';
 
 /**
  * Layout component providing the persistent frame for all authenticated views.
@@ -57,7 +59,10 @@ export default function Layout() {
         <aside className="sidebar">
           <div className="sidebar-header">
             <Link to="/dashboard" className="sidebar-logo-link">
-              <Hexagon size={28} className="sidebar-logo-icon" />
+              <div className="sidebar-logo-wrapper">
+                <img src={valoraLogoDark} alt="Valora" className="sidebar-logo-img logo-dark" />
+                <img src={valoraLogoTransparent} alt="Valora" className="sidebar-logo-img logo-light" />
+              </div>
               <span className="sidebar-brand-name">VALORA</span>
             </Link>
           </div>
